@@ -74,12 +74,13 @@ struct ClassicScoringTests {
 
     // MARK: Сет
 
-    @Test("Сет выигрывается шестью геймами при разнице в два")
+    @Test("Сет выигрывается шестью геймами при разнице в два и обнуляет их")
     func aSetIsWonBySixGamesTwoClear() {
         let state = classicState(gamesWonBy([.us, .us, .us, .us, .us, .us]), setsToWin: 2)
 
         #expect(state.sets == SideCounts(us: 1, them: 0))
         #expect(state.games == SideCounts())
+        #expect(state.outcome == .inProgress)
     }
 
     @Test("При 6:5 сет ещё не выигран, при 7:5 — выигран")
@@ -120,14 +121,6 @@ struct ClassicScoringTests {
         #expect(state.finalScore == SideCounts(us: 7, them: 6))
     }
 
-    @Test("Выигранный сет обнуляет геймы под следующий")
-    func awonSetResetsTheGames() {
-        let state = classicState(gamesWonBy([.us, .us, .us, .us, .us, .us]), setsToWin: 2)
-
-        #expect(state.sets == SideCounts(us: 1, them: 0))
-        #expect(state.games == SideCounts())
-        #expect(state.outcome == .inProgress)
-    }
 
     @Test("При 6:6 в тай-брейке игра продолжается до разницы в два")
     func aTieBreakAtSixAllRunsOn() {
@@ -147,6 +140,13 @@ struct ClassicScoringTests {
         let atSixAll = toSixAll + rallies(.us, 6) + rallies(.them, 6)
 
         #expect(classicState(atSixAll + [.us], goldenPoint: true, setsToWin: 2).sets == SideCounts())
+    }
+
+    @Test("Матч, законченный тай-брейком, не выдаёт его за гейм")
+    func aMatchEndedByATieBreakDoesNotClaimAGame() {
+        let state = classicState(toSixAll + rallies(.us, 7))
+
+        #expect(state.points == .count(SideCounts()))
     }
 
     // MARK: Конец матча
@@ -202,6 +202,27 @@ struct ClassicScoringTests {
         let state = classicState(theirSet + ourSet + ourSet, setsToWin: 2)
 
         #expect(state.outcome == .finished(winner: .us))
+        #expect(state.finalScore == SideCounts(us: 2, them: 1))
+    }
+
+    /// Недоигранный матч (тикет 09) придёт сюда с одним сыгранным сетом или
+    /// вовсе без них. Выбирать уровень по числу сыгранного значило бы выдать
+    /// счёт текущего сета за счёт всего матча.
+    @Test("Незаконченный матч до двух сетов всё равно запоминается сетами")
+    func anUnfinishedLongMatchIsStillRememberedBySets() {
+        let oneSetIn = gamesWonBy([.us, .us, .us, .us, .us, .us]) + gamesWonBy([.them, .them])
+
+        let state = classicState(oneSetIn, setsToWin: 2)
+
+        #expect(state.outcome == .inProgress)
+        #expect(state.games == SideCounts(us: 0, them: 2))
+        #expect(state.finalScore == SideCounts(us: 1, them: 0))
+    }
+
+    @Test("Матч до одного сета запоминается геймами и до того, как кончился")
+    func anUnfinishedShortMatchIsRememberedByGames() {
+        let state = classicState(gamesWonBy([.us, .us, .them]))
+
         #expect(state.finalScore == SideCounts(us: 2, them: 1))
     }
 

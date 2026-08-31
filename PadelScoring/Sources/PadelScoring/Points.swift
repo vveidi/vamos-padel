@@ -13,8 +13,9 @@ public enum Points: Equatable, Sendable {
     case game(SideCounts)
 
     /// Розыгрыши, выигранные сторонами. То, из чего подпись получается, —
-    /// в отличие от самой подписи, годится для арифметики.
-    public var counts: SideCounts {
+    /// в отличие от самой подписи, годится для арифметики. Наружу пакета не
+    /// выходит: снаружи счёт читают глазами, а считают его здесь.
+    var counts: SideCounts {
         switch self {
         case .count(let counts), .game(let counts): counts
         }
@@ -34,7 +35,17 @@ public enum Points: Equatable, Sendable {
         }
     }
 
+    /// Названия очков гейма по порядку. Сама длина лестницы — это правило:
+    /// столько очков выигрывают гейм, а ступенью раньше начинается «ровно».
+    /// Поэтому пороги гейма берутся отсюда, а не пишутся числами в движке:
+    /// иначе правило жило бы в двух местах и разъехалось бы при первой правке.
     private static let ladder = ["0", "15", "30", "40"]
+
+    /// Сколько очков выигрывают гейм, если не дошло до «ровно».
+    static var pointsInGame: Int { ladder.count }
+
+    /// Счёт, с которого начинается «ровно».
+    private static var deuce: Int { ladder.count - 1 }
 
     /// После «ровно» счётчики растут дальше — 4:3, 5:4, — но называется это
     /// всего тремя способами: «ровно», «больше» и «меньше». Поэтому за третьим
@@ -43,10 +54,10 @@ public enum Points: Equatable, Sendable {
         let own = counts[side]
         let other = counts[side.opposite]
 
-        guard own >= 3 && other >= 3 else {
-            return ladder[min(max(own, 0), 3)]
+        guard own >= deuce && other >= deuce else {
+            return ladder[min(max(own, 0), deuce)]
         }
 
-        return own > other ? "AD" : "40"
+        return own > other ? "AD" : ladder[deuce]
     }
 }

@@ -31,7 +31,7 @@ struct ScoreView: View {
     private func zone(for side: Side) -> some View {
         ScoreZone(
             side: side,
-            points: points.label(for: side),
+            pointsLabel: points.label(for: side),
             games: games?[side],
             onRallyWon: onRallyWon)
     }
@@ -40,7 +40,10 @@ struct ScoreView: View {
 /// Половина экрана, принадлежащая одной стороне: её счёт и её касание.
 private struct ScoreZone: View {
     let side: Side
-    let points: String
+
+    /// Именно подпись, а не число: в гейме здесь стоит «40» или «AD».
+    let pointsLabel: String
+
     let games: Int?
     let onRallyWon: (Side) -> Void
 
@@ -53,17 +56,21 @@ private struct ScoreZone: View {
             // и вертикаль не тратится на третий ярус. Общая базовая линия
             // держит их одним счётом, а не двумя числами по соседству.
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(points)
-                    .font(.system(size: 60, weight: .semibold, design: .rounded))
+                // Кегль и предел сжатия — те же, что были у очков до появления
+                // геймов: геймы встали рядом, но ужимать ради них цифру, ради
+                // которой на часы и смотрят, не должны.
+                Text(pointsLabel)
+                    .font(.system(size: 64, weight: .semibold, design: .rounded))
+                    .minimumScaleFactor(0.4)
                     .foregroundStyle(.white)
 
                 if let games {
                     Text("\(games)")
                         .font(.system(size: 22, weight: .medium, design: .rounded))
+                        .minimumScaleFactor(0.5)
                         .foregroundStyle(.white.opacity(0.55))
                 }
             }
-            .minimumScaleFactor(0.4)
             .lineLimit(1)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(background)
@@ -90,9 +97,9 @@ private struct ScoreZone: View {
     }
 
     private var accessibilityValue: String {
-        guard let games else { return points }
+        guard let games else { return pointsLabel }
 
-        return "\(points), геймов \(games)"
+        return "\(pointsLabel), геймов \(games)"
     }
 }
 

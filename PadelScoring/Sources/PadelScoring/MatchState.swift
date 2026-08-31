@@ -15,6 +15,19 @@ public struct MatchState: Equatable, Sendable {
 
     public let outcome: MatchOutcome
 
+    /// Счёт, которым матч запомнится.
+    ///
+    /// В классическом счёте это геймы — «6 : 4», — а не очки: последний
+    /// розыгрыш матча заканчивает гейм и обнуляет их. Матч длиннее одного сета
+    /// запоминается сетами, иначе счёт последнего сета выдавал бы себя за счёт
+    /// всего матча.
+    ///
+    /// Выбирает уровень набор правил, а не сыгранное: у матча, прекращённого
+    /// досрочно (тикет 09), сетов может не быть вовсе, и считать его коротким
+    /// по одному тому, что сетов сыграно мало, значило бы выдать счёт текущего
+    /// сета за счёт матча.
+    public let finalScore: SideCounts
+
     /// Внутренний намеренно: собрать состояние мимо журнала не должен уметь
     /// никто, иначе счёт снова окажется величиной, которую кто-то хранит
     /// рядом с журналом (ADR-0001).
@@ -22,24 +35,14 @@ public struct MatchState: Equatable, Sendable {
         points: Points = .count(SideCounts()),
         games: SideCounts? = nil,
         sets: SideCounts? = nil,
+        finalScore: SideCounts = SideCounts(),
         outcome: MatchOutcome = .inProgress
     ) {
         self.points = points
         self.games = games
         self.sets = sets
+        self.finalScore = finalScore
         self.outcome = outcome
-    }
-
-    /// Счёт, которым матч запомнится.
-    ///
-    /// В классическом счёте это геймы — «6 : 4», — а не очки: последний
-    /// розыгрыш матча заканчивает гейм и обнуляет их. Матч длиннее одного сета
-    /// запоминается сетами, иначе счёт последнего сета выдавал бы себя за счёт
-    /// всего матча.
-    public var finalScore: SideCounts {
-        if let sets, sets.us + sets.them > 1 { return sets }
-
-        return games ?? points.counts
     }
 }
 
@@ -68,11 +71,14 @@ extension MatchState {
             points = points.incrementing(rally.winner)
 
             if points[rally.winner] >= target {
-                return MatchState(points: .count(points), outcome: .finished(winner: rally.winner))
+                return MatchState(
+                    points: .count(points),
+                    finalScore: points,
+                    outcome: .finished(winner: rally.winner))
             }
         }
 
-        return MatchState(points: .count(points))
+        return MatchState(points: .count(points), finalScore: points)
     }
 
     /// Классический счёт: очки складываются в геймы, геймы в сеты, сеты
@@ -94,6 +100,18 @@ extension MatchState {
         var points = SideCounts()
         var isTieBreak = false
 
+        /// Состояние по текущему ходу свёртки. Собрано здесь, а не на каждом
+        /// выходе, чтобы уровень итогового счёта выбирался один раз и не мог
+        /// разойтись между концом матча и его серединой.
+        func state(outcome: MatchOutcome = .inProgress) -> MatchState {
+            MatchState(
+                points: isTieBreak ? .count(points) : .game(points),
+                games: games,
+                sets: sets,
+                finalScore: setsToWin > 1 ? sets : games,
+                outcome: outcome)
+        }
+
         for rally in journal.rallies {
             points = points.incrementing(rally.winner)
 
@@ -113,54 +131,57 @@ extension MatchState {
                 if sets[rally.winner] >= setsToWin {
                     // Геймы намеренно не обнуляются: счётом закончившегося
                     // матча остаётся тот, которым он закончился.
-                    return MatchState(
-                        points: .game(points),
-                        games: games,
-                        sets: sets,
-                        outcome: .finished(winner: rally.winner))
+                    return state(outcome: .finished(winner: rally.winner))
                 }
 
                 games = SideCounts()
                 isTieBreak = false
             } else {
-                isTieBreak = games == SideCounts(us: 6, them: 6)
+                isTieBreak = games == SideCounts(us: gamesInSet, them: gamesInSet)
             }
         }
 
-        return MatchState(
-            points: isTieBreak ? .count(points) : .game(points), games: games, sets: sets)
+        return state()
     }
 
-    /// Гейм выигран при четырёх очках и разнице в два.
+    private static let gamesInSet = 6
+
+    private static let tieBreakPoints = 7
+
+    /// Уровень взят: сторона дошла до порога и оторвалась на два.
+    ///
+    /// Гейм, тай-брейк и сет отличаются только порогом, поэтому правило одно.
+    /// Своё у каждого — лишь то, чем он от этого правила отступает.
+    private static func isWon(by winner: Side, counts: SideCounts, reaching threshold: Int) -> Bool
+    {
+        counts[winner] >= threshold && counts[winner] - counts[winner.opposite] >= 2
+    }
+
+    /// Гейм: четыре очка с разницей в два.
     ///
     /// Золотое очко сводит правило к «первому, кто дошёл до четырёх»: до
     /// «ровно» четвёртое очко и так означает разницу минимум в два, а на самом
     /// «ровно» решает один розыгрыш — тот, что делает счёт 4:3.
     private static func gameIsWon(by winner: Side, points: SideCounts, goldenPoint: Bool) -> Bool {
-        let own = points[winner]
+        if goldenPoint { return points[winner] >= Points.pointsInGame }
 
-        guard own >= 4 else { return false }
-
-        return goldenPoint || own - points[winner.opposite] >= 2
+        return isWon(by: winner, counts: points, reaching: Points.pointsInGame)
     }
 
-    /// Тай-брейк играется до семи очков с разницей в два.
+    /// Тай-брейк: семь очков с разницей в два.
     ///
     /// Золотое очко на него не распространяется: это правило гейма, а тай-брейк
     /// геймом не является.
     private static func tieBreakIsWon(by winner: Side, points: SideCounts) -> Bool {
-        points[winner] >= 7 && points[winner] - points[winner.opposite] >= 2
+        isWon(by: winner, counts: points, reaching: tieBreakPoints)
     }
 
-    /// Сет выигран при шести геймах и разнице в два, а после тай-брейка — со
-    /// счётом 7:6, который под разницу в два не подходит и потому назван
-    /// отдельно. Другого способа получить 7:6 в сете нет.
+    /// Сет: шесть геймов с разницей в два, а после тай-брейка — 7:6, который
+    /// под разницу в два не подходит и потому назван отдельно. Другого способа
+    /// получить 7:6 в сете нет.
     private static func setIsWon(by winner: Side, games: SideCounts) -> Bool {
-        let own = games[winner]
-        let other = games[winner.opposite]
+        if games[winner] == gamesInSet + 1 && games[winner.opposite] == gamesInSet { return true }
 
-        if own == 7 && other == 6 { return true }
-
-        return own >= 6 && own - other >= 2
+        return isWon(by: winner, counts: games, reaching: gamesInSet)
     }
 }

@@ -6,7 +6,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Приложение для часов собирается и запускается на симуляторе watchOS
 - [x] Пакет `PadelScoring` подключён к таргету часов и к таргету iPhone

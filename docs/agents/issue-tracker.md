@@ -9,6 +9,22 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
+- Acceptance criteria are checkbox lines; check them off (`- [x]`) as they are met
+- Dependencies are recorded as a `Blocked by: NN, NN` line near the top, or `None`
+
+## Closing a ticket
+
+A ticket is closed in three moves, all in its own file:
+
+1. Check off every acceptance criterion.
+2. Append a closing note under `## Comments` — what was built, how each criterion was verified, and any decision that departed from the ticket as written.
+3. Set `Status: done`.
+
+Leaving the status at `ready-for-agent` on finished work is the failure mode this
+guards against: it tells the next agent to go build something that already exists.
+
+Run `.scratch/status.sh` to see every ticket's status, its blockers, and which
+tickets are unblocked and free to pick up.
 
 ## When a skill says "publish to the issue tracker"
 

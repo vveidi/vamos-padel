@@ -7,7 +7,10 @@ import SwiftUI
 /// способ закончить матч — набрать N очков.
 struct OutcomeView: View {
     let winner: Side
-    let points: SideCounts
+
+    /// Счёт, которым матч запомнится: геймы в классическом счёте, очки в счёте
+    /// до N очков. Выбирает его набор правил, а не этот экран.
+    let score: SideCounts
 
     var body: some View {
         VStack(spacing: 8) {
@@ -18,7 +21,7 @@ struct OutcomeView: View {
             // Первым идёт счёт победителя — той стороны, которую назвала
             // строка выше. Иначе итог читается задом наперёд: на экране счёта
             // соперники сверху, а тут они шли бы вторыми.
-            Text("\(points[winner]) : \(points[winner.opposite])")
+            Text("\(score[winner]) : \(score[winner.opposite])")
                 .font(.system(size: 44, weight: .semibold, design: .rounded))
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
@@ -35,5 +38,5 @@ struct OutcomeView: View {
 }
 
 #Preview {
-    OutcomeView(winner: .us, points: SideCounts(us: 16, them: 14))
+    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4))
 }

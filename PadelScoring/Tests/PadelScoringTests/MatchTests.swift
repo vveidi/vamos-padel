@@ -19,7 +19,7 @@ struct MatchTests {
         match.record(rallyWonBy: .them)
 
         #expect(match.journal.rallies == [Rally(wonBy: .them)])
-        #expect(match.state.points == SideCounts(us: 0, them: 1))
+        #expect(match.state.points == .count(SideCounts(us: 0, them: 1)))
     }
 
     @Test("После окончания матча розыгрыши не записываются")

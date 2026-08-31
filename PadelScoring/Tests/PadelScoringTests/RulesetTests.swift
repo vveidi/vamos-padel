@@ -11,12 +11,12 @@ struct RulesetTests {
 
     @Test("Классический счёт по умолчанию — один сет с золотым очком")
     func classicDefaults() {
-        #expect(Ruleset.defaultClassic == .classic(sets: 1, goldenPoint: true))
+        #expect(Ruleset.defaultClassic == .classic(setsToWin: 1, goldenPoint: true))
     }
 
     @Test("Наборы правил с разными параметрами различаются")
     func rulesetsWithDifferentParametersDiffer() {
         #expect(Ruleset.pointsTo(target: 16, serveChangesEvery: 4) != .pointsTo(target: 21, serveChangesEvery: 4))
-        #expect(Ruleset.classic(sets: 1, goldenPoint: true) != .classic(sets: 1, goldenPoint: false))
+        #expect(Ruleset.classic(setsToWin: 1, goldenPoint: true) != .classic(setsToWin: 1, goldenPoint: false))
     }
 }

@@ -8,7 +8,7 @@ struct MatchStateTests {
     func emptyJournalScoresNothing() {
         let state = MatchState(ruleset: .defaultPointsTo, journal: RallyJournal())
 
-        #expect(state.points == SideCounts())
+        #expect(state.points == .count(SideCounts()))
         #expect(state.outcome == .inProgress)
     }
 
@@ -16,7 +16,7 @@ struct MatchStateTests {
     func everyRallyScoresForItsWinner() {
         let state = MatchState(ruleset: .defaultPointsTo, journal: journal(.us, .them, .us))
 
-        #expect(state.points == SideCounts(us: 2, them: 1))
+        #expect(state.points == .count(SideCounts(us: 2, them: 1)))
         #expect(state.outcome == .inProgress)
     }
 
@@ -26,7 +26,7 @@ struct MatchStateTests {
             ruleset: .pointsTo(target: 3, serveChangesEvery: 4),
             journal: journal(.us, .them, .us, .us))
 
-        #expect(state.points == SideCounts(us: 3, them: 1))
+        #expect(state.points == .count(SideCounts(us: 3, them: 1)))
         #expect(state.outcome == .finished(winner: .us))
     }
 
@@ -36,7 +36,7 @@ struct MatchStateTests {
             ruleset: .pointsTo(target: 2, serveChangesEvery: 4),
             journal: journal(.us, .us, .them, .them, .them))
 
-        #expect(state.points == SideCounts(us: 2, them: 0))
+        #expect(state.points == .count(SideCounts(us: 2, them: 0)))
         #expect(state.outcome == .finished(winner: .us))
     }
 

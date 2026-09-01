@@ -13,6 +13,9 @@ public struct SideCounts: Equatable, Sendable {
         self.them = them
     }
 
+    /// Обе стороны вместе: сыгранных розыгрышей, геймов или сетов.
+    public var total: Int { us + them }
+
     public subscript(side: Side) -> Int {
         switch side {
         case .us: us

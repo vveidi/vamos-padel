@@ -17,7 +17,11 @@ struct MatchView: View {
         if let winner = state.outcome.winner {
             OutcomeView(winner: winner, score: state.finalScore)
         } else {
-            ScoreView(points: state.points, games: state.games) { side in
+            ScoreView(
+                points: state.points,
+                games: state.games,
+                servingSide: state.servingSide
+            ) { side in
                 match.record(rallyWonBy: side)
             }
         }

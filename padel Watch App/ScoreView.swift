@@ -18,6 +18,8 @@ struct ScoreView: View {
     /// одними очками.
     let games: SideCounts?
 
+    let servingSide: Side
+
     let onRallyWon: (Side) -> Void
 
     var body: some View {
@@ -33,6 +35,7 @@ struct ScoreView: View {
             side: side,
             pointsLabel: points.label(for: side),
             games: games?[side],
+            isServing: side == servingSide,
             onRallyWon: onRallyWon)
     }
 }
@@ -45,6 +48,7 @@ private struct ScoreZone: View {
     let pointsLabel: String
 
     let games: Int?
+    let isServing: Bool
     let onRallyWon: (Side) -> Void
 
     var body: some View {
@@ -73,6 +77,17 @@ private struct ScoreZone: View {
             }
             .lineLimit(1)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Точка стоит у края, а не в строке со счётом: иначе цифра
+            // съезжала бы с центра зоны при каждом переходе подачи, и взгляд
+            // ловил бы её заново. Место под точку занято всегда — видимость
+            // меняется, разметка нет.
+            .overlay(alignment: .leading) {
+                Circle()
+                    .frame(width: 10, height: 10)
+                    .padding(.leading, 12)
+                    .foregroundStyle(.white)
+                    .opacity(isServing ? 0.9 : 0)
+            }
             .background(background)
             // Иначе касание ловит только сам счёт, а не вся половина.
             .contentShape(Rectangle())
@@ -97,16 +112,23 @@ private struct ScoreZone: View {
     }
 
     private var accessibilityValue: String {
-        guard let games else { return pointsLabel }
+        var value = pointsLabel
 
-        return "\(pointsLabel), геймов \(games)"
+        if let games { value += ", геймов \(games)" }
+        if isServing { value += ", подача" }
+
+        return value
     }
 }
 
 #Preview("Классический счёт") {
-    ScoreView(points: .game(SideCounts(us: 3, them: 2)), games: SideCounts(us: 4, them: 5)) { _ in }
+    ScoreView(
+        points: .game(SideCounts(us: 3, them: 2)),
+        games: SideCounts(us: 4, them: 5),
+        servingSide: .us
+    ) { _ in }
 }
 
 #Preview("Счёт до N очков") {
-    ScoreView(points: .count(SideCounts(us: 12, them: 9)), games: nil) { _ in }
+    ScoreView(points: .count(SideCounts(us: 12, them: 9)), games: nil, servingSide: .them) { _ in }
 }

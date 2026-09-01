@@ -13,6 +13,13 @@ public struct MatchState: Equatable, Sendable {
     /// Выигранные сеты, `nil` там, где сетов нет.
     public let sets: SideCounts?
 
+    /// Сторона, которая подаёт в следующем розыгрыше.
+    ///
+    /// Как и счёт, вычисляется из журнала, набора правил и первой подачи, а не
+    /// хранится рядом с ними: иначе отмена розыгрыша (тикет 05) обязана была бы
+    /// откатывать её отдельно и однажды этого не сделала бы.
+    public let servingSide: Side
+
     public let outcome: MatchOutcome
 
     /// Счёт, которым матч запомнится.
@@ -36,24 +43,39 @@ public struct MatchState: Equatable, Sendable {
         games: SideCounts? = nil,
         sets: SideCounts? = nil,
         finalScore: SideCounts = SideCounts(),
+        servingSide: Side = .us,
         outcome: MatchOutcome = .inProgress
     ) {
         self.points = points
         self.games = games
         self.sets = sets
         self.finalScore = finalScore
+        self.servingSide = servingSide
         self.outcome = outcome
     }
 }
 
 extension MatchState {
-    /// Движок: чистая функция от набора правил и журнала к состоянию.
-    public init(ruleset: Ruleset, journal: RallyJournal) {
+    /// Движок: чистая функция от набора правил, журнала и первой подачи
+    /// к состоянию.
+    ///
+    /// Первая подача по умолчанию наша: до стартового экрана (тикет 06)
+    /// спросить её негде, а молчать о подаче на корте хуже, чем предположить
+    /// самое частое.
+    public init(ruleset: Ruleset, journal: RallyJournal, firstServer: Side = .us) {
         switch ruleset {
-        case .pointsTo(let target, _):
-            self = .pointsTo(target: target, journal: journal)
+        case .pointsTo(let target, let serveChangesEvery):
+            self = .pointsTo(
+                target: target,
+                serveChangesEvery: serveChangesEvery,
+                firstServer: firstServer,
+                journal: journal)
         case .classic(let setsToWin, let goldenPoint):
-            self = .classic(setsToWin: setsToWin, goldenPoint: goldenPoint, journal: journal)
+            self = .classic(
+                setsToWin: setsToWin,
+                goldenPoint: goldenPoint,
+                firstServer: firstServer,
+                journal: journal)
         }
     }
 
@@ -64,21 +86,33 @@ extension MatchState {
     /// «до одного очка»: выигрывает тот, кто взял первый розыгрыш. Осмысленную
     /// нижнюю границу N задаёт стартовый экран (тикет 06), но и бессмысленное
     /// значение не должно ни ронять приложение, ни делать матч бесконечным.
-    private static func pointsTo(target: Int, journal: RallyJournal) -> MatchState {
+    /// Подача здесь переходит каждые X розыгрышей. X приходит извне (тикет 06)
+    /// и потому подпирается снизу: при нуле подача не «не менялась бы», а
+    /// уронила бы приложение делением на ноль.
+    private static func pointsTo(
+        target: Int, serveChangesEvery: Int, firstServer: Side, journal: RallyJournal
+    ) -> MatchState {
+        let serveChangesEvery = max(serveChangesEvery, 1)
+
         var points = SideCounts()
+
+        func state(outcome: MatchOutcome = .inProgress) -> MatchState {
+            MatchState(
+                points: .count(points),
+                finalScore: points,
+                servingSide: firstServer.alternating(points.total / serveChangesEvery),
+                outcome: outcome)
+        }
 
         for rally in journal.rallies {
             points = points.incrementing(rally.winner)
 
             if points[rally.winner] >= target {
-                return MatchState(
-                    points: .count(points),
-                    finalScore: points,
-                    outcome: .finished(winner: rally.winner))
+                return state(outcome: .finished(winner: rally.winner))
             }
         }
 
-        return MatchState(points: .count(points), finalScore: points)
+        return state()
     }
 
     /// Классический счёт: очки складываются в геймы, геймы в сеты, сеты
@@ -91,7 +125,7 @@ extension MatchState {
     /// Число сетов приходит извне (тикет 06) и потому подпирается снизу: матч
     /// до нуля сетов невозможно ни начать, ни закончить.
     private static func classic(
-        setsToWin: Int, goldenPoint: Bool, journal: RallyJournal
+        setsToWin: Int, goldenPoint: Bool, firstServer: Side, journal: RallyJournal
     ) -> MatchState {
         let setsToWin = max(setsToWin, 1)
 
@@ -99,6 +133,10 @@ extension MatchState {
         var games = SideCounts()
         var points = SideCounts()
         var isTieBreak = false
+
+        /// Геймы за весь матч, а не за текущий сет: подача ходит по границе
+        /// гейма и конца сета не замечает, а `games` обнуляется вместе с ним.
+        var gamesPlayed = 0
 
         /// Состояние по текущему ходу свёртки. Собрано здесь, а не на каждом
         /// выходе, чтобы уровень итогового счёта выбирался один раз и не мог
@@ -109,7 +147,17 @@ extension MatchState {
                 games: games,
                 sets: sets,
                 finalScore: setsToWin > 1 ? sets : games,
+                servingSide: firstServer.alternating(gamesPlayed + tieBreakServeChanges),
                 outcome: outcome)
+        }
+
+        /// Переходы подачи внутри тай-брейка. Тай-брейк — единственное место,
+        /// где подача ходит не по границе гейма: первый розыгрыш подаёт тот,
+        /// чья очередь, дальше меняются каждые два. Без этого индикатор врал бы
+        /// все тринадцать розыгрышей тай-брейка — ровно там, где на него и
+        /// смотрят.
+        var tieBreakServeChanges: Int {
+            isTieBreak ? (points.total + 1) / 2 : 0
         }
 
         for rally in journal.rallies {
@@ -124,6 +172,7 @@ extension MatchState {
 
             points = SideCounts()
             games = games.incrementing(rally.winner)
+            gamesPlayed += 1
 
             if setIsWon(by: rally.winner, games: games) {
                 sets = sets.incrementing(rally.winner)

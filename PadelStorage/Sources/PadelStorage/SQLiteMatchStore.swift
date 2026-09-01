@@ -46,22 +46,26 @@ public final class SQLiteMatchStore: MatchStore {
         let ruleset = Self.columns(of: saved.match.ruleset)
 
         try dbQueue.write { db in
-            // Обновляется только время последнего розыгрыша: всё остальное в
-            // строке матча — набор правил, первая подача, начало — задаётся
-            // при первом розыгрыше и потом неизменно. Матч, у которого посреди
-            // игры поменялись правила, — это другой матч.
+            // Обновляются только время последнего розыгрыша и пометка
+            // недоигранности — ровно то, что меняется по ходу матча. Всё
+            // остальное в строке — набор правил, первая подача, начало —
+            // задаётся при первом розыгрыше и потом неизменно: матч, у
+            // которого посреди игры поменялись правила, — это другой матч.
             try db.execute(
                 sql: """
                     INSERT INTO match
                         (id, ruleset, setsToWin, goldenPoint, target, serveChangesEvery,
-                         firstServer, startedAt, lastRallyAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET lastRallyAt = excluded.lastRallyAt
+                         firstServer, startedAt, lastRallyAt, abandoned)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        lastRallyAt = excluded.lastRallyAt,
+                        abandoned = excluded.abandoned
                     """,
                 arguments: [
                     id, ruleset.kind, ruleset.setsToWin, ruleset.goldenPoint,
                     ruleset.target, ruleset.serveChangesEvery,
                     saved.match.firstServer.rawValue, saved.startedAt, saved.lastRallyAt,
+                    saved.match.isAbandoned,
                 ])
 
             let rallies = saved.match.journal.rallies
@@ -89,12 +93,13 @@ public final class SQLiteMatchStore: MatchStore {
     public func matchInProgress() throws -> SavedMatch? {
         try dbQueue.read { db in
             // Спрашивается последний матч, а не первый попавшийся незакончен-
-            // ный: если последний доигран, продолжать нечего, а брошенный
+            // ный: если последний доигран, продолжать нечего, а оставленный
             // месяц назад на 3:2 не должен воскресать посреди корта.
             //
-            // Незавершённость не хранится колонкой, а считается движком из
-            // журнала: колонка — это состояние рядом с журналом, то самое,
-            // что однажды с ним разойдётся (ADR-0001).
+            // Идёт матч или нет, спрашивается у движка, а не у колонки:
+            // счёт рядом с журналом — то самое состояние, которое однажды
+            // с ним разойдётся (ADR-0001). Колонка есть только у пометки
+            // недоигранности, и ровно потому, что её неоткуда посчитать.
             let row = try Row.fetchOne(
                 db,
                 sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1")
@@ -103,7 +108,7 @@ public final class SQLiteMatchStore: MatchStore {
 
             let saved = try Self.savedMatch(row: row, db: db)
 
-            return saved.match.state.outcome.isFinished ? nil : saved
+            return saved.match.state.outcome.isOver ? nil : saved
         }
     }
 
@@ -139,7 +144,8 @@ public final class SQLiteMatchStore: MatchStore {
         let match = Match(
             ruleset: try ruleset(from: row),
             firstServer: try side(named: row["firstServer"]),
-            journal: RallyJournal(rallies))
+            journal: RallyJournal(rallies),
+            isAbandoned: row["abandoned"])
 
         return SavedMatch(
             id: uuid,

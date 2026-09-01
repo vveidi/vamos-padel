@@ -19,7 +19,7 @@ struct MigrationTests {
     @Test("Схема версионируется с первой версии, и история версий не переписывается")
     func migrationsAreAppendOnly() {
         #expect(
-            MatchDatabase.migrator.migrations == ["v1"],
+            MatchDatabase.migrator.migrations == ["v1", "v2"],
             "версии можно только дописывать в конец — выпущенная миграция неприкосновенна")
     }
 
@@ -28,10 +28,10 @@ struct MigrationTests {
     /// голым SQL намеренно — так её и писала бы та версия, а не сегодняшнее
     /// хранилище, которого тогда не существовало.
     ///
-    /// Пока версия схемы одна, «предыдущая» и «первая» — одно и то же, и
-    /// проверка держится на том, что чтение не зависит от сегодняшней записи.
-    /// С появлением v2 тест начнёт делать ровно то, что обещает названием, не
-    /// поменяв ни строки: `migrations.first` останется v1.
+    /// Фикстура не знает про колонку недоигранности — её в v1 не было, — и
+    /// именно поэтому проверяет то, что обещает названием: матч, записанный
+    /// до появления пометки, должен дочитываться доигрываемым, а не пропадать
+    /// с корта.
     @Test("База, оставшаяся на предыдущей версии схемы, дочитывается после миграций")
     func aDatabaseLeftAtThePreviousVersionMigrates() throws {
         let queue = try DatabaseQueue()
@@ -70,6 +70,7 @@ struct MigrationTests {
             restored.match.journal.rallies
                 == [Rally(wonBy: .us), Rally(wonBy: .them), Rally(wonBy: .us)])
         #expect(restored.duration == 60)
+        #expect(restored.match.isAbandoned == false)
     }
 
     @Test("Миграции применяются к уже мигрированной базе не повторно")

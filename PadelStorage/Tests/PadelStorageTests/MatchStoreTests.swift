@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import PadelScoring
 import Testing
 
@@ -170,5 +171,84 @@ struct MatchStoreTests {
         let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
 
         #expect(try afterRelaunch.matchInProgress() == saved)
+    }
+
+    /// Пометка недоигранности — единственное, что о матче хранится колонкой, и
+    /// проверяется она через то, ради чего существует: до прекращения матч
+    /// предлагается продолжить, после — нет. Проверка ловит обе стороны рейса
+    /// сразу. Не запишись пометка — матч вернулся бы из базы недоигранным
+    /// наполовину и снова попал бы на корт; не прочитайся — то же самое.
+    ///
+    /// Прекращение приходит после того, как матч уже записан первым
+    /// розыгрышем, поэтому пометка обязана доезжать обновлением строки, а не
+    /// одной только вставкой.
+    @Test("Прекращённый матч сохраняется недоигранным и продолжать не предлагается")
+    func anAbandonedMatchIsSavedAndNotOfferedForContinuation() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        var saved = SavedMatch.played([.us, .them, .us])
+
+        try store.save(saved)
+
+        #expect(try store.matchInProgress() == saved)
+
+        saved.match.abandon()
+        try store.save(saved)
+
+        #expect(saved.match.state.outcome == .abandoned)
+        #expect(try store.matchInProgress() == nil)
+    }
+
+    /// Перезапуск здесь не украшение: без него пометку было бы видно и из
+    /// строки, которую никто не перечитывал.
+    @Test("Пометка недоигранности переживает перезапуск приложения")
+    func theAbandonedMarkSurvivesARelaunch() throws {
+        let database = "abandoned-\(UUID().uuidString)"
+        let store = try SQLiteMatchStore.inMemory(named: database)
+        var saved = SavedMatch.played([.us, .them, .us])
+        try store.save(saved)
+
+        // До прекращения новое соединение к той же базе матч видит и
+        // предлагает продолжить — иначе `nil` ниже ничего не доказывал бы.
+        #expect(try SQLiteMatchStore.inMemory(named: database).matchInProgress() == saved)
+
+        saved.match.abandon()
+        try store.save(saved)
+
+        #expect(try SQLiteMatchStore.inMemory(named: database).matchInProgress() == nil)
+    }
+
+    /// Журнал недоигранного матча — то, ради чего матч вообще сохраняется: час
+    /// игры не должен пропасть от того, что кончилось время корта. Читается он
+    /// здесь голым SQL, а не хранилищем, потому что продолжать недоигранный
+    /// матч не предлагается, а API для чтения законченных появится вместе с
+    /// тем, кому оно нужно, — историей на телефоне (тикеты 10, 11).
+    @Test("Недоигранный матч сохраняется вместе со своим журналом")
+    func anAbandonedMatchKeepsItsJournal() throws {
+        let database = "journal-\(UUID().uuidString)"
+
+        // Соединение открыто до хранилища и живёт дольше него: база в памяти
+        // существует, пока к ней кто-то подключён.
+        let queue = try DatabaseQueue(named: database)
+
+        var saved = SavedMatch.played([.us, .them, .us, .us])
+        saved.match.abandon()
+
+        try SQLiteMatchStore.inMemory(named: database).save(saved)
+
+        let id = saved.id.uuidString
+
+        let (winners, abandoned) = try queue.read { db in
+            (
+                try String.fetchAll(
+                    db,
+                    sql: "SELECT winner FROM rally WHERE matchId = ? ORDER BY ordinal",
+                    arguments: [id]),
+                try Bool.fetchOne(
+                    db, sql: "SELECT abandoned FROM match WHERE id = ?", arguments: [id])
+            )
+        }
+
+        #expect(winners == ["us", "them", "us", "us"])
+        #expect(abandoned == true)
     }
 }

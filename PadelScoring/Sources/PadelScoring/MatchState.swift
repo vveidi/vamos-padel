@@ -30,7 +30,7 @@ public struct MatchState: Equatable, Sendable {
     /// всего матча.
     ///
     /// Выбирает уровень набор правил, а не сыгранное: у матча, прекращённого
-    /// досрочно (тикет 09), сетов может не быть вовсе, и считать его коротким
+    /// досрочно, сетов может не быть вовсе, и считать его коротким
     /// по одному тому, что сетов сыграно мало, значило бы выдать счёт текущего
     /// сета за счёт матча.
     public let finalScore: SideCounts
@@ -52,6 +52,21 @@ public struct MatchState: Equatable, Sendable {
         self.finalScore = finalScore
         self.servingSide = servingSide
         self.outcome = outcome
+    }
+
+    /// То же состояние, но с исходом недоигранного матча.
+    ///
+    /// Счёт остаётся тем, на котором матч прекратили: недоигранность — это
+    /// про исход, а не про счёт. Меняет исход только матч (он один знает, что
+    /// его прекратили), поэтому наружу пакета свойство не выходит.
+    var abandoned: MatchState {
+        MatchState(
+            points: points,
+            games: games,
+            sets: sets,
+            finalScore: finalScore,
+            servingSide: servingSide,
+            outcome: .abandoned)
     }
 }
 

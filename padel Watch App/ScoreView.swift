@@ -22,6 +22,8 @@ struct ScoreView: View {
 
     let onRallyWon: (Side) -> Void
 
+    let onUndo: () -> Void
+
     var body: some View {
         VStack(spacing: 2) {
             zone(for: .them)
@@ -36,7 +38,8 @@ struct ScoreView: View {
             pointsLabel: points.label(for: side),
             games: games?[side],
             isServing: side == servingSide,
-            onRallyWon: onRallyWon)
+            onRallyWon: onRallyWon,
+            onUndo: onUndo)
     }
 }
 
@@ -50,51 +53,67 @@ private struct ScoreZone: View {
     let games: Int?
     let isServing: Bool
     let onRallyWon: (Side) -> Void
+    let onUndo: () -> Void
 
     var body: some View {
-        Button {
-            onRallyWon(side)
-        } label: {
-            // Геймы стоят рядом с очками, а не отдельной строкой посреди
-            // экрана: половина остаётся одним предметом, на который смотрят,
-            // и вертикаль не тратится на третий ярус. Общая базовая линия
-            // держит их одним счётом, а не двумя числами по соседству.
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                // Кегль и предел сжатия — те же, что были у очков до появления
-                // геймов: геймы встали рядом, но ужимать ради них цифру, ради
-                // которой на часы и смотрят, не должны.
-                Text(pointsLabel)
-                    .font(.system(size: 64, weight: .semibold, design: .rounded))
-                    .minimumScaleFactor(0.4)
-                    .foregroundStyle(.white)
+        content
+            // Касание отдаёт очко, долгое нажатие отменяет последнее.
+            // Долгое выбрано за то, чем отличается от промаха: мокрая ладонь
+            // задевает экран мимоходом, а полсекунды удержания — намерение.
+            // Жест держится на `onTapGesture`, а не на `Button`: кнопка
+            // срабатывает на отпускании и отдала бы очко ещё и после отмены.
+            //
+            // Спека (раздел «Экран счёта») оставляет конкретный жест
+            // прототипу — проверять его надо на потной руке, а не в
+            // симуляторе. До тех пор выбор предварительный.
+            .onTapGesture { onRallyWon(side) }
+            .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
+            // Кнопкой зона перестала быть, поэтому всё, что кнопка давала
+            // VoiceOver, возвращается руками.
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityValue(accessibilityValue)
+            .accessibilityAction(named: "Отменить последний розыгрыш", onUndo)
+    }
 
-                if let games {
-                    Text("\(games)")
-                        .font(.system(size: 22, weight: .medium, design: .rounded))
-                        .minimumScaleFactor(0.5)
-                        .foregroundStyle(.white.opacity(0.55))
-                }
+    private var content: some View {
+        // Геймы стоят рядом с очками, а не отдельной строкой посреди
+        // экрана: половина остаётся одним предметом, на который смотрят,
+        // и вертикаль не тратится на третий ярус. Общая базовая линия
+        // держит их одним счётом, а не двумя числами по соседству.
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            // Кегль и предел сжатия — те же, что были у очков до появления
+            // геймов: геймы встали рядом, но ужимать ради них цифру, ради
+            // которой на часы и смотрят, не должны.
+            Text(pointsLabel)
+                .font(.system(size: 64, weight: .semibold, design: .rounded))
+                .minimumScaleFactor(0.4)
+                .foregroundStyle(.white)
+
+            if let games {
+                Text("\(games)")
+                    .font(.system(size: 22, weight: .medium, design: .rounded))
+                    .minimumScaleFactor(0.5)
+                    .foregroundStyle(.white.opacity(0.55))
             }
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // Точка стоит у края, а не в строке со счётом: иначе цифра
-            // съезжала бы с центра зоны при каждом переходе подачи, и взгляд
-            // ловил бы её заново. Место под точку занято всегда — видимость
-            // меняется, разметка нет.
-            .overlay(alignment: .leading) {
-                Circle()
-                    .frame(width: 10, height: 10)
-                    .padding(.leading, 12)
-                    .foregroundStyle(.white)
-                    .opacity(isServing ? 0.9 : 0)
-            }
-            .background(background)
-            // Иначе касание ловит только сам счёт, а не вся половина.
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityValue(accessibilityValue)
+        .lineLimit(1)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Точка стоит у края, а не в строке со счётом: иначе цифра
+        // съезжала бы с центра зоны при каждом переходе подачи, и взгляд
+        // ловил бы её заново. Место под точку занято всегда — видимость
+        // меняется, разметка нет.
+        .overlay(alignment: .leading) {
+            Circle()
+                .frame(width: 10, height: 10)
+                .padding(.leading, 12)
+                .foregroundStyle(.white)
+                .opacity(isServing ? 0.9 : 0)
+        }
+        .background(background)
+    // Иначе жест ловит только сам счёт, а не вся половина.
+    .contentShape(Rectangle())
     }
 
     private var background: Color {
@@ -125,10 +144,16 @@ private struct ScoreZone: View {
     ScoreView(
         points: .game(SideCounts(us: 3, them: 2)),
         games: SideCounts(us: 4, them: 5),
-        servingSide: .us
-    ) { _ in }
+        servingSide: .us,
+        onRallyWon: { _ in },
+        onUndo: {})
 }
 
 #Preview("Счёт до N очков") {
-    ScoreView(points: .count(SideCounts(us: 12, them: 9)), games: nil, servingSide: .them) { _ in }
+    ScoreView(
+        points: .count(SideCounts(us: 12, them: 9)),
+        games: nil,
+        servingSide: .them,
+        onRallyWon: { _ in },
+        onUndo: {})
 }

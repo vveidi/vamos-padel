@@ -12,6 +12,8 @@ struct OutcomeView: View {
     /// до N очков. Выбирает его набор правил, а не этот экран.
     let score: SideCounts
 
+    let onUndo: () -> Void
+
     var body: some View {
         VStack(spacing: 8) {
             Text(headline)
@@ -26,7 +28,14 @@ struct OutcomeView: View {
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal)
+        .contentShape(Rectangle())
+        // Тот же жест, что на экране счёта. Без него матч, законченный
+        // ошибочным касанием, отменить нечем: этот экран занимает место того,
+        // на котором жест живёт.
+        .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
+        .accessibilityAction(named: "Отменить последний розыгрыш", onUndo)
     }
 
     private var headline: String {
@@ -38,5 +47,5 @@ struct OutcomeView: View {
 }
 
 #Preview {
-    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4))
+    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4), onUndo: {})
 }

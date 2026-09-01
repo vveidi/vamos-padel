@@ -126,6 +126,7 @@
 			name = "padel Watch App";
 			packageProductDependencies = (
 				AA01A000000000000000000C /* PadelScoring */,
+				AA01A000000000000000001C /* PadelStorage */,
 			);
 			productName = "padel Watch App";
 			productReference = AA01A0000000000000000001 /* padel Watch App.app */;
@@ -151,6 +152,7 @@
 			name = padel;
 			packageProductDependencies = (
 				AA01A000000000000000000B /* PadelScoring */,
+				AA01A000000000000000001B /* PadelStorage */,
 			);
 			productName = padel;
 			productReference = DDFEE2E13045B80C00C7278D /* padel.app */;
@@ -185,6 +187,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				AA01A000000000000000000A /* XCLocalSwiftPackageReference "PadelScoring" */,
+				AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DDFEE2E23045B80C00C7278D /* Products */;
@@ -528,6 +531,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = PadelScoring;
 		};
+		AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PadelStorage;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -538,6 +545,14 @@
 		AA01A000000000000000000C /* PadelScoring */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PadelScoring;
+		};
+		AA01A000000000000000001B /* PadelStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PadelStorage;
+		};
+		AA01A000000000000000001C /* PadelStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PadelStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

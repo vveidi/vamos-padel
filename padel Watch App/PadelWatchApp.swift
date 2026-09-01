@@ -4,7 +4,7 @@ import SwiftUI
 struct PadelWatchApp: App {
     var body: some Scene {
         WindowGroup {
-            MatchView()
+            MatchView(workout: HealthKitWorkout())
         }
     }
 }

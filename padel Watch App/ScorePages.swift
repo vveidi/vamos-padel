@@ -20,8 +20,8 @@ struct ScorePages: View {
     let onUndo: () -> Void
 
     /// Прекращает матч досрочно. Подтверждение спрашивает страница управления,
-    /// поэтому сюда приходит уже решённое.
-    let onEnd: () -> Void
+    /// поэтому наружу уходит уже решённое.
+    let onAbandon: () -> Void
 
     @State private var page = Page.score
 
@@ -32,7 +32,7 @@ struct ScorePages: View {
 
     var body: some View {
         TabView(selection: $page) {
-            MatchControls(onEnd: onEnd)
+            MatchControls(onAbandon: onAbandon)
                 .tag(Page.controls)
 
             ScoreView(
@@ -50,7 +50,7 @@ struct ScorePages: View {
 /// Страница управления: единственное, что можно сделать с идущим матчем
 /// помимо счёта, — прекратить его.
 private struct MatchControls: View {
-    let onEnd: () -> Void
+    let onAbandon: () -> Void
 
     @State private var isConfirming = false
 
@@ -69,7 +69,7 @@ private struct MatchControls: View {
             isPresented: $isConfirming,
             titleVisibility: .visible
         ) {
-            Button("Завершить", role: .destructive, action: onEnd)
+            Button("Завершить", role: .destructive, action: onAbandon)
             Button("Играть дальше", role: .cancel) {}
         } message: {
             Text("Матч сохранится недоигранным.")
@@ -84,5 +84,5 @@ private struct MatchControls: View {
         servingSide: .us,
         onRallyWon: { _ in },
         onUndo: {},
-        onEnd: {})
+        onAbandon: {})
 }

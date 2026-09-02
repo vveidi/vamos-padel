@@ -112,6 +112,17 @@ public final class SQLiteMatchStore: MatchStore {
         }
     }
 
+    public func match(id: UUID) throws -> SavedMatch? {
+        try dbQueue.read { db in
+            let row = try Row.fetchOne(
+                db, sql: "SELECT * FROM match WHERE id = ?", arguments: [id.uuidString])
+
+            guard let row else { return nil }
+
+            return try Self.savedMatch(row: row, db: db)
+        }
+    }
+
     /// Набор правил по колонкам. Половина колонок пуста у каждого варианта —
     /// какая именно, сторожит проверка в схеме.
     private static func columns(

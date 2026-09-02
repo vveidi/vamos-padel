@@ -1,5 +1,4 @@
 import Foundation
-import GRDB
 import PadelScoring
 import Testing
 
@@ -207,48 +206,50 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .them, .us])
         try store.save(saved)
 
-        // До прекращения новое соединение к той же базе матч видит и
-        // предлагает продолжить — иначе `nil` ниже ничего не доказывал бы.
-        #expect(try SQLiteMatchStore.inMemory(named: database).matchInProgress() == saved)
+        saved.match.abandon()
+        try store.save(saved)
+
+        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+
+        #expect(try afterRelaunch.match(id: saved.id) == saved)
+        #expect(try afterRelaunch.matchInProgress() == nil)
+    }
+
+    /// Круговой рейс недоигранного матча — то, что спека требует от Шва 2:
+    /// «сохранённый матч читается обратно с тем же журналом, набором правил и
+    /// пометкой недоигранности». Сравнение целиком проверяет все три сразу, а
+    /// журнал здесь главное: час игры не должен пропасть от того, что
+    /// кончилось время корта.
+    ///
+    /// Прекращение приходит после того, как матч уже записан первым
+    /// розыгрышем, поэтому пометка обязана доезжать обновлением строки, а не
+    /// одной только вставкой.
+    @Test(
+        "Недоигранный матч читается обратно с журналом, набором правил и пометкой",
+        arguments: [
+            Ruleset.classic(setsToWin: 2, goldenPoint: true),
+            .pointsTo(target: 16, serveChangesEvery: 4),
+        ])
+    func anAbandonedMatchReadsBackUnchanged(ruleset: Ruleset) throws {
+        let store = try SQLiteMatchStore.inMemory()
+        var saved = SavedMatch.played([.us, .them, .us, .us], ruleset: ruleset)
+        try store.save(saved)
 
         saved.match.abandon()
         try store.save(saved)
 
-        #expect(try SQLiteMatchStore.inMemory(named: database).matchInProgress() == nil)
+        let restored = try #require(try store.match(id: saved.id))
+
+        #expect(restored == saved)
+        #expect(restored.match.isAbandoned)
+        #expect(
+            restored.match.journal.rallies
+                == [Rally(wonBy: .us), Rally(wonBy: .them), Rally(wonBy: .us), Rally(wonBy: .us)])
+        #expect(restored.match.ruleset == ruleset)
     }
 
-    /// Журнал недоигранного матча — то, ради чего матч вообще сохраняется: час
-    /// игры не должен пропасть от того, что кончилось время корта. Читается он
-    /// здесь голым SQL, а не хранилищем, потому что продолжать недоигранный
-    /// матч не предлагается, а API для чтения законченных появится вместе с
-    /// тем, кому оно нужно, — историей на телефоне (тикеты 10, 11).
-    @Test("Недоигранный матч сохраняется вместе со своим журналом")
-    func anAbandonedMatchKeepsItsJournal() throws {
-        let database = "journal-\(UUID().uuidString)"
-
-        // Соединение открыто до хранилища и живёт дольше него: база в памяти
-        // существует, пока к ней кто-то подключён.
-        let queue = try DatabaseQueue(named: database)
-
-        var saved = SavedMatch.played([.us, .them, .us, .us])
-        saved.match.abandon()
-
-        try SQLiteMatchStore.inMemory(named: database).save(saved)
-
-        let id = saved.id.uuidString
-
-        let (winners, abandoned) = try queue.read { db in
-            (
-                try String.fetchAll(
-                    db,
-                    sql: "SELECT winner FROM rally WHERE matchId = ? ORDER BY ordinal",
-                    arguments: [id]),
-                try Bool.fetchOne(
-                    db, sql: "SELECT abandoned FROM match WHERE id = ?", arguments: [id])
-            )
-        }
-
-        #expect(winners == ["us", "them", "us", "us"])
-        #expect(abandoned == true)
+    @Test("Матча, которого не записывали, в хранилище нет")
+    func anUnknownMatchIsNotFound() throws {
+        #expect(try SQLiteMatchStore.inMemory().match(id: UUID()) == nil)
     }
 }

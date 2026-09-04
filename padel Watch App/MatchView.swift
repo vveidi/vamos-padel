@@ -1,5 +1,6 @@
 import PadelScoring
 import PadelStorage
+import PadelSync
 import SwiftUI
 import os
 
@@ -11,8 +12,9 @@ import os
 /// есть.
 ///
 /// Здесь же он обрастает тем, ради чего переживает полтора часа на корте:
-/// тренировкой, которая идёт ровно столько же, сколько матч, и записью в
-/// хранилище после каждого розыгрыша.
+/// тренировкой, которая идёт ровно столько же, сколько матч, записью в
+/// хранилище после каждого розыгрыша и отправкой на телефон, как только он
+/// кончился.
 struct MatchView: View {
     /// Матч и время, когда он игрался.
     @State private var saved: SavedMatch
@@ -21,22 +23,27 @@ struct MatchView: View {
 
     @State private var workout: any Workout
 
+    private let delivery: MatchDelivery
+
     /// Уводит с матча на стартовый экран. Зовётся только с экрана итога:
     /// начать новый матч посреди идущего — это его прекратить, а для этого
     /// есть страница управления.
     private let onFinish: () -> Void
 
-    /// Хранилище и тренировка приходят снаружи, а не создаются здесь: превью
-    /// не должно ни просить доступ к здоровью, ни заводить базу.
+    /// Хранилище, тренировка и доставка приходят снаружи, а не создаются
+    /// здесь: превью не должно ни просить доступ к здоровью, ни заводить базу,
+    /// ни поднимать сессию к телефону.
     init(
         match: SavedMatch,
         store: any MatchStore,
         workout: any Workout,
+        delivery: MatchDelivery,
         onFinish: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         self.store = store
         _workout = State(initialValue: workout)
+        self.delivery = delivery
         self.onFinish = onFinish
     }
 
@@ -129,6 +136,17 @@ struct MatchView: View {
         } catch {
             logger.error("Матч не сохранён: \(error.localizedDescription)")
         }
+
+        // Матч кончился — его пора везти на телефон, и игрок для этого ничего
+        // не нажимает. Спрашивается это здесь, а не в самой доставке, только
+        // ради того, чтобы не ходить в базу за очередью после каждого очка:
+        // пока матч идёт, очередь заведомо пуста.
+        //
+        // Отправка идёт после записи и не раньше: очередь на доставку — это
+        // само хранилище, и уехать может только записанное.
+        if saved.match.state.outcome.isOver {
+            delivery.deliverPending()
+        }
     }
 }
 
@@ -137,6 +155,7 @@ struct MatchView: View {
         match: SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now),
         store: NoMatchStore(),
         workout: NoWorkout(),
+        delivery: MatchDelivery(store: NoMatchStore(), sender: NoMatchTransport()),
         onFinish: {})
 }
 

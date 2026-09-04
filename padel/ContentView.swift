@@ -1,20 +1,79 @@
 import PadelScoring
+import PadelStorage
 import SwiftUI
+import os
 
-/// Экраны истории появятся в тикетах 11 и 12. Пока приложение доказывает, что
-/// доменные типы пакета `PadelScoring` видны и с этой стороны тоже.
+/// История матчей на телефоне — пока в самом грубом виде.
+///
+/// Настоящий список с датой, длительностью и набором правил делает тикет 11;
+/// здесь ровно столько, чтобы приехавший с часов матч было видно глазами, а не
+/// только в базе. Экран поэтому и не спорит с тикетом 11 за оформление: он
+/// показывает счёт и время, и всё.
 struct ContentView: View {
+    private let store: any MatchStore
+
+    @State private var matches: [SavedMatch] = []
+
+    /// Матч приезжает в приложение, свёрнутое в фон, — экран узнаёт об этом,
+    /// когда его снова открыли.
+    @Environment(\.scenePhase) private var scenePhase
+
+    init(store: any MatchStore) {
+        self.store = store
+    }
+
     var body: some View {
-        VStack {
-            Image(systemName: "figure.tennis")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Сторон на корте: \(Side.allCases.count)")
+        NavigationStack {
+            Group {
+                if matches.isEmpty {
+                    ContentUnavailableView(
+                        "Матчей пока нет",
+                        systemImage: "figure.tennis",
+                        description: Text("Сыгранный на часах матч появится здесь сам"))
+                } else {
+                    List(matches) { match in
+                        row(match)
+                    }
+                }
+            }
+            .navigationTitle("История")
         }
-        .padding()
+        .task { reload() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { reload() }
+        }
+    }
+
+    private func row(_ saved: SavedMatch) -> some View {
+        let state = saved.match.state
+
+        return VStack(alignment: .leading, spacing: 2) {
+            Text("\(state.finalScore.us) : \(state.finalScore.them)")
+                .font(.headline)
+
+            Text(saved.startedAt.formatted(date: .abbreviated, time: .shortened))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if state.outcome == .abandoned {
+                Text("недоигранный")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func reload() {
+        do {
+            matches = try store.matches()
+        } catch {
+            logger.error("История не прочитана: \(error.localizedDescription)")
+        }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(store: NoMatchStore())
 }
+
+private let logger = Logger(subsystem: "com.vveidi.padel", category: "history")

@@ -51,6 +51,12 @@ public final class SQLiteMatchStore: MatchStore {
             // остальное в строке — набор правил, первая подача, начало —
             // задаётся при первом розыгрыше и потом неизменно: матч, у
             // которого посреди игры поменялись правила, — это другой матч.
+            //
+            // Отметка о доставке при этом гасится: запись — это и есть «матч
+            // изменился», а доставленной остаётся версия, которая с этого
+            // момента расходится с той, что на часах. Отменённое очко в
+            // законченном матче уезжает на телефон второй раз, и там второй
+            // приезд затирает первый.
             try db.execute(
                 sql: """
                     INSERT INTO match
@@ -59,7 +65,8 @@ public final class SQLiteMatchStore: MatchStore {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         lastRallyAt = excluded.lastRallyAt,
-                        abandoned = excluded.abandoned
+                        abandoned = excluded.abandoned,
+                        delivered = 0
                     """,
                 arguments: [
                     id, ruleset.kind, ruleset.setsToWin, ruleset.goldenPoint,
@@ -70,22 +77,23 @@ public final class SQLiteMatchStore: MatchStore {
 
             let rallies = saved.match.journal.rallies
 
-            // Журнал меняется только с хвоста: розыгрыш дописывается в конец,
-            // отмена убирает последний (ADR-0001). Поэтому запись — это
-            // отрезать отменённое и дописать недостающее, а не переписать
-            // журнал целиком после каждого очка.
-            try db.execute(
-                sql: "DELETE FROM rally WHERE matchId = ? AND ordinal >= ?",
-                arguments: [id, rallies.count])
+            // Журнал переписывается целиком, а не досылается хвостом.
+            //
+            // На часах хватило бы хвоста: там журнал растёт с конца да
+            // укорачивается отменой. Но тот же метод записывает матч,
+            // приехавший на телефон (тикет 10), а приезжает он любой версией —
+            // и доигранная заново после отмены очка предыдущей не продолжение.
+            // Дописать хвост к чужой середине значит собрать журнал, которого
+            // никто не играл, и молча: длина сойдётся.
+            //
+            // Цена — переписанный журнал на каждом очке; матч из двухсот
+            // розыгрышей это одна короткая транзакция.
+            try db.execute(sql: "DELETE FROM rally WHERE matchId = ?", arguments: [id])
 
-            let stored =
-                try Int.fetchOne(
-                    db, sql: "SELECT COUNT(*) FROM rally WHERE matchId = ?", arguments: [id]) ?? 0
-
-            for ordinal in stored..<rallies.count {
+            for (ordinal, rally) in rallies.enumerated() {
                 try db.execute(
                     sql: "INSERT INTO rally (matchId, ordinal, winner) VALUES (?, ?, ?)",
-                    arguments: [id, ordinal, rallies[ordinal].winner.rawValue])
+                    arguments: [id, ordinal, rally.winner.rawValue])
             }
         }
     }
@@ -124,6 +132,37 @@ public final class SQLiteMatchStore: MatchStore {
     /// начатый раньше, а доигранный позже, — всё-таки более поздний.
     private static let lastMatch =
         "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
+
+    public func matchesAwaitingDelivery() throws -> [SavedMatch] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db, sql: "SELECT * FROM match WHERE delivered = 0 ORDER BY lastRallyAt, rowid")
+
+            // Законченность спрашивается у движка, а не у колонки, по той же
+            // причине, что и в `matchInProgress` (ADR-0001). Отбирать в SQL
+            // тут нечего: строк с непогашенной отметкой ровно столько, сколько
+            // матчей ещё не доехало, — обычно ноль или один.
+            return try rows
+                .map { try Self.savedMatch(row: $0, db: db) }
+                .filter { $0.match.state.outcome.isOver }
+        }
+    }
+
+    public func markDelivered(id: UUID) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE match SET delivered = 1 WHERE id = ?", arguments: [id.uuidString])
+        }
+    }
+
+    public func matches() throws -> [SavedMatch] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db, sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC")
+
+            return try rows.map { try Self.savedMatch(row: $0, db: db) }
+        }
+    }
 
     public func match(id: UUID) throws -> SavedMatch? {
         try dbQueue.read { db in

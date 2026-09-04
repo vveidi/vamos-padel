@@ -1,5 +1,6 @@
 import PadelScoring
 import PadelStorage
+import PadelSync
 import SwiftUI
 import os
 
@@ -36,11 +37,15 @@ struct RootView: View {
 
     @State private var workout: any Workout
 
-    /// Хранилище и тренировка приходят снаружи, а не создаются здесь: превью
-    /// не должно ни просить доступ к здоровью, ни заводить базу.
-    init(store: any MatchStore, workout: any Workout) {
+    private let delivery: MatchDelivery
+
+    /// Хранилище, тренировка и доставка приходят снаружи, а не создаются
+    /// здесь: превью не должно ни просить доступ к здоровью, ни заводить базу,
+    /// ни поднимать сессию к телефону.
+    init(store: any MatchStore, workout: any Workout, delivery: MatchDelivery) {
         self.store = store
         _workout = State(initialValue: workout)
+        self.delivery = delivery
     }
 
     var body: some View {
@@ -48,7 +53,12 @@ struct RootView: View {
             if !isRestored {
                 ProgressView()
             } else if let match {
-                MatchView(match: match, store: store, workout: workout, onFinish: startOver)
+                MatchView(
+                    match: match,
+                    store: store,
+                    workout: workout,
+                    delivery: delivery,
+                    onFinish: startOver)
                     // Другой матч — другой экран, с чистого листа. Без этого
                     // матч, начатый сразу после предыдущего, достался бы экрану
                     // с состоянием прошлого.
@@ -91,11 +101,20 @@ struct RootView: View {
         }
 
         isRestored = true
+
+        // Матч, не доехавший до телефона в прошлый раз, уезжает снова — в этом
+        // и состоит «очередь переживает перезапуск». Спрашивается это при
+        // каждом запуске, а не только после законченного матча: телефона могло
+        // не быть рядом весь вечер.
+        delivery.deliverPending()
     }
 }
 
 #Preview {
-    RootView(store: NoMatchStore(), workout: NoWorkout())
+    RootView(
+        store: NoMatchStore(),
+        workout: NoWorkout(),
+        delivery: MatchDelivery(store: NoMatchStore(), sender: NoMatchTransport()))
 }
 
 private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")

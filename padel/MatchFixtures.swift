@@ -66,6 +66,26 @@ extension SavedMatch {
             abandoned: true)
     }
 
+    /// A match to two sets stopped two rallies into the second one: the case
+    /// where "the game was not finished" has to hang off the set play actually
+    /// stopped in, and not off the one before it, which was played out 6:0.
+    static var previewAbandonedInSecondSet: SavedMatch {
+        .preview(
+            games(Array(repeating: Side.us, count: 6)) + [.them, .them],
+            ruleset: .classic(setsToWin: 2, goldenPoint: true),
+            abandoned: true)
+    }
+
+    /// A match stopped inside a tiebreak — the one game of a set whose points
+    /// are not a game's, and which must not be called a game.
+    static var previewAbandonedInTieBreak: SavedMatch {
+        .preview(
+            games(Array(repeating: [Side.us, .them], count: 6).flatMap { $0 })
+                + [.us, .us, .them, .us, .them],
+            ruleset: .classic(setsToWin: 1, goldenPoint: true),
+            abandoned: true)
+    }
+
     /// A match to N points, taken by one point — the closest thing there is to
     /// a "16 : 14" that looks like a tennis score.
     static func preview(pointsTo target: Int, abandonedAfter stopped: Int? = nil) -> SavedMatch {

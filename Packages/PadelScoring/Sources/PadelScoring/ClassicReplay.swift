@@ -82,10 +82,24 @@ struct ClassicReplay {
         }
     }
 
-    var outcome: MatchOutcome {
-        guard let winner else { return .inProgress }
+    var outcome: MatchOutcome { MatchOutcome(winner: winner) }
 
-        return .finished(winner: winner)
+    /// The sets that were played in — `sets` without the one the walk stands
+    /// in when nothing has happened there yet.
+    ///
+    /// Between a set being taken and the first rally of the next, and before
+    /// the first rally of all, the walk already stands in a set nothing has
+    /// happened in. That is not a set that was played, and drawing an empty
+    /// one would be drawing a set that never started.
+    ///
+    /// One rally is enough to make it one, though — and the rally need not have
+    /// finished a game. A match stopped two rallies into the second set was
+    /// stopped in the second set, and a course that dropped it would hang
+    /// those rallies off the first: a set that was played out to its end.
+    var setsPlayed: [SetCourse] {
+        guard sets.last?.games.isEmpty == true, points == SideCounts() else { return sets }
+
+        return Array(sets.dropLast())
     }
 
     /// How many times the serve has changed hands.

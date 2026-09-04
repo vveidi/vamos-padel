@@ -19,17 +19,11 @@ struct MatchRow: View {
 
         VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .firstTextBaseline) {
-                // Our side first, always — including in a match we lost. The
-                // history is read as a column rather than row by row, and a
-                // score whose sides swap places by the outcome cannot be
-                // scanned down. Which side is which is then said by the order
-                // alone: "4 : 6" is a defeat.
-                Text("\(score[.us]) : \(score[.them])")
+                Text(score.written)
                     .font(.title3.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(isAbandoned ? .secondary : .primary)
-                    .accessibilityLabel(
-                        "У нас \(score[.us]), у соперников \(score[.them])")
+                    .accessibilityLabel(score.spoken)
 
                 Spacer(minLength: 8)
 

@@ -43,11 +43,7 @@ struct PointsToReplay {
     /// divided into games.
     var points: SideCounts { steps.last?.score ?? SideCounts() }
 
-    var outcome: MatchOutcome {
-        guard let winner else { return .inProgress }
-
-        return .finished(winner: winner)
-    }
+    var outcome: MatchOutcome { MatchOutcome(winner: winner) }
 
     /// How many times the serve has changed hands: every X rallies, counted
     /// from the first server.

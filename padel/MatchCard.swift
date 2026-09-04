@@ -39,11 +39,10 @@ struct MatchCard: View {
             // Our side first, the same as in the history's row: the card is
             // opened from that row, and a score that swapped sides on the way
             // in would have to be read twice.
-            Text("\(state.finalScore[.us]) : \(state.finalScore[.them])")
+            Text(state.finalScore.written)
                 .font(.system(size: 44, weight: .semibold, design: .rounded))
                 .monospacedDigit()
-                .accessibilityLabel(
-                    "У нас \(state.finalScore[.us]), у соперников \(state.finalScore[.them])")
+                .accessibilityLabel(state.finalScore.spoken)
 
             Text(match.match.ruleset.name)
                 .font(.subheadline)
@@ -75,34 +74,39 @@ struct MatchCard: View {
 
     // MARK: How it came about
 
-    @ViewBuilder private var course: some View {
-        switch match.match.course {
-        case .points(let steps) where steps.isEmpty:
+    private var course: some View {
+        sections(of: match.match.course)
+    }
+
+    /// Handed the course rather than reading it again: it is a walk over the
+    /// journal, and every section asking for a copy of its own would be asking
+    /// the engine the same question five times over.
+    @ViewBuilder private func sections(of course: MatchCourse) -> some View {
+        if course.isEmpty {
             Section("Ход матча") { nothingPlayed }
+        } else {
+            switch course {
+            case .points(let steps):
+                Section("Ход матча") { ScoreStrip(steps: steps, step: "Розыгрыш") }
 
-        case .points(let steps):
-            Section("Ход матча") { ScoreStrip(steps: steps, step: "Розыгрыш") }
+            case .sets(let sets):
+                ForEach(Array(sets.enumerated()), id: \.offset) { number, set in
+                    Section {
+                        // A set stopped in before its first game has no games
+                        // to draw, and the line below is the whole of what
+                        // happened in it.
+                        if !set.games.isEmpty { ScoreStrip(steps: set.games, step: "Гейм") }
 
-        // A classic match stopped before its first game was played out. There
-        // are no games to draw, and the points of the game it was left in are
-        // the only thing that happened in it.
-        case .sets(let sets) where sets.isEmpty:
-            Section("Ход матча") {
-                if wasStoppedMidGame { unfinishedGame } else { nothingPlayed }
-            }
+                        if let tieBreak = set.tieBreak { self.tieBreak(tieBreak) }
 
-        case .sets(let sets):
-            ForEach(Array(sets.enumerated()), id: \.offset) { number, set in
-                Section {
-                    ScoreStrip(steps: set.games, step: "Гейм")
-
-                    if let tieBreak = set.tieBreak { self.tieBreak(tieBreak) }
-
-                    // The game the match was stopped in belongs to the set it
-                    // was stopped in, and that is always the last one.
-                    if number == sets.count - 1, wasStoppedMidGame { unfinishedGame }
-                } header: {
-                    header(of: set, number: number + 1, alone: sets.count == 1)
+                        // What was left unfinished belongs to the set it was
+                        // left in, and that is the last set of the course: a
+                        // set played in is part of it from its first rally,
+                        // whether or not a game in it was carried to its end.
+                        if number == sets.count - 1, wasStoppedMidGame { unfinishedGame }
+                    } header: {
+                        header(of: set, number: number + 1)
+                    }
                 }
             }
         }
@@ -110,20 +114,24 @@ struct MatchCard: View {
 
     /// A set's line above its games: which set it is and how it ended.
     ///
-    /// In a match of one set the number is not worth saying — there is nothing
-    /// to tell it apart from — and neither is the score, which is the match's
-    /// own and already stands in large type above.
-    private func header(of set: SetCourse, number: Int, alone: Bool) -> some View {
-        HStack {
-            Text(alone ? "Ход матча" : "Сет \(number)")
+    /// In a match of one set there is no number worth saying — there is
+    /// nothing to tell it apart from — and no score either: it would be the
+    /// match's own, already standing in large type above. Which of the two
+    /// this is, is the ruleset's answer and not the count of the sets played:
+    /// a match to two sets stopped inside its first one is still a match of
+    /// two, and saying otherwise would hide the set it was stopped in.
+    private func header(of set: SetCourse, number: Int) -> some View {
+        let numbered = match.match.ruleset.isMultiSet
 
-            if !alone {
+        return HStack {
+            Text(numbered ? "Сет \(number)" : "Ход матча")
+
+            if numbered {
                 Spacer()
 
-                Text("\(set.score[.us]) : \(set.score[.them])")
+                Text(set.score.written)
                     .monospacedDigit()
-                    .accessibilityLabel(
-                        "у нас \(set.score[.us]), у соперников \(set.score[.them])")
+                    .accessibilityLabel(set.score.spoken)
             }
         }
     }
@@ -131,11 +139,10 @@ struct MatchCard: View {
     /// The tiebreak's points, which the set's own score hides: "7 : 6" says
     /// that a tiebreak happened and nothing at all about how it went.
     private func tieBreak(_ points: SideCounts) -> some View {
-        LabeledContent("Тай-брейк", value: "\(points[.us]) : \(points[.them])")
+        LabeledContent("Тай-брейк", value: points.written)
             .font(.subheadline)
             .monospacedDigit()
-            .accessibilityLabel(
-                "Тай-брейк: у нас \(points[.us]), у соперников \(points[.them])")
+            .accessibilityLabel("Тай-брейк: \(points.spoken)")
     }
 
     /// Where inside a game the match was stopped.
@@ -150,17 +157,24 @@ struct MatchCard: View {
     private var wasStoppedMidGame: Bool { !state.points.isEmpty }
 
     private var unfinishedGame: some View {
-        LabeledContent(
-            "Гейм не доигран",
-            value: "\(state.points.label(for: .us)) : \(state.points.label(for: .them))"
-        )
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .accessibilityLabel(
-            """
-            Гейм не доигран: у нас \(state.points.label(for: .us)), \
-            у соперников \(state.points.label(for: .them))
-            """)
+        LabeledContent(unfinishedTitle, value: state.points.written)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .accessibilityLabel("\(unfinishedTitle): \(state.points.spoken)")
+    }
+
+    /// What exactly was left unfinished.
+    ///
+    /// Inside a set the points are a game's — except at 6:6, where they are a
+    /// tiebreak's, and a tiebreak is not a game: the engine says as much where
+    /// it refuses to let the golden point into one. Which of the two it is
+    /// counting, `Points` already knows, and inside a set counted points can
+    /// mean nothing else.
+    private var unfinishedTitle: String {
+        switch state.points {
+        case .game: "Гейм не доигран"
+        case .count: "Тай-брейк не доигран"
+        }
     }
 
     /// A match with an empty journal. It has no business on the phone — the
@@ -250,10 +264,7 @@ private struct ScoreStrip: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(self.step) \(number)")
         .accessibilityValue(
-            """
-            у нас \(step.score[.us]), у соперников \(step.score[.them]), \
-            выиграли \(step.winner == .us ? "мы" : "соперники")
-            """)
+            "\(step.score.spoken), выиграли \(step.winner == .us ? "мы" : "соперники")")
     }
 
     private func cell(_ score: Int, won: Bool, isOurs: Bool) -> some View {
@@ -286,6 +297,14 @@ private struct ScoreStrip: View {
 
 #Preview("Stopped early") {
     NavigationStack { MatchCard(match: .previewClassicAbandoned) }
+}
+
+#Preview("Stopped early, in the second set") {
+    NavigationStack { MatchCard(match: .previewAbandonedInSecondSet) }
+}
+
+#Preview("Stopped early, in a tiebreak") {
+    NavigationStack { MatchCard(match: .previewAbandonedInTieBreak) }
 }
 
 #Preview("Stopped early, to N points") {

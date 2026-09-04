@@ -95,3 +95,52 @@ card asks the same engine the watch asks.
 **The horizontal scroll of a long strip** was seen to be needed — a match to 16 points
 runs off the edge — but not dragged: the simulator's UI is driven here by clicking, not
 by gestures.
+
+## After the review
+
+The review found two real defects and a handful of seams. Both defects are fixed; the
+seams that were worth taking are taken, and what was left alone is below.
+
+**The unfinished game hung off the wrong set.** A match to two sets, the first taken 6:0,
+stopped two rallies into the second, printed "Гейм не доигран · 0 : 30" under the set that
+was played out to its end — and headed it "Ход матча", hiding that a second set had begun
+at all. The cause was in the engine: the course dropped the set the walk stands in
+whenever no game in it was finished, and the card then hung what was left unfinished off
+"the last set", which had become the wrong one. A set is now part of the course from its
+first rally, finished game or not — `ClassicReplay.setsPlayed` — and only a set nothing
+at all happened in is dropped. Checked in the simulator on exactly that match: "Сет 1 ·
+6 : 0", then "Сет 2 · 0 : 0" holding "Гейм не доигран · 0 : 30".
+
+The old test `anEmptySetIsNotPartOfTheCourse` had pinned the bug; it now pins the two
+cases apart, and a second test names the one it got wrong. Both were seen to fail against
+the old engine before the fix went in.
+
+**A tiebreak was called a game.** A match stopped at 6:6 inside the tiebreak said "Гейм не
+доигран · 3 : 2", though the engine refuses to call a tiebreak a game where it keeps the
+golden point out of one. The card asks `Points` which of the two it is counting — inside a
+set, counted points can only be a tiebreak's — and says "Тай-брейк не доигран". Checked in
+the simulator.
+
+**The set header is numbered by the ruleset, not by the sets played.** It used to say
+"Ход матча" whenever the course held one set, so a match to two sets stopped inside its
+first read as a match of one. `Ruleset.isMultiSet` answers it now — the same question, and
+the same answer, that `finalScore` already asks.
+
+**The score is written in one place.** `"\(score[.us]) : \(score[.them])"` and its
+VoiceOver twin stood in six places across the row and the card; `SideCounts.written` /
+`.spoken` and the same pair on `Points` live in `MatchWording.swift` beside the ruleset's
+name — which is what that file was made for.
+
+**Two smaller things.** Both walks ended with the same `Side?` and asked it the same
+question; that is `MatchOutcome.init(winner:)` now. And `MatchCourse` reached two levels
+into the walk's data to trim it — the trimming is the walk's own business and moved there
+with `setsPlayed`, which is also what made the first defect fixable in one place.
+`MatchCourse.isEmpty` had been public and unused while the card asked the same question
+inline twice; the card asks it once now, and the two `where` clauses are gone.
+
+**Left alone: `match.match.state`, `match.match.ruleset.name`.** Forwarding these through
+`SavedMatch` would put a copy of the domain's surface in the app target to save one word
+at six call sites. That a saved match *has* a match is true, and worth reading.
+
+**Still not verified**: a match played on a watch and opened on a phone. Unchanged from
+above — it needs both devices.

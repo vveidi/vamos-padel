@@ -12,6 +12,22 @@ public enum MatchOutcome: Equatable, Sendable {
     /// A match stopped before the ruleset declared it over.
     case abandoned
 
+    /// The outcome of a match whose walk over the journal ended on this
+    /// winner — and of one that ended on nobody, which is a match still going.
+    ///
+    /// Both rulesets' walks finish with the same `Side?` in hand and asked the
+    /// same question of it; the answer belongs here, next to the cases, rather
+    /// than spelled out once per ruleset.
+    init(winner: Side?) {
+        guard let winner else {
+            self = .inProgress
+
+            return
+        }
+
+        self = .finished(winner: winner)
+    }
+
     /// The match has ended — played out or stopped early, it does not matter.
     ///
     /// What gets asked when deciding whether to accept more rallies and

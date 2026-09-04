@@ -2,8 +2,8 @@ import Foundation
 import PadelScoring
 import PadelStorage
 
-/// The words the phone says about a match: the rules its score has to be read
-/// by, and when it was played.
+/// The words the phone says about a match: its score, the rules that score has
+/// to be read by, and when it was played.
 ///
 /// One home for two screens — the row of the history and the match card — so
 /// that a match does not describe itself one way in the list and another way
@@ -76,6 +76,33 @@ extension Ruleset {
 
         return many
     }
+}
+
+/// The score as the phone writes it, and as it reads it out.
+///
+/// Our side first, always — including in a match we lost. The history is read
+/// as a column rather than row by row, and a score whose sides swap places by
+/// the outcome cannot be scanned down; the card is opened out of that column
+/// and must not swap them back. Which side is which is then said by the order
+/// alone: "4 : 6" is a defeat.
+extension SideCounts {
+    var written: String { "\(self[.us]) : \(self[.them])" }
+
+    /// The same score for VoiceOver, where the order alone says nothing.
+    ///
+    /// Lower case, because it is read out both on its own and after something
+    /// else — "Тай-брейк: у нас 7, у соперников 5" — and of the two, a capital
+    /// in the middle of a sentence is the one that reads wrong.
+    var spoken: String { "у нас \(self[.us]), у соперников \(self[.them])" }
+}
+
+/// The points of a game the same way, except that they are named rather than
+/// counted: "40", "AD". The engine names them — that notation is padel's own,
+/// not a translation.
+extension Points {
+    var written: String { "\(label(for: .us)) : \(label(for: .them))" }
+
+    var spoken: String { "у нас \(label(for: .us)), у соперников \(label(for: .them))" }
 }
 
 /// When the match was played, and for how long.

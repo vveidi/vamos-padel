@@ -90,7 +90,7 @@ struct MatchCourseTests {
         ])
     }
 
-    /// Between the set that was taken and the first game of the next one the
+    /// Between the set that was taken and the first rally of the next one the
     /// match stands in a set nothing has happened in. It is not a set that was
     /// played, and the card must not draw an empty one.
     @Test("A set nothing has been played in yet is not part of the course")
@@ -98,8 +98,29 @@ struct MatchCourseTests {
         let firstSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
 
         #expect(classicCourse(firstSet, setsToWin: 2).count == 1)
-        #expect(classicCourse(firstSet + rallies(.them, 2), setsToWin: 2).count == 1)
         #expect(classicCourse(firstSet + gamesWonBy([.them]), setsToWin: 2).count == 2)
+    }
+
+    /// One rally is enough to make a set one that was played, even though a
+    /// rally is no step of the course. The card hangs "the game was not
+    /// finished" off the last set it is handed, and that has to be the set
+    /// play actually stopped in: hanging it off the set before would say a
+    /// match was stopped mid-game inside a set that was played out to its end.
+    @Test("A set played in without a single game finished is part of the course")
+    func aSetPlayedInWithoutAFinishedGameIsPartOfTheCourse() {
+        let firstSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
+        let course = classicCourse(firstSet + rallies(.them, 2), setsToWin: 2)
+
+        #expect(course.count == 2)
+        #expect(course.last?.games.isEmpty == true)
+        #expect(course.last?.score == SideCounts())
+        #expect(course.last?.winner == nil)
+    }
+
+    @Test("Only an empty journal leaves the course empty")
+    func onlyAnEmptyJournalLeavesTheCourseEmpty() {
+        #expect(!MatchCourse(ruleset: .defaultClassic, journal: journal(rallies(.us, 2))).isEmpty)
+        #expect(!MatchCourse(ruleset: .defaultPointsTo, journal: journal(rallies(.us, 1))).isEmpty)
     }
 
     @Test("A set decided by a tiebreak carries the tiebreak's points")

@@ -29,28 +29,19 @@ public enum MatchCourse: Equatable, Sendable {
                     target: target, serveChangesEvery: serveChangesEvery, journal: journal
                 ).steps)
         case .classic(let setsToWin, let goldenPoint):
-            var sets = ClassicReplay(
-                setsToWin: setsToWin, goldenPoint: goldenPoint, journal: journal
-            ).sets
-
-            // The set the match stands in is empty until its first game is
-            // won, and an empty set is not a thing that happened: right after
-            // a set is taken, and before the first rally of all, the walk is
-            // already standing in the next one. What is dropped here is that
-            // set and only it — no other set can be empty, because a set ends
-            // by a game being won.
-            if sets.last?.games.isEmpty == true { sets.removeLast() }
-
-            self = .sets(sets)
+            self = .sets(
+                ClassicReplay(
+                    setsToWin: setsToWin, goldenPoint: goldenPoint, journal: journal
+                ).setsPlayed)
         }
     }
 
-    /// Not a single step: the match was stopped before anything was played
-    /// out.
+    /// Nothing happened at all — which, in both rulesets, means an empty
+    /// journal and nothing else.
     ///
-    /// Possible in classic scoring even after a dozen rallies — a game not
-    /// carried to its end is no step — and in a match to N points only with an
-    /// empty journal.
+    /// A classic match can have steps of no kind whatsoever and still not be
+    /// empty: the set the rallies were played in is part of the course from
+    /// its first rally, even when none of them carried a game to its end.
     public var isEmpty: Bool {
         switch self {
         case .points(let steps): steps.isEmpty

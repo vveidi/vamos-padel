@@ -3,7 +3,7 @@ import PadelScoring
 import PadelStorage
 import Testing
 
-@testable import PadelSync
+@testable import PadelDelivery
 
 @Suite("Приём матчей на телефоне")
 struct MatchReceptionTests {

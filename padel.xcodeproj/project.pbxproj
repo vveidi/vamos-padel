@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		AA01A000000000000000000D /* padel Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA01A0000000000000000001 /* padel Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		AA01A000000000000000002D /* PadelSync in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002C /* PadelSync */; };
-		AA01A000000000000000002E /* PadelSync in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002B /* PadelSync */; };
+		AA01A000000000000000002D /* PadelDelivery in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002C /* PadelDelivery */; };
+		AA01A000000000000000002E /* PadelDelivery in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002B /* PadelDelivery */; };
 		DDE9576530478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001C /* PadelStorage */; };
 		DDE9576630478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001B /* PadelStorage */; };
 		DDFEE3113046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000B /* PadelScoring */; };
@@ -76,7 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA01A000000000000000002D /* PadelSync in Frameworks */,
+				AA01A000000000000000002D /* PadelDelivery in Frameworks */,
 				DDE9576530478A830054DB3F /* PadelStorage in Frameworks */,
 				DDFEE3123046086400C7278D /* PadelScoring in Frameworks */,
 			);
@@ -86,7 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA01A000000000000000002E /* PadelSync in Frameworks */,
+				AA01A000000000000000002E /* PadelDelivery in Frameworks */,
 				DDE9576630478A830054DB3F /* PadelStorage in Frameworks */,
 				DDFEE3113046086400C7278D /* PadelScoring in Frameworks */,
 			);
@@ -135,7 +135,7 @@
 			packageProductDependencies = (
 				AA01A000000000000000000C /* PadelScoring */,
 				AA01A000000000000000001C /* PadelStorage */,
-				AA01A000000000000000002C /* PadelSync */,
+				AA01A000000000000000002C /* PadelDelivery */,
 			);
 			productName = "padel Watch App";
 			productReference = AA01A0000000000000000001 /* padel Watch App.app */;
@@ -162,7 +162,7 @@
 			packageProductDependencies = (
 				AA01A000000000000000000B /* PadelScoring */,
 				AA01A000000000000000001B /* PadelStorage */,
-				AA01A000000000000000002B /* PadelSync */,
+				AA01A000000000000000002B /* PadelDelivery */,
 			);
 			productName = padel;
 			productReference = DDFEE2E13045B80C00C7278D /* padel.app */;
@@ -198,7 +198,7 @@
 			packageReferences = (
 				AA01A000000000000000000A /* XCLocalSwiftPackageReference "PadelScoring" */,
 				AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */,
-				AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelSync" */,
+				AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelDelivery" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DDFEE2E23045B80C00C7278D /* Products */;
@@ -546,9 +546,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = PadelStorage;
 		};
-		AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelSync" */ = {
+		AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelDelivery" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = PadelSync;
+			relativePath = PadelDelivery;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -569,13 +569,13 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = PadelStorage;
 		};
-		AA01A000000000000000002B /* PadelSync */ = {
+		AA01A000000000000000002B /* PadelDelivery */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = PadelSync;
+			productName = PadelDelivery;
 		};
-		AA01A000000000000000002C /* PadelSync */ = {
+		AA01A000000000000000002C /* PadelDelivery */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = PadelSync;
+			productName = PadelDelivery;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

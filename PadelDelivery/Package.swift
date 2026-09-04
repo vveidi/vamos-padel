@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "PadelSync",
+    name: "PadelDelivery",
     // macOS присутствует по той же причине, что и в соседних пакетах: очередь
     // на доставку и формат посылки гоняются нативно, без симулятора и без
     // пары «часы — телефон». Заодно WatchConnectivity перестаёт компилиро-
@@ -13,7 +13,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
-        .library(name: "PadelSync", targets: ["PadelSync"])
+        .library(name: "PadelDelivery", targets: ["PadelDelivery"])
     ],
     dependencies: [
         .package(path: "../PadelScoring"),
@@ -21,11 +21,11 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PadelSync",
+            name: "PadelDelivery",
             dependencies: [
                 .product(name: "PadelScoring", package: "PadelScoring"),
                 .product(name: "PadelStorage", package: "PadelStorage"),
             ]),
-        .testTarget(name: "PadelSyncTests", dependencies: ["PadelSync"]),
+        .testTarget(name: "PadelDeliveryTests", dependencies: ["PadelDelivery"]),
     ]
 )

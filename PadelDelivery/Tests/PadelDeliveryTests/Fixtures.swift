@@ -2,7 +2,7 @@ import Foundation
 import PadelScoring
 import PadelStorage
 
-@testable import PadelSync
+@testable import PadelDelivery
 
 /// Момент, с которого начинаются матчи в тестах. Круглая секунда намеренно:
 /// хранилище держит время с точностью до миллисекунды, и круговой рейс через

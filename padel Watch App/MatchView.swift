@@ -1,6 +1,6 @@
 import PadelScoring
 import PadelStorage
-import PadelSync
+import PadelDelivery
 import SwiftUI
 import os
 

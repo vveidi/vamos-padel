@@ -8,15 +8,15 @@ The session starts with the match and ends with it. HealthKit permission is requ
 
 **Blocked by:** 02
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] The match runs inside a workout session from beginning to end
-- [ ] HealthKit permission is requested once, with an understandable explanation
-- [ ] If permission is denied the match can still be played and the app does not crash
-- [ ] The score screen stays visible in Always-On
-- [ ] Raising the wrist returns to the score screen
-- [ ] The session ends with the match, including when it is stopped early
-- [ ] After the match the workout is visible in Health
+- [x] The match runs inside a workout session from beginning to end
+- [x] HealthKit permission is requested once, with an understandable explanation
+- [x] If permission is denied the match can still be played and the app does not crash
+- [x] The score screen stays visible in Always-On
+- [x] Raising the wrist returns to the score screen
+- [x] The session ends with the match, including when it is stopped early
+- [x] After the match the workout is visible in Health
 
 ## Comments
 
@@ -98,3 +98,20 @@ Everything behind that dialog is unchecked:
 
 Points 4 and 5 cannot be reproduced by the simulator at all: Always-On and raising the wrist
 exist only on the watch.
+
+### Checked by hand, 5 September 2026
+
+The owner ran the six checks left above on a real watch and confirmed all of them: the
+permission dialog and what lies behind it (granted, relaunched, denied on a clean install),
+the wrist lowered and raised mid-match, and the workout appearing in Health after a match
+played out. That is the whole of what the agent could not reach — Always-On and raising the
+wrist do not exist in the simulator at all — so the ticket is closed on the owner's word for
+those, and on the agent's checks above for everything else.
+
+One criterion had shifted since the note above was written. "The session ends with the match,
+including when it is stopped early" was described here as waiting for ticket 09, which had no
+early stop yet. Ticket 09 landed, and the workout needed no edit to follow it: `MatchView`
+closes the workout on `state.outcome == .inProgress` turning false, and an abandoned match is
+exactly that — the line the note called "deliberately not through «there is a winner»" paid
+for itself. Verified by reading the wiring, and by the owner stopping a match early on the
+watch.

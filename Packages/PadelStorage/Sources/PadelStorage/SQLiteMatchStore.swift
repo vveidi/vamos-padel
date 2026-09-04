@@ -187,12 +187,18 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     /// observation: were the two to drift apart, the screen would start
     /// showing something other than what the tests read back.
     ///
-    /// Ordered by the time of the last rally rather than by the start, for the
-    /// same reason as `lastMatch`: a match begun earlier but played out later
-    /// is the later one after all.
+    /// Ordered by the start of the match, and here it parts ways with
+    /// `lastMatch`, which orders by the last rally. The two answer different
+    /// questions. "Which match is the previous one" is about the one played
+    /// most recently — a match begun earlier but played out later is the later
+    /// one after all. The history is a column of dates the reader can see, and
+    /// the date in the row is the start: a match begun at seven and finished
+    /// at eleven, after an hour of waiting out the rain, would otherwise stand
+    /// above a match played at nine while showing an earlier time than it. A
+    /// list whose order argues with its own dates reads as broken.
     private static func matches(in db: Database) throws -> [SavedMatch] {
         let rows = try Row.fetchAll(
-            db, sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC")
+            db, sql: "SELECT * FROM match ORDER BY startedAt DESC, rowid DESC")
 
         return try rows.map { try savedMatch(row: $0, db: db) }
     }

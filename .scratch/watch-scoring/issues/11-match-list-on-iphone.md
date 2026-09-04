@@ -102,3 +102,35 @@ the store and the observation hands out the new history, and `PadelApp` gives th
 and the screen one and the same store, so the write the phone performs is a write the screen
 is watching.
 
+## After the review
+
+Three of the review's findings were fixed; the rest were left as they are and why is
+written below.
+
+**The screen no longer waits forever for a history that will not come.** A failure on the
+observation's very first read left the list unknown and the spinner turning, with the stream
+already over. The screen now knows three states instead of a list and a `nil` — unknown,
+known, unreadable — and says the third one out loud: "История не читается", with a button
+that starts the observation over. A failure after a list has arrived still changes nothing on
+screen: the matches in front of the owner are closer to the truth than anything that could
+replace them. Checked in the simulator by writing an unreadable side into a rally of the
+freshest match: the error screen instead of the spinner, and the history back after the row
+was repaired. The button itself was not pressed — driving the simulator's UI from outside is
+not something this setup can do — so it is verified by construction, not by a tap.
+
+**The history is ordered by the start of the match, not by its last rally.** The row shows
+the start, and the two disagreed: a match begun at seven and played out at eleven stood above
+a match played at nine while showing an earlier time than it — a list arguing with its own
+dates. `matchInProgress` and `lastRuleset` keep ordering by the last rally: "which match is
+the previous one" is a different question, and there the match played out most recently is
+the right answer. A test now holds the two apart.
+
+**The double in the delivery tests keeps the protocol's promise.** `FailingMatchStore` ended
+its stream without handing out the first value, which the protocol promises; nothing wires it
+to a screen today, and a screen it was wired to tomorrow would wait forever.
+
+Left alone: the Russian strings duplicated between the watch's start screen and the phone's
+row (`sets(_:)`, the score's VoiceOver label). There is no shared home for them — the app
+targets are separate and `PadelScoring` is no place for Russian — and inventing one for two
+short strings costs more than it saves. A third copy should force the seam.
+

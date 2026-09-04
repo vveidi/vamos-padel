@@ -11,14 +11,15 @@ import os
 struct HistoryView: View {
     private let store: any MatchStore
 
-    /// The history as the store last handed it out. `nil` until the first
-    /// list arrives — and that is not the same as an empty history: the screen
-    /// says different things about "there are no matches" and "it is not known
-    /// yet whether there are any".
-    ///
-    /// Nothing is read here directly. The list arrives from the observation,
-    /// the very first one included.
-    @State private var matches: [SavedMatch]?
+    /// What is known about the history right now. Nothing is read here
+    /// directly: every list arrives from the observation, the first one
+    /// included.
+    @State private var history = History.unknown
+
+    /// Bumped to start the observation over. The store handed out a failure
+    /// once; whether it will do so again is something only another attempt can
+    /// say.
+    @State private var attempt = 0
 
     init(store: any MatchStore) {
         self.store = store
@@ -27,15 +28,27 @@ struct HistoryView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let matches {
-                    if matches.isEmpty { empty } else { list(matches) }
-                } else {
-                    ProgressView()
+                switch history {
+                case .unknown: ProgressView()
+                case .known(let matches) where matches.isEmpty: empty
+                case .known(let matches): list(matches)
+                case .unreadable: unreadable
                 }
             }
             .navigationTitle("История")
         }
-        .task { await watch() }
+        .task(id: attempt) { await watch() }
+    }
+
+    /// The three things the screen can say, and the reason they are one value
+    /// rather than a list and a couple of flags: "there are no matches yet",
+    /// "it is not yet known whether there are any" and "they could not be
+    /// read" look alike from a distance and must never be shown for one
+    /// another.
+    private enum History {
+        case unknown
+        case known([SavedMatch])
+        case unreadable
     }
 
     private func list(_ matches: [SavedMatch]) -> some View {
@@ -52,6 +65,27 @@ struct HistoryView: View {
             description: Text("Сыгранный на часах матч появится здесь сам"))
     }
 
+    /// The database did not answer — the case the screen used to spend
+    /// eternity on a spinner in.
+    ///
+    /// Said in as many words rather than shown as an empty history: an owner
+    /// with a hundred matches must not be told there are none. The button is
+    /// the only thing there is to offer — the observation ends on its first
+    /// failure and will not start again by itself — and it is honest about
+    /// what it does: it tries again, it does not repair anything.
+    private var unreadable: some View {
+        ContentUnavailableView {
+            Label("История не читается", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text("Сыгранные матчи на месте, но приложение не смогло их прочитать")
+        } actions: {
+            Button("Попробовать снова") {
+                history = .unknown
+                attempt += 1
+            }
+        }
+    }
+
     /// Watches the history for as long as the screen is on.
     ///
     /// A match arrives into an app woken by the system for its sake alone, and
@@ -62,14 +96,23 @@ struct HistoryView: View {
     private func watch() async {
         do {
             for try await matches in store.matchesObserved() {
-                self.matches = matches
+                history = .known(matches)
             }
         } catch {
-            // The list stays as it was: the last history that did arrive is
-            // closer to the truth than an empty screen, and a database that
-            // stopped answering is nothing the owner can do anything about
-            // from here.
             logger.error("the history stopped arriving: \(error.localizedDescription)")
+
+            // A history that did arrive stays on screen: the last list that
+            // was read is closer to the truth than anything the screen could
+            // put in its place, and the owner is looking at matches, not at
+            // the database.
+            //
+            // A failure on the very first read is the other case entirely.
+            // There is nothing to keep, and the observation is over — without
+            // this the screen would go on waiting for a list that will never
+            // come.
+            if case .known = history { return }
+
+            history = .unreadable
         }
     }
 }

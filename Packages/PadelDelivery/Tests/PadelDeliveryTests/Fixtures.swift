@@ -119,7 +119,13 @@ struct FailingMatchStore: MatchStore {
 
     func matches() throws -> [SavedMatch] { [] }
 
+    /// The empty history first, then the end of the stream: the protocol
+    /// promises a first value, and a double that quietly skips it would leave
+    /// a screen waiting for a list forever.
     func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
-        AsyncThrowingStream { $0.finish() }
+        AsyncThrowingStream { continuation in
+            continuation.yield([])
+            continuation.finish()
+        }
     }
 }

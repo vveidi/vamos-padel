@@ -338,6 +338,28 @@ struct MatchStoreTests {
         #expect(try store.matches() == [later, earlier])
     }
 
+    /// The order of the history and the dates in it have to agree: the row on
+    /// the phone shows the start of the match (ticket 11), so a match begun at
+    /// seven and finished at eleven — an hour of it spent waiting out the
+    /// rain — stands below a match played at nine, even though it was the last
+    /// one to be played out. Which match is the previous one is a different
+    /// question, and `matchInProgress` answers it by the last rally.
+    @Test("The history is ordered by the start of the match, not by its end")
+    func theHistoryIsOrderedByTheStartOfTheMatch() throws {
+        let store = try SQLiteMatchStore.inMemory()
+
+        var interrupted = SavedMatch.played([.us])
+        interrupted.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(4 * 3600))
+
+        var quick = SavedMatch.played([.us], from: aMoment.addingTimeInterval(2 * 3600))
+        quick.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(2 * 3600 + 60))
+
+        try store.save(interrupted)
+        try store.save(quick)
+
+        #expect(try store.matches() == [quick, interrupted])
+    }
+
     @Test("An empty store has no history")
     func anEmptyStoreHasNoHistory() throws {
         #expect(try SQLiteMatchStore.inMemory().matches().isEmpty)

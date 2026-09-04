@@ -1,163 +1,161 @@
-# 06: Стартовый экран
+# 06: The start screen
 
-**What to build:** Экран, с которого начинается матч. Игрок выбирает **набор правил**, его параметры и то, какая **сторона** подаёт первой, после чего попадает на экран счёта.
+**What to build:** The screen a match starts from. The player picks a **ruleset**, its parameters, and which **side** serves first, and then lands on the score screen.
 
-Главное требование — скорость: настройки помнятся с прошлого матча, поэтому в обычном случае старт это одно касание «Начать», а экран параметров игрок видит, только если сам туда пошёл. Компания играет по одним и тем же правилам месяцами; настройка, которую спрашивают каждый раз, это налог на то, что случается раз в полгода.
+The main requirement is speed: the settings are remembered from the previous match, so in the ordinary case the start is a single tap on "Start", and the player sees the parameters screen only if they went there themselves. A group plays by the same rules for months; a setting asked every time is a tax paid for something that happens twice a year.
 
 **Blocked by:** 04
 
 **Status:** done
 
-- [x] Выбирается набор правил: классический счёт или счёт до N очков
-- [x] Для классического счёта настраиваются число сетов и золотое очко
-- [x] Для счёта до N очков настраиваются N и X
-- [x] Указывается первая подающая сторона
-- [x] Значения по умолчанию: N = 16, X = 4, один сет
-- [x] Настройки прошлого матча подставляются автоматически и переживают перезапуск приложения
-- [x] Начать матч с запомненными настройками можно одним касанием
+- [x] The ruleset is chosen: classic scoring or the match to N points
+- [x] For classic scoring, the number of sets and the golden point are configurable
+- [x] For the match to N points, N and X are configurable
+- [x] The first serving side is named
+- [x] The default values: N = 16, X = 4, one set
+- [x] The previous match's settings are filled in automatically and survive a relaunch of the app
+- [x] A match with the remembered settings can be started with one tap
 
 ## Comments
 
-Из ревью тикета 03: до этого экрана приложение играет одним зашитым набором
-правил, и с тикета 03 это классический счёт. **Счёт до N очков сейчас из
-приложения недостижим** — он жив только в тестах движка, — потому что выбирать
-не из чего, а показать оба набора правил разом экран счёта не может. Этот
-тикет закрывает регрессию: с появлением выбора оба набора правил снова
-становятся доступны.
+From the review of ticket 03: before this screen the app plays with a single hard-wired
+ruleset, and since ticket 03 that is classic scoring. **The match to N points is currently
+unreachable from the app** — it lives only in the engine's tests — because there is nothing
+to choose between, and the score screen cannot show both rulesets at once. This ticket closes
+that regression: with the choice in place, both rulesets become reachable again.
 
-Там же отмечено, что **сеты на экран счёта не выводятся**: спека называет ровно
-три величины (очки, геймы, подача), и при одном сете этого достаточно. Как
-только здесь появится возможность выбрать два, строка геймов останется без
-указания, какой это сет по счёту, — решать стоит вместе с выбором.
+The same review noted that **the sets are not shown on the score screen**: the spec names
+exactly three quantities (points, games, serve), and with a single set that is enough. As soon
+as choosing two becomes possible here, the games line will be left without saying which set it
+belongs to — worth settling together with the choice.
 
 
-**Что построено.**
+**What was built.**
 
-Три экрана вместо двух и корень, который между ними выбирает. `RootView` при
-запуске задаёт хранилищу два вопроса — «матч уже идёт?» и «по каким правилам
-играли в прошлый раз?» — и по первому решает, показать счёт или старт. Матч,
-переживший выгрузку, попадает прямо на счёт: игрок, у которого приложение
-выгрузилось между геймами, стартовый экран не заказывал. Пока хранилище не
-ответило, на экране `ProgressView`, а не старт: мигнуть стартовым экраном под
-рукой игрока, который вернулся к идущему матчу, — верный способ начать вместо
-него новый.
+Three screens instead of two, and a root that picks between them. At launch `RootView` asks
+the store two questions — "is a match already running?" and "which rules did we play by last
+time?" — and decides from the first whether to show the score or the start. A match that
+survived an unload goes straight to the score: a player whose app was unloaded between games
+did not order a start screen. Until the store answers, a `ProgressView` is on screen rather
+than the start: flashing the start screen under the hand of a player who came back to a
+running match is a sure way to start a new one instead.
 
-**Первая подача и есть кнопка «Начать».** На стартовом экране две строки —
-«Подают соперники» и «Подаём мы», — и каждая начинает матч. Отдельная кнопка
-«Начать» рядом с выбором подачи была бы вторым касанием, которое не сообщает
-ничего нового: подачу всё равно спрашивать каждый раз (глоссарий: правила
-помнятся до следующего матча, очередь подачи разыгрывается заново). Так «одно
-касание» из тикета выполняется буквально, а не в среднем. Соперники сверху, мы
-снизу, цвета те же, что на экране счёта, — половина, в которую игрок будет весь
-матч тыкать за свои очки, узнаётся до первого розыгрыша.
+**The first serve is the "Start" button.** The start screen has two rows — "Подают соперники"
+and "Подаём мы" — and each of them starts the match. A separate "Start" button next to the
+serve choice would be a second tap that says nothing new: the serve has to be asked for every
+time anyway (the glossary: the rules are remembered until the next match, who serves first is
+decided anew). This way the ticket's "one tap" holds literally, not on average. The opponents
+on top, us at the bottom, the same colours as on the score screen — the half the player will
+be tapping for their own points all match is recognisable before the first rally.
 
-Третья строка показывает правила («Классический счёт / 1 сет · золотое очко»)
-и ведёт на экран правил — `RulesetView`: набор правил, сеты и золотое очко либо
-N и X. Границы значений заданы там (сеты 1–3, N 5–40, X 1–6) — ровно то, что
-движок намеренно оставил стартовому экрану: он не судит о том, что ему передали,
-а подпирает снизу, чтобы не уронить приложение на корте.
+The third row shows the rules ("Классический счёт / 1 сет · золотое очко") and leads to the
+rules screen, `RulesetView`: the ruleset, the sets and the golden point, or N and X. The
+bounds on the values are set there (sets 1–3, N 5–40, X 1–6) — exactly what the engine
+deliberately left to the start screen: it passes no judgement on what it was handed but clamps
+from below, so as not to crash the app on court.
 
-**Правила помнит хранилище, а не отдельная настройка.** `MatchStore.lastRuleset()`
-отдаёт набор правил прошлого матча — того же, которого касается `matchInProgress()`,
-и одним запросом (`SQLiteMatchStore.lastMatch`): разъехавшись, они начали бы
-отвечать про разные матчи. Второй копии того же значения рядом с базой не
-появилось — по той же причине, по которой рядом с журналом не хранится счёт
-(ADR-0001). Следствие, которое стоит знать: помнится то, чем игрок закончил
-играть, а не то, что он покрутил на экране правил и передумал, не начав матч.
+**The rules are remembered by the store, not by a separate setting.**
+`MatchStore.lastRuleset()` hands back the previous match's ruleset — the same match
+`matchInProgress()` touches, and by one query (`SQLiteMatchStore.lastMatch`): were they to
+drift apart, they would start answering about different matches. No second copy of the same
+value appeared beside the database — for the same reason the score is not stored beside the
+journal (ADR-0001). A consequence worth knowing: what is remembered is what the player
+finished playing with, not what they span up on the rules screen and thought better of without
+starting a match.
 
-**Экран счёта показывает сеты** — там, где их больше одного. `Ruleset.isMultiSet`
-отвечает на этот вопрос один раз для всех: тот же ответ выбирает, каким счётом
-матч запомнится (`MatchState.finalScore`). Цифра сетов стоит у правого края
-зоны, напротив точки подачи, а не третьим числом в строке счёта: рядом с геймами
-вторая мелкая цифра читалась бы как часть счёта по геймам, и «4 1» пришлось бы
-разбирать. Место — единственное, что их различает, и оно же не даёт им сдвинуть
-очки с центра зоны.
+**The score screen shows the sets** — where there is more than one. `Ruleset.isMultiSet`
+answers that question once for everyone: the same answer picks the score the match will be
+remembered by (`MatchState.finalScore`). The sets digit stands at the right edge of the zone,
+opposite the serve dot, rather than as a third number on the score line: next to the games, a
+second small digit would read as part of the game score, and "4 1" would have to be puzzled
+out. Position is the only thing that tells them apart, and it is also what keeps them from
+pushing the points off the centre of the zone.
 
-**Как проверен каждый критерий.**
+**How each criterion was checked.**
 
-- *Выбор набора правил, сеты, золотое очко, N и X* — `RulesetView`, отснят в
-  симуляторе (Series 11 46mm) на счёте до N очков: «Счёт — до N очков», «Очков
-  (N) — 16», «Подача через (X) — 4».
-- *Первая подающая сторона* — две строки стартового экрана, отснят там же.
-- *Значения по умолчанию N = 16, X = 4, один сет* — `Ruleset.defaultPointsTo` и
-  `defaultClassic`, тесты «Счёт до N очков по умолчанию идёт до 16…» и
-  «Классический счёт по умолчанию — один сет с золотым очком». Экран правил
-  разбирает умолчания из них же, а не переписывает числами.
-- *Настройки прошлого матча подставляются и переживают перезапуск* — четыре
-  теста хранилища («Правила прошлого матча помнятся» на трёх наборах правил,
-  «…и от законченного матча», «…а не позапрошлого», «…переживают перезапуск
-  приложения») плюс проверка в симуляторе: база с матчем до 21 очка со сменой
-  подачи каждые 2 записана отдельным процессом и положена в контейнер
-  приложения — стартовый экран поднялся с «Счёт до N очков / N = 21 · X = 2».
-- *Начать одним касанием* — касание по «Подаём мы» и есть старт: `onStart`
-  собирает `Match` из запомненного набора правил и названной подачи.
-- *Возврат к идущему матчу мимо старта* — в контейнер положена база с
-  незаконченным матчем до двух сетов (первый сет наш, во втором 2:4, в гейме
-  30:15); приложение поднялось сразу на счёте, с сетами 1:0 у правого края.
+- *Choosing the ruleset, the sets, the golden point, N and X* — `RulesetView`, captured in the
+  simulator (Series 11 46mm) on the match to N points: "Счёт — до N очков", "Очков (N) — 16",
+  "Подача через (X) — 4".
+- *The first serving side* — the two rows of the start screen, captured in the same place.
+- *The defaults N = 16, X = 4, one set* — `Ruleset.defaultPointsTo` and `defaultClassic`, and
+  the tests "A match to N points defaults to 16, with the serve changing every 4 rallies" and
+  "Classic scoring defaults to one set with the golden point". The rules screen takes the
+  defaults apart from those very values rather than writing the numbers out again.
+- *The previous match's settings are filled in and survive a relaunch* — four store tests
+  ("The previous match's rules are remembered" across three rulesets, "…from a finished match
+  too", "…not the one before", "…survive a relaunch of the app") plus a check in the
+  simulator: a database with a match to 21 points and the serve changing every 2 was written
+  by a separate process and put into the app's container — the start screen came up with
+  "Счёт до N очков / N = 21 · X = 2".
+- *Starting with one tap* — a tap on "Подаём мы" is the start: `onStart` assembles a `Match`
+  from the remembered ruleset and the named serve.
+- *Returning to a running match past the start* — a database with an unfinished match to two
+  sets was put into the container (the first set ours, 2:4 in the second, 30:15 in the game);
+  the app came up straight on the score, with the sets at 1:0 by the right edge.
 
-`swift test` в обоих пакетах: 76 и 27 тестов, всё зелено. Собираются оба
-таргета.
+`swift test` in both packages: 76 and 27 tests, all green. Both targets build.
 
-**Решения, которых тикет не требовал.**
+**Decisions the ticket did not ask for.**
 
-- **«Новый матч» на экране итога.** Тикет 02 записал этот возврат за стартовым
-  экраном («кнопка была написана и убрана: возврат к новому матчу — это тикет
-  06»), и без него стартовый экран был бы достижим только перезапуском.
-  Кнопка, а не жест: на экране итога игрок уже не на подаче и никуда не
-  спешит, а промахнуться в новый матч посреди разбора последнего розыгрыша не
-  хочется. Долгое нажатие на этом экране осталось за отменой (тикет 05).
-- **Сеты на экране счёта** — то, что тикет 03 оставил решать здесь. Спека
-  называет «ровно три величины», и четвёртая появляется только в матче длиннее
-  одного сета: без неё геймы врут, они обнуляются с каждым сетом, и «4 : 1» не
-  говорит, кто ведёт в матче. В матче до одного сета — а это умолчание —
-  экран остаётся ровно таким, каким спека его описала.
-- **Первая подача не помнится между матчами**, в отличие от правил. Так её
-  определяет глоссарий: очередь подачи разыгрывается заново каждый раз. Это же
-  и делает выбор подачи бесплатным — он совмещён со стартом.
-- **Экран правил помнит числа обоих наборов правил, пока открыт.** Заглянуть в
-  соседний вариант и вернуться не должно стоить выставленных сетов. Наружу при
-  этом уходит один набор правил — выбранный.
-- **Матч без единого розыгрыша перезапуска не переживает**: в хранилище он
-  попадает первым очком. Приложение вернётся на стартовый экран — ровно туда,
-  где такой матч и начинают.
-- **`padel.xcodeproj` переписан Xcode при сборке**: `PadelStorage` дописан в
-  Frameworks обоих таргетов (раньше линковался только через зависимость
-  пакета), кириллица в `Info.plist`-ключах разэкранирована. Изменение
-  побочное, но верное, и потому оставлено.
+- **"Новый матч" on the outcome screen.** Ticket 02 assigned that return to the start screen
+  ("the button was written and removed: the way back to a new match is ticket 06"), and
+  without it the start screen would be reachable only by relaunching. A button, not a gesture:
+  on the outcome screen the player is no longer on serve and is in no hurry, and mis-tapping
+  into a new match in the middle of dissecting the last rally is not something anybody wants.
+  The long press on that screen stayed with undo (ticket 05).
+- **The sets on the score screen** — what ticket 03 left to be settled here. The spec names
+  "exactly three quantities", and a fourth appears only in a match longer than one set:
+  without it the games lie, they reset with every set, and "4 : 1" does not say who is ahead
+  in the match. In a match to one set — which is the default — the screen stays exactly as the
+  spec described it.
+- **The first serve is not remembered between matches**, unlike the rules. That is how the
+  glossary defines it: who serves first is decided anew every time. It is also what makes
+  choosing the serve free — it is merged with the start.
+- **The rules screen remembers the numbers of both rulesets while it is open.** Glancing at
+  the neighbouring case and coming back must not cost the sets already dialled in. What leaves
+  the screen, though, is a single ruleset — the selected one.
+- **A match without a single rally does not survive a relaunch**: it reaches the store with
+  its first point. The app will come back to the start screen — exactly where such a match is
+  started.
+- **`padel.xcodeproj` was rewritten by Xcode during the build**: `PadelStorage` was added to
+  the Frameworks of both targets (it used to be linked only through the package dependency),
+  and the Cyrillic in the `Info.plist` keys was unescaped. The change is incidental, but
+  correct, and so was kept.
 
-**Что осталось проверить руками** (спека относит экраны к непокрываемому
-тестами; в симуляторе не оказалось окна, которое можно нажать, поэтому все
-экраны сняты, но не протыканы):
+**What is left to check by hand** (the spec puts the screens among what tests do not cover;
+there turned out to be no window in the simulator that could be pressed, so every screen was
+captured but not tapped through):
 
-- Переход со стартового экрана на экран правил и обратно: правила должны
-  доезжать до старта сразу, без «Готово».
-- Крутилка Digital Crown на выборе N: сорок значений — это пара оборотов, и
-  стоит убедиться, что колесо не проскакивает нужное.
-- Не перехватывает ли кнопка «Новый матч» долгое нажатие отмены на экране
-  итога — она лежит внутри той же области.
-- Читается ли цифра сетов у правого края как сеты, а не как ещё один гейм, —
-  на корте, на матче до двух сетов.
+- Going from the start screen to the rules screen and back: the rules should reach the start
+  at once, without a "Done".
+- The Digital Crown on the choice of N: forty values is a couple of turns, and it is worth
+  making sure the wheel does not skip past the one you want.
+- Whether the "Новый матч" button intercepts the long press for undo on the outcome screen —
+  it lies inside the same area.
+- Whether the sets digit at the right edge reads as sets rather than as one more game — on
+  court, in a match to two sets.
 
-**Падение по кнопке «Новый матч» — найдено и починено.**
+**The crash on the "Новый матч" button — found and fixed.**
 
-Корень отдавал экрану матча `Binding($match)` — связку на опциональный
-`SavedMatch`, чтобы у матча был один владелец. SwiftUI реализует такую связку
-через `BindingOperations.ForceUnwrapping`, и разворачивает опционал силой при
-**каждом** чтении. Кнопка «Новый матч» обнуляла матч, живой ещё экран матча
-читал свою связку в том же цикле обновления — `EXC_BREAKPOINT` в
-`ForceUnwrapping.get(base:)`. Стек взят из отчёта в `~/Library/Logs/DiagnosticReports`
-после воспроизведения на симуляторе.
+The root handed the match screen a `Binding($match)` — a binding to an optional `SavedMatch`,
+so that the match would have a single owner. SwiftUI implements such a binding through
+`BindingOperations.ForceUnwrapping`, and force-unwraps the optional on **every** read. The
+"Новый матч" button cleared the match, the still-alive match screen read its binding in the
+same update cycle — `EXC_BREAKPOINT` in `ForceUnwrapping.get(base:)`. The stack was taken from
+the report in `~/Library/Logs/DiagnosticReports` after reproducing it in the simulator.
 
-Починка: матч уезжает в экран матча значением, а не связкой, — экран снова
-владеет им сам (`@State`), как до тикета, а корню довольно знать, что матч
-есть. Плюс `.id(match.id)`: другой матч — другой экран, с чистого листа.
-Причина записана в доке `RootView.match`, чтобы связку не завели обратно.
+The fix: the match travels into the match screen as a value rather than a binding — the screen
+owns it itself again (`@State`), as it did before the ticket, and it is enough for the root to
+know that a match exists. Plus `.id(match.id)`: a different match means a different screen,
+from a clean slate. The reason is written down in `RootView.match`'s doc comment, so that the
+binding is not brought back.
 
-Проверено на том же переходе: в контейнер положена база с незаконченным матчем
-до двух сетов, `onFinish()` вызван из экрана матча по таймеру вместо касания —
-приложение ушло на стартовый экран, отчёта о падении не появилось. До починки
-тот же переход давал отчёт.
+Checked on the same transition: a database with an unfinished match to two sets was put into
+the container, and `onFinish()` was called from the match screen on a timer instead of a tap —
+the app went to the start screen, and no crash report appeared. Before the fix the same
+transition produced one.
 
-Отсюда же — урок для проверки руками: экраны, снятые по одному, не ловят
-падений на переходах между ними. Все четыре перехода (старт → счёт, счёт →
-итог, итог → старт, старт → правила → старт) стоит пройти пальцем подряд.
+A lesson for checking by hand, from the same place: screens captured one at a time do not
+catch crashes on the transitions between them. All four transitions (start → score, score →
+outcome, outcome → start, start → rules → start) are worth walking through with a finger, one
+after another.

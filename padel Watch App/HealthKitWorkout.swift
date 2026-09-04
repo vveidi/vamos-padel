@@ -1,41 +1,43 @@
 import HealthKit
 import os
 
-/// Тренировка на HealthKit: `HKWorkoutSession` плюс `HKLiveWorkoutBuilder`.
+/// The workout on HealthKit: `HKWorkoutSession` plus `HKLiveWorkoutBuilder`.
 ///
-/// Тонкая обёртка над системным API, и тестами она не покрыта — так решено в
-/// спеке, потому что проверять здесь нечего, кроме самого HealthKit. Всё, что
-/// обёртка добавляет от себя, — два обещания. Первое: неудача не долетает до
-/// матча. Здоровье может быть недоступно, разрешение — не выдано, сессия —
-/// упасть посреди игры; счёт от этого не должен ни сбиться, ни исчезнуть.
-/// Второе: тренировка либо идёт, либо нет, и переходы между этими состояниями
-/// не наступают друг другу на пятки.
+/// A thin wrapper over a system API, and it is not covered by tests — decided
+/// so in the spec, because there is nothing to check here beyond HealthKit
+/// itself. All the wrapper adds of its own are two promises. First: a failure
+/// never reaches the match. Health may be unavailable, permission may not be
+/// granted, the session may die mid-game; none of that must throw the score off
+/// or make it disappear. Second: a workout is either running or not, and the
+/// transitions between those states do not tread on each other's heels.
 final class HealthKitWorkout: NSObject, Workout {
     private let healthStore = HKHealthStore()
 
-    /// Что мы пишем: саму тренировку и потраченные калории. Пульс в списке
-    /// отсутствует намеренно — его пишет система, мы только читаем.
+    /// What we write: the workout itself and the calories burned. Heart rate
+    /// is deliberately absent from the list — the system writes it, we only
+    /// read.
     private static let typesToShare: Set<HKSampleType> = [
         HKObjectType.workoutType(),
         HKQuantityType(.activeEnergyBurned),
     ]
 
-    /// Что мы читаем: то, что сборщик тренировки складывает в неё сам.
+    /// What we read: what the workout builder puts into it by itself.
     private static let typesToRead: Set<HKObjectType> = [
         HKQuantityType(.heartRate),
         HKQuantityType(.activeEnergyBurned),
     ]
 
-    /// Непустые ровно тогда, когда тренировка идёт.
+    /// Non-nil exactly when a workout is running.
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
 
-    /// Очередь длиной в одно звено.
+    /// A queue one link long.
     ///
-    /// Старт и завершение — асинхронные операции в несколько шагов, а зовёт их
-    /// экран, который ждать не умеет. Без очереди отмена последнего розыгрыша
-    /// на экране итога успевала бы начать новую тренировку раньше, чем
-    /// закончилась предыдущая, и обе писали бы в один и тот же `session`.
+    /// Starting and ending are asynchronous operations of several steps, and
+    /// they are called by a screen that cannot wait. Without the queue,
+    /// undoing the last rally on the outcome screen would manage to start a
+    /// new workout before the previous one had ended, and both would write into
+    /// the same `session`.
     private var pending: Task<Void, Never>?
 
     func start() {
@@ -58,30 +60,31 @@ final class HealthKitWorkout: NSObject, Workout {
     private func begin() async {
         guard session == nil, HKHealthStore.isHealthDataAvailable() else { return }
 
-        // Разрешение спрашивается перед каждым матчем, а показывается один
-        // раз: HealthKit сам молчит, если про все типы уже решено. Отказ сюда
-        // не долетает — про чтение HealthKit его принципиально не сообщает,
-        // чтобы приложение не могло по отказу что-то заключить о здоровье, —
-        // поэтому ответ на любой исход один: пробовать дальше и не мешать
-        // матчу. Объяснение, зачем счётчику матча доступ к здоровью, живёт в
-        // NSHealth*UsageDescription; система показывает его в этом же окне.
+        // Permission is asked before every match but shown once: HealthKit
+        // stays quiet by itself once every type has been decided on. A denial
+        // never reaches here — for reads HealthKit deliberately never reports
+        // one, so that an app cannot infer anything about health from it — so
+        // the answer to any outcome is the same: carry on and do not get in
+        // the match's way. The explanation of why a match counter needs health
+        // access lives in NSHealth*UsageDescription; the system shows it in
+        // this very dialog.
         do {
             try await healthStore.requestAuthorization(
                 toShare: Self.typesToShare, read: Self.typesToRead)
         } catch {
-            logger.error("Разрешение на здоровье не получено: \(error.localizedDescription)")
+            logger.error("health permission was not granted: \(error.localizedDescription)")
         }
 
         let configuration = HKWorkoutConfiguration()
 
-        // Падела среди видов тренировок нет, и теннис — ближайшее, что есть:
-        // тот же ракеточный парный корт, та же оценка затрат. Из-за него матч
-        // и появится в Health под словом «Теннис».
+        // Padel is not among the workout types, and tennis is the closest
+        // there is: the same racket doubles court, the same estimate of effort.
+        // It is why the match will appear in Health under the word "Tennis".
         configuration.activityType = .tennis
 
-        // Дистанцию мы не считаем, а закрытый корт для часов означает лишь
-        // одно: не будить GPS. Полтора часа GPS ради ничего — это батарея,
-        // которой не хватит на второй матч.
+        // We do not measure distance, and an indoor court means only one thing
+        // to the watch: do not wake the GPS. An hour and a half of GPS for
+        // nothing is the battery that will not last a second match.
         configuration.locationType = .indoor
 
         do {
@@ -99,8 +102,9 @@ final class HealthKitWorkout: NSObject, Workout {
             do {
                 try await builder.beginCollection(at: startedAt)
             } catch {
-                // Сессия уже идёт, а складывать в неё нечего. Оставить её
-                // открытой значит жечь батарею до конца дня.
+                // The session is already running and there is nothing to put
+                // into it. Leaving it open means burning the battery until the
+                // end of the day.
                 session.end()
                 throw error
             }
@@ -108,16 +112,17 @@ final class HealthKitWorkout: NSObject, Workout {
             self.session = session
             self.builder = builder
         } catch {
-            logger.error("Тренировка не началась: \(error.localizedDescription)")
+            logger.error("the workout did not start: \(error.localizedDescription)")
         }
     }
 
     private func finish() async {
         guard let session, let builder else { return }
 
-        // Ссылки снимаются до первого await: пока тренировка закрывается,
-        // матч уже считается без неё, и второй `end` не должен закрыть её
-        // вторично, а `start` — увидеть занятое место.
+        // The references are cleared before the first await: while the workout
+        // is closing, the match is already being counted without it, and a
+        // second `end` must not close it twice, nor a `start` find the place
+        // taken.
         self.session = nil
         self.builder = nil
 
@@ -127,18 +132,19 @@ final class HealthKitWorkout: NSObject, Workout {
         do {
             try await builder.endCollection(at: endedAt)
 
-            // Именно этот вызов кладёт тренировку в Health. Без него матч
-            // остаётся сессией, которая была и прошла.
+            // This is the call that puts the workout into Health. Without it
+            // the match stays a session that came and went.
             try await builder.finishWorkout()
         } catch {
-            logger.error("Тренировка не записалась: \(error.localizedDescription)")
+            logger.error("the workout was not written: \(error.localizedDescription)")
         }
     }
 }
 
 extension HealthKitWorkout: HKWorkoutSessionDelegate {
-    /// Смена состояния сессии нас не занимает: тренировкой распоряжается матч,
-    /// а не наоборот. Метод обязателен по протоколу.
+    /// A change of session state does not concern us: the match commands the
+    /// workout, not the other way round. The method is required by the
+    /// protocol.
     nonisolated func workoutSession(
         _ workoutSession: HKWorkoutSession,
         didChangeTo toState: HKWorkoutSessionState,
@@ -146,16 +152,17 @@ extension HealthKitWorkout: HKWorkoutSessionDelegate {
         date: Date
     ) {}
 
-    /// Единственный канал, по которому слышно, что тренировка умерла посреди
-    /// матча. Ответить на это нечем — счёт продолжает считаться, — но молчать
-    /// нельзя: иначе «матча нет в Health» останется без объяснения.
+    /// The only channel by which it can be heard that the workout died
+    /// mid-match. There is nothing to answer with — the score keeps being
+    /// counted — but staying silent is not an option: otherwise "the match is
+    /// not in Health" would be left without an explanation.
     nonisolated func workoutSession(
         _ workoutSession: HKWorkoutSession, didFailWithError error: Error
     ) {
         let description = error.localizedDescription
 
         Task { @MainActor in
-            logger.error("Тренировка прервалась: \(description)")
+            logger.error("the workout was interrupted: \(description)")
         }
     }
 }

@@ -1,69 +1,113 @@
 # Padel
 
-Приложение для Apple Watch, которое ведёт счёт падел-матча прямо на корте и сохраняет сыгранное. Телефон служит витриной истории.
+An Apple Watch app that scores a padel match right on the court and saves what
+was played. The phone serves as the shop window for the history.
+
+## Written language
+
+The code and every document around it — doc comments, test names, ADRs,
+tickets, this glossary — are written in English. The app's own strings are
+Russian: screen titles, button labels, VoiceOver labels. Do not translate the
+strings: Russian is the language of the app, English is the language of the
+work around it.
 
 ## Language
 
-**Розыгрыш**:
-Единица игры, которая заканчивается тем, что одна из сторон получает очко. Наименьшее событие, которое приложение записывает.
-_Avoid_: очко (это результат розыгрыша, а не сам розыгрыш)
+**Rally**:
+A unit of play that ends with one of the sides winning a point. The smallest
+event the app records.
+_Avoid_: point (that is the result of a rally, not the rally itself)
 
-**Журнал розыгрышей**:
-Упорядоченная последовательность розыгрышей матча — единственная сохраняемая правда о матче. Счёт вычисляется из журнала, а не хранится рядом с ним.
-_Avoid_: история, лог, event log
+**Rally journal**:
+The ordered sequence of a match's rallies — the single stored truth about the
+match. The score is computed from the journal rather than stored beside it.
+_Avoid_: history, log, event log
 
-**Сторона**:
-Одна из двух пар на корте. В v1 стороны обезличены: «наша» и «соперники», без имён игроков.
-_Avoid_: команда, пара, team
+**Side**:
+One of the two pairs on court. In v1 the sides are anonymous: "us" and "the
+opponents", with no player names.
+_Avoid_: team, pair, couple
 
-**Золотое очко**:
-Правило, по которому при счёте «ровно» разыгрывается одно решающее очко вместо игры до разницы в два. Включается настройкой перед матчем.
-_Avoid_: punto de oro, решающее очко
+**Golden point**:
+The rule by which deuce is settled by a single decisive point instead of
+playing on for a two-point lead. Switched on by a setting before the match.
+_Avoid_: punto de oro, deciding point
 
-**Набор правил**:
-Данные, определяющие, как из журнала розыгрышей вычисляется счёт и когда матч закончен. Задаётся перед матчем и запоминается до следующего.
-_Avoid_: настройки, конфиг, режим
+**Ruleset**:
+The data that decides how the score is computed from the rally journal and when
+the match is over. Set before the match and remembered until the next one.
+_Avoid_: settings, config, mode
 
-**Матч**:
-Одна игра от первого розыгрыша до момента, когда набор правил объявляет её законченной. Единица, которую приложение сохраняет и показывает в истории.
-_Avoid_: игра, сессия, партия
+**Match**:
+A single game from the first rally to the moment the ruleset declares it over.
+The unit the app saves and shows in the history.
+_Avoid_: game (that is a unit inside a set), session, round
 
-**Классический счёт**:
-Набор правил падела с геймами и сетами: 15/30/40, гейм при разнице в два очка, сет до шести геймов, тай-брейк при 6:6. Подача переходит к другой стороне после каждого гейма.
-_Avoid_: теннисный счёт, обычный режим
+**Classic scoring**:
+The padel ruleset with games and sets: 15/30/40, a game at a two-point lead, a
+set to six games, a tiebreak at 6:6. The serve passes to the other side after
+every game.
+_Avoid_: tennis scoring, normal mode
 
-**Счёт до N очков**:
-Набор правил, в котором матч заканчивается, как только сторона первой набирает N очков. Подача переходит к другой стороне каждые X очков; и N, и X задаются перед матчем.
-_Avoid_: американо, быстрый матч
+**The match to N points**:
+The ruleset in which the match ends as soon as a side is first to reach N
+points. The serve passes to the other side every X points; both N and X are set
+before the match.
+_Avoid_: americano, quick match
 
-**Американо**:
-Турнирный формат на 8–16 игроков с ротацией партнёров каждый раунд и личным зачётом очков. **Не входит в v1.** Слово зарезервировано за турниром и никогда не обозначает способ счёта — для этого есть «Счёт до N очков».
-_Avoid_: использовать как синоним счёта до N очков
+**Americano**:
+A tournament format for 8–16 players with partners rotating every round and
+points counted individually. **Not part of v1.** The word is reserved for the
+tournament and never denotes a way of scoring — the match to N points is what
+that is called.
+_Avoid_: using it as a synonym for the match to N points
 
-**Подающая сторона**:
-Сторона, выполняющая подачу в текущем розыгрыше. Приложение спрашивает её перед матчем и показывает на экране. При обезличенных сторонах отслеживается только сторона, но не конкретный игрок внутри пары.
-_Avoid_: подающий, сервер, подача (как сущность)
+**Serving side**:
+The side serving the current rally. The app asks for it before the match and
+shows it on screen. With anonymous sides only the side is tracked, never the
+particular player within the pair.
+_Avoid_: server, the serve (as an entity)
 
-**Недоигранный матч**:
-Матч, прекращённый до того, как набор правил объявил его законченным. Сохраняется в истории наравне с остальными, но помечен явно и не считается ни победой, ни поражением.
-_Avoid_: брошенный, отменённый, прерванный
+**Abandoned match**:
+A match stopped before the ruleset declared it over. Saved in the history
+alongside the rest, but marked explicitly, and counted as neither a win nor a
+loss.
+_Avoid_: dropped, cancelled, interrupted
 
-**Длительность матча**:
-Время от первого розыгрыша до последнего. Не считается ни от запуска приложения — между «открыл на корте» и «подали» проходит разминка, — ни до «сейчас»: матч, прерванный севшей батареей, длился до последнего очка, а не до момента, когда его открыли заново.
-_Avoid_: время матча, продолжительность игры
+**Match duration**:
+The time from the first rally to the last. Counted neither from the app
+launching — between "opened it on court" and "served" there is a warm-up — nor
+up to "now": a match cut short by a dead battery lasted until its last point,
+not until the moment it was opened again.
+_Avoid_: match time, length of play
 
-**Состояние матча**:
-Счёт и исход, вычисленные из журнала розыгрышей по набору правил. Счёт не хранится рядом с журналом и потому не может с ним рассинхронизироваться (ADR-0001); из всего состояния хранится одна пометка недоигранности — её неоткуда посчитать.
-_Avoid_: статус, счёт (как отдельно хранимая величина)
+**Match state**:
+The score and the outcome, computed from the rally journal according to the
+ruleset. The score is not stored beside the journal and therefore cannot drift
+out of sync with it (ADR-0001); of the whole state, one abandoned mark is
+stored — there is nowhere to compute it from.
+_Avoid_: status, score (as a separately stored value)
 
-**Исход матча**:
-Чем закончился матч: он ещё идёт, выигран одной из сторон или остался недоигранным.
-_Avoid_: результат, статус, завершённость
+**Match outcome**:
+How the match ended: still in progress, won by one of the sides, or left
+abandoned.
+_Avoid_: result, status, completeness
 
-**Тренировка**:
-Запись матча в Health — то, чем матч притворяется, чтобы часы прожили полтора часа игры. Пока тренировка идёт, система не выгружает приложение, держит экран счёта в Always-On и возвращает к нему поднятием руки; пульс, калории и кольца активности достаются побочно. Начинается и заканчивается вместе с матчем и не является отдельной сущностью предметной области: ни счёт, ни журнал розыгрышей о ней не знают.
-_Avoid_: сессия (это слово глоссарий уже отводит от «матча»), воркаут, workout
+**Workout**:
+The record of the match in Health — what the match pretends to be so that the
+watch can live through an hour and a half of play. While the workout is running
+the system does not unload the app, keeps the score screen in Always-On and
+returns to it when the wrist is raised; heart rate, calories and activity rings
+come as a side effect. It starts and ends with the match and is not a separate
+entity of the domain: neither the score nor the rally journal knows about it.
+_Avoid_: session (the glossary already keeps that word away from "match")
 
-**Доставка матча**:
-Переезд законченного матча с часов на телефон, где он становится историей. Случается сама, без участия игрока, и тогда, когда телефон окажется доступен, — во время игры он не нужен. Матч считается доставленным, когда телефон расписался в том, что записал его, а не когда часы его отправили: до расписки часы остаются единственным местом, где матч есть (ADR-0002). Один и тот же матч может приехать дважды — телефон узнаёт его по идентификатору и второго не заводит.
-_Avoid_: синхронизация, sync (двусторонним обменом это не является)
+**Match delivery**:
+The journey of a finished match from the watch to the phone, where it becomes
+history. It happens by itself, without the player, and at whatever moment the
+phone becomes reachable — during play it is not needed. A match counts as
+delivered when the phone has signed for having written it down, not when the
+watch sent it: until the receipt, the watch is the only place the match exists
+(ADR-0002). The same match may arrive twice — the phone recognises it by its
+identifier and does not create a second one.
+_Avoid_: synchronisation, sync (this is not a two-way exchange)

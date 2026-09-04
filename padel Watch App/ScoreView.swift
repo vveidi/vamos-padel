@@ -1,25 +1,27 @@
 import PadelScoring
 import SwiftUI
 
-/// Экран счёта: две равные зоны во весь экран, по одной на сторону.
+/// The score screen: two equal zones filling the display, one per side.
 ///
-/// Соперники сверху, мы снизу — так же, как на корте: они за сеткой, перед
-/// нами. Попадать в свою половину нужно не глядя и мокрой рукой, поэтому зоны
-/// делят экран пополам и ничем, кроме счёта, не заняты.
+/// The opponents on top, us at the bottom — the same as on court: they are
+/// across the net, in front of us. Hitting your own half has to work without
+/// looking and with a wet hand, so the zones split the screen in half and hold
+/// nothing but the score.
 struct ScoreView: View {
-    /// Наша сторона узнаётся по цвету, а не по подписи: подпись отняла бы
-    /// место у цифры, ради которой на часы и смотрят. Цвет живёт здесь, а не
-    /// в акцентном цвете приложения, потому что это решение экрана счёта.
+    /// Our side is recognised by colour rather than by a label: a label would
+    /// take room from the digit the watch is being looked at for. The colour
+    /// lives here and not in the app's accent colour, because it is a decision
+    /// of the score screen.
     static let ourColor = Color(red: 0.188, green: 0.820, blue: 0.345)
 
     let points: Points
 
-    /// Геймы текущего сета; в счёте до N очков их нет, и тогда зона занята
-    /// одними очками.
+    /// The games of the current set; in a match to N points there are none,
+    /// and then the zone holds points alone.
     let games: SideCounts?
 
-    /// Выигранные сеты; `nil` везде, кроме матча длиннее одного сета. Решает
-    /// это набор правил, а не экран.
+    /// The sets won; `nil` everywhere except in a match longer than one set.
+    /// The ruleset decides that, not the screen.
     let sets: SideCounts?
 
     let servingSide: Side
@@ -48,11 +50,11 @@ struct ScoreView: View {
     }
 }
 
-/// Половина экрана, принадлежащая одной стороне: её счёт и её касание.
+/// The half of the screen belonging to one side: its score and its tap.
 private struct ScoreZone: View {
     let side: Side
 
-    /// Именно подпись, а не число: в гейме здесь стоит «40» или «AD».
+    /// A label precisely, and not a number: in a game it reads "40" or "AD".
     let pointsLabel: String
 
     let games: Int?
@@ -63,19 +65,20 @@ private struct ScoreZone: View {
 
     var body: some View {
         content
-            // Касание отдаёт очко, долгое нажатие отменяет последнее.
-            // Долгое выбрано за то, чем отличается от промаха: мокрая ладонь
-            // задевает экран мимоходом, а полсекунды удержания — намерение.
-            // Жест держится на `onTapGesture`, а не на `Button`: кнопка
-            // срабатывает на отпускании и отдала бы очко ещё и после отмены.
+            // A tap awards a point, a long press undoes the last one. Long was
+            // chosen for how it differs from a mis-tap: a wet palm brushes the
+            // screen in passing, whereas half a second of holding is intent.
+            // The gesture rests on `onTapGesture` rather than on a `Button`: a
+            // button fires on release and would award a point after the undo
+            // as well.
             //
-            // Спека (раздел «Экран счёта») оставляет конкретный жест
-            // прототипу — проверять его надо на потной руке, а не в
-            // симуляторе. До тех пор выбор предварительный.
+            // The spec (the "Score screen" section) leaves the exact gesture to
+            // the prototype — it has to be tried with a sweaty hand, not in a
+            // simulator. Until then the choice is provisional.
             .onTapGesture { onRallyWon(side) }
             .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
-            // Кнопкой зона перестала быть, поэтому всё, что кнопка давала
-            // VoiceOver, возвращается руками.
+            // The zone stopped being a button, so everything a button gave
+            // VoiceOver is put back by hand.
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel(accessibilityLabel)
@@ -84,14 +87,15 @@ private struct ScoreZone: View {
     }
 
     private var content: some View {
-        // Геймы стоят рядом с очками, а не отдельной строкой посреди
-        // экрана: половина остаётся одним предметом, на который смотрят,
-        // и вертикаль не тратится на третий ярус. Общая базовая линия
-        // держит их одним счётом, а не двумя числами по соседству.
+        // The games stand next to the points rather than on a line of their
+        // own in the middle of the screen: the half stays one object to look
+        // at, and the vertical is not spent on a third tier. A shared baseline
+        // holds them as one score rather than two adjacent numbers.
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            // Кегль и предел сжатия — те же, что были у очков до появления
-            // геймов: геймы встали рядом, но ужимать ради них цифру, ради
-            // которой на часы и смотрят, не должны.
+            // The type size and the shrink limit are the ones the points had
+            // before the games appeared: the games took their place alongside,
+            // but they must not squeeze the digit the watch is being looked at
+            // for.
             Text(pointsLabel)
                 .font(.system(size: 64, weight: .semibold, design: .rounded))
                 .minimumScaleFactor(0.4)
@@ -106,10 +110,11 @@ private struct ScoreZone: View {
         }
         .lineLimit(1)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Точка стоит у края, а не в строке со счётом: иначе цифра
-        // съезжала бы с центра зоны при каждом переходе подачи, и взгляд
-        // ловил бы её заново. Место под точку занято всегда — видимость
-        // меняется, разметка нет.
+        // The dot sits at the edge and not on the line with the score:
+        // otherwise the digit would slide off the centre of the zone on every
+        // change of serve, and the eye would have to find it again. The room
+        // for the dot is always taken — the visibility changes, the layout does
+        // not.
         .overlay(alignment: .leading) {
             Circle()
                 .frame(width: 10, height: 10)
@@ -117,10 +122,11 @@ private struct ScoreZone: View {
                 .foregroundStyle(.white)
                 .opacity(isServing ? 0.9 : 0)
         }
-        // Сеты стоят у противоположного края, а не третьим числом в строке
-        // счёта: рядом с геймами вторая мелкая цифра читалась бы как часть
-        // счёта по геймам, и «4 1» пришлось бы разбирать. Место — единственное,
-        // что их различает, и оно же не даёт им сдвинуть очки с центра зоны.
+        // The sets stand at the opposite edge rather than as a third number on
+        // the score line: next to the games, a second small digit would read as
+        // part of the game score, and "4 1" would have to be puzzled out.
+        // Position is the only thing that tells them apart, and it is also what
+        // keeps them from pushing the points off the centre of the zone.
         .overlay(alignment: .trailing) {
             if let sets {
                 Text("\(sets)")
@@ -130,7 +136,7 @@ private struct ScoreZone: View {
             }
         }
         .background(background)
-    // Иначе жест ловит только сам счёт, а не вся половина.
+    // Otherwise the gesture catches only the score itself, not the whole half.
     .contentShape(Rectangle())
     }
 
@@ -159,7 +165,7 @@ private struct ScoreZone: View {
     }
 }
 
-#Preview("Классический счёт") {
+#Preview("Classic scoring") {
     ScoreView(
         points: .game(SideCounts(us: 3, them: 2)),
         games: SideCounts(us: 4, them: 5),
@@ -169,7 +175,7 @@ private struct ScoreZone: View {
         onUndo: {})
 }
 
-#Preview("Матч до двух сетов") {
+#Preview("A match to two sets") {
     ScoreView(
         points: .game(SideCounts(us: 4, them: 3)),
         games: SideCounts(us: 2, them: 4),
@@ -179,7 +185,7 @@ private struct ScoreZone: View {
         onUndo: {})
 }
 
-#Preview("Счёт до N очков") {
+#Preview("The match to N points") {
     ScoreView(
         points: .count(SideCounts(us: 12, them: 9)),
         games: nil,

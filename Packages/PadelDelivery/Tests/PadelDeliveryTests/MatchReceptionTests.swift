@@ -5,9 +5,9 @@ import Testing
 
 @testable import PadelDelivery
 
-@Suite("Приём матчей на телефоне")
+@Suite("Receiving matches on the phone")
 struct MatchReceptionTests {
-    @Test("Приехавший матч попадает в хранилище телефона")
+    @Test("A match that arrives lands in the phone's store")
     func anArrivingMatchIsStored() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -19,11 +19,10 @@ struct MatchReceptionTests {
         #expect(try store.match(id: saved.id) == saved)
     }
 
-    /// Часы отправляют матч заново, пока не получат подтверждения, и своя
-    /// очередь есть у транспорта — один и тот же матч приезжает дважды по
-    /// замыслу. Узнаётся он по идентификатору, заведённому при первом
-    /// розыгрыше.
-    @Test("Повторный приезд не заводит второй матч")
+    /// The watch sends the match again until it gets a confirmation, and the
+    /// transport has a queue of its own — the same match arriving twice is by
+    /// design. It is recognised by the identifier created on the first rally.
+    @Test("Arriving twice does not create a second match")
     func arrivingTwiceDoesNotDuplicateTheMatch() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -36,9 +35,9 @@ struct MatchReceptionTests {
         #expect(try store.matches() == [saved])
     }
 
-    /// Тот же матч, но доигранный после отмены очка: приехавшее позже —
-    /// свежее, и в истории должно остаться оно.
-    @Test("Второй приезд обновляет матч, а не дописывает его")
+    /// The same match, but played out after a point was undone: what arrived
+    /// later is fresher, and that is what the history must keep.
+    @Test("A second arrival updates the match rather than appending to it")
     func arrivingAgainUpdatesTheMatch() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -55,10 +54,10 @@ struct MatchReceptionTests {
         #expect(try store.matches() == [saved])
     }
 
-    /// Расписка — единственное, что снимает матч с очереди на часах
-    /// (ADR-0002), и телефон даёт её за то, что записал, а не за то, что
-    /// получил.
-    @Test("За записанный матч телефон расписывается")
+    /// The receipt is the only thing that takes a match off the queue on the
+    /// watch (ADR-0002), and the phone gives it for what it wrote down, not for
+    /// what it received.
+    @Test("The phone signs for a match it stored")
     func aStoredMatchIsConfirmed() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -70,10 +69,10 @@ struct MatchReceptionTests {
         #expect(transport.receipts == [saved])
     }
 
-    /// На телефоне не открылась база. Расписки нет — значит, матч остаётся в
-    /// очереди на часах и приедет снова, вместо того чтобы пропасть из истории
-    /// навсегда.
-    @Test("За несохранённый матч телефон не расписывается")
+    /// The database did not open on the phone. There is no receipt, so the
+    /// match stays in the queue on the watch and will arrive again instead of
+    /// vanishing from the history for good.
+    @Test("The phone does not sign for a match it failed to store")
     func anUnstoredMatchIsNotConfirmed() {
         let transport = FakeTransport()
 
@@ -83,7 +82,7 @@ struct MatchReceptionTests {
         #expect(transport.receipts.isEmpty)
     }
 
-    @Test("Разные матчи не сливаются в один")
+    @Test("Different matches do not merge into one")
     func differentMatchesAreStoredSeparately() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()

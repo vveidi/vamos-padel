@@ -1,30 +1,30 @@
-/// Чем закончился матч.
+/// How the match ended.
 ///
-/// Три исхода, а не «закончен или нет»: недоигранный матч — не победа, не
-/// поражение и не продолжающаяся игра. Без отдельного исхода матч, оставленный
-/// при 5:2, невозможно отличить от проигранного, и эта разница теряется
-/// безвозвратно — журнал розыгрышей о ней не знает.
+/// Three outcomes rather than "over or not": an abandoned match is not a win,
+/// not a loss, and not a game still going. Without an outcome of its own, a
+/// match left at 5:2 cannot be told apart from a lost one, and that difference
+/// is gone for good — the rally journal knows nothing about it.
 public enum MatchOutcome: Equatable, Sendable {
     case inProgress
 
     case finished(winner: Side)
 
-    /// Матч, прекращённый до того, как набор правил объявил его законченным.
+    /// A match stopped before the ruleset declared it over.
     case abandoned
 
-    /// Матч кончился — доигран или прекращён досрочно, неважно.
+    /// The match has ended — played out or stopped early, it does not matter.
     ///
-    /// То, что спрашивают, когда решают, принимать ли ещё розыгрыши и есть ли
-    /// что продолжать. Победитель для этого не годится: у недоигранного матча
-    /// его нет, а игра в нём тем не менее кончилась.
+    /// What gets asked when deciding whether to accept more rallies and
+    /// whether there is anything left to continue. The winner will not do for
+    /// that: an abandoned match has none, and yet play in it has ended.
     public var isOver: Bool {
         self != .inProgress
     }
 
-    /// Сторона, выигравшая матч, если он выигран.
+    /// The side that won the match, if it was won.
     ///
-    /// У недоигранного матча победителя нет — в этом весь смысл пометки:
-    /// он не считается ни победой, ни поражением.
+    /// An abandoned match has no winner — that is the whole point of the mark:
+    /// it counts as neither a win nor a loss.
     public var winner: Side? {
         switch self {
         case .inProgress, .abandoned: nil

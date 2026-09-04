@@ -4,12 +4,13 @@ import Testing
 
 @testable import PadelStorage
 
-@Suite("Сохранённый матч")
+@Suite("Saved match")
 struct SavedMatchTests {
-    /// Матч — это игра от первого розыгрыша, а не от запуска приложения. Между
-    /// «открыл на корте» и «подали» проходит разминка, и записывать её в
-    /// длительность матча значит врать в истории на телефоне (тикет 11).
-    @Test("Матч начинается первым розыгрышем, а не открытием приложения")
+    /// A match is the play from the first rally, not from the app launching.
+    /// Between "opened it on court" and "served" there is a warm-up, and
+    /// counting that into the match's duration means lying in the history on
+    /// the phone (ticket 11).
+    @Test("The match starts with its first rally, not with the app opening")
     func theMatchStartsWithItsFirstRally() {
         var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
 
@@ -19,7 +20,7 @@ struct SavedMatchTests {
         #expect(saved.duration == 0)
     }
 
-    @Test("Длительность — от первого розыгрыша до последнего")
+    @Test("The duration spans the first rally to the last")
     func theDurationSpansTheRallies() {
         var saved = SavedMatch.played([.us])
 
@@ -28,10 +29,10 @@ struct SavedMatchTests {
         #expect(saved.duration == 75 * 60)
     }
 
-    /// Касание по инерции после последнего очка движок не принимает, и время
-    /// оно двигать тоже не должно: иначе законченный матч продолжал бы
-    /// удлиняться, пока экран итога висит перед глазами.
-    @Test("Розыгрыш, который движок не принял, не удлиняет матч")
+    /// A tap out of habit after the last point is not accepted by the engine,
+    /// and it must not move the time either: otherwise a finished match would
+    /// keep growing longer while the outcome screen hangs before your eyes.
+    @Test("A rally the engine did not accept does not lengthen the match")
     func aRejectedRallyDoesNotLengthenTheMatch() {
         var saved = SavedMatch.played(
             [.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))

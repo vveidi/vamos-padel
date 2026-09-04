@@ -5,34 +5,34 @@ import os
 
 @main
 struct PadelWatchApp: App {
-    /// Хранилище открывается один раз за запуск приложения.
+    /// The store is opened once per launch of the app.
     ///
-    /// Не открылось — матч всё равно ведётся, просто не переживёт выгрузки.
-    /// Это хуже, чем матч с записью, и лучше, чем приложение, которое не
-    /// запустилось на корте.
+    /// If it did not open, the match is played all the same — it just will not
+    /// survive being unloaded. That is worse than a match with a record, and
+    /// better than an app that failed to launch on court.
     ///
-    /// Оно же очередь на доставку (ADR-0004), поэтому здесь два протокола:
-    /// экранам достаётся хранилище, доставке — очередь, а объект один.
+    /// It is also the delivery queue (ADR-0004), hence two protocols here: the
+    /// screens get the store, delivery gets the queue, and the object is one.
     private let store: any MatchStore & MatchDeliveryQueue
 
-    /// Доставка на телефон. Живёт столько же, сколько приложение: подтверждение
-    /// приходит когда угодно, в том числе задолго после того, как игрок ушёл с
-    /// корта и убрал часы.
+    /// Delivery to the phone. Lives as long as the app: the confirmation
+    /// arrives whenever, including long after the player left the court and put
+    /// the watch away.
     private let delivery: MatchDelivery
 
     init() {
         do {
             store = try SQLiteMatchStore.inApplicationSupport()
         } catch {
-            logger.error("Хранилище не открылось: \(error.localizedDescription)")
+            logger.error("the store did not open: \(error.localizedDescription)")
 
             store = NoMatchStore()
         }
 
-        // Сессия поднимается после того, как доставка подписалась: транспорт
-        // сообщает о своей готовности и о доехавшем матче по одному разу.
-        // Накопившееся уедет само, как только сессия поднимется, — поэтому
-        // отправку при запуске никто не зовёт руками.
+        // The session comes up after delivery has subscribed: the transport
+        // reports its readiness and an arrived match once each. What has piled
+        // up will leave by itself as soon as the session comes up — which is
+        // why nobody calls the launch-time sending by hand.
         let transport = WatchConnectivityTransport()
 
         delivery = MatchDelivery(queue: store, sender: transport)

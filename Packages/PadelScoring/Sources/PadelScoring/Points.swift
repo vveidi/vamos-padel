@@ -1,31 +1,33 @@
-/// Очки сторон в текущем гейме — то, что экран показывает крупно.
+/// The sides' points in the current game — what the screen shows in large
+/// type.
 ///
-/// Форма счёта — часть правил, а не оформления: в счёте до N очков и в
-/// тай-брейке очки просто считаются, а в гейме классического счёта ровно те же
-/// розыгрыши называются 15/30/40. Поэтому способ называть очки хранится вместе
-/// со счётчиками, а не выбирается на экране: назвать очки гейма числом или
-/// очки тай-брейка «сорока» невозможно.
+/// The shape of the score is part of the rules, not of the presentation: in a
+/// match to N points and in a tiebreak the points are simply counted, while in
+/// a game of classic scoring those very same rallies are called 15/30/40. So
+/// the way points are named is kept together with the counters instead of
+/// being chosen on screen: naming a game's points with a number, or a
+/// tiebreak's points "forty", is impossible.
 public enum Points: Equatable, Sendable {
-    /// Очки как число: счёт до N очков и тай-брейк.
+    /// Points as a number: the match to N points, and the tiebreak.
     case count(SideCounts)
 
-    /// Гейм классического счёта.
+    /// A game of classic scoring.
     case game(SideCounts)
 
-    /// Розыгрыши, выигранные сторонами. То, из чего подпись получается, —
-    /// в отличие от самой подписи, годится для арифметики. Наружу пакета не
-    /// выходит: снаружи счёт читают глазами, а считают его здесь.
+    /// The rallies won by each side. What the label is made from — and,
+    /// unlike the label itself, fit for arithmetic. It does not leave the
+    /// package: outside, the score is read with the eyes; it is computed here.
     var counts: SideCounts {
         switch self {
         case .count(let counts), .game(let counts): counts
         }
     }
 
-    /// Как называется счёт стороны.
+    /// What a side's score is called.
     ///
-    /// 15/30/40 — это запись падела, а не перевод: цифры и `AD` одинаковы на
-    /// любом языке, поэтому подпись живёт в движке, рядом с правилом, которое
-    /// её порождает.
+    /// 15/30/40 is padel's own notation, not a translation: the digits and
+    /// `AD` are the same in any language, so the label lives in the engine,
+    /// next to the rule that produces it.
     public func label(for side: Side) -> String {
         switch self {
         case .count(let counts):
@@ -35,21 +37,23 @@ public enum Points: Equatable, Sendable {
         }
     }
 
-    /// Названия очков гейма по порядку. Сама длина лестницы — это правило:
-    /// столько очков выигрывают гейм, а ступенью раньше начинается «ровно».
-    /// Поэтому пороги гейма берутся отсюда, а не пишутся числами в движке:
-    /// иначе правило жило бы в двух местах и разъехалось бы при первой правке.
+    /// The names of a game's points, in order. The length of the ladder is
+    /// itself a rule: that many points win a game, and one rung earlier deuce
+    /// begins. That is why the game's thresholds are taken from here rather
+    /// than written out as numbers in the engine: otherwise the rule would
+    /// live in two places and drift apart at the first edit.
     private static let ladder = ["0", "15", "30", "40"]
 
-    /// Сколько очков выигрывают гейм, если не дошло до «ровно».
+    /// How many points win a game when it never reaches deuce.
     static var pointsInGame: Int { ladder.count }
 
-    /// Счёт, с которого начинается «ровно».
+    /// The score at which deuce begins.
     private static var deuce: Int { ladder.count - 1 }
 
-    /// После «ровно» счётчики растут дальше — 4:3, 5:4, — но называется это
-    /// всего тремя способами: «ровно», «больше» и «меньше». Поэтому за третьим
-    /// очком от счётчиков важна только разница, а не их величина.
+    /// After deuce the counters keep growing — 4:3, 5:4 — but there are only
+    /// three ways to say it: deuce, advantage, and behind. So past the third
+    /// point only the difference between the counters matters, not how large
+    /// they are.
     private static func gameLabel(for side: Side, counts: SideCounts) -> String {
         let own = counts[side]
         let other = counts[side.opposite]

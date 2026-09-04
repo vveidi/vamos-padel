@@ -2,13 +2,14 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Отмена последнего очка")
+@Suite("Undoing the last point")
 struct UndoTests {
-    /// Самая сильная проверка тикета: не «отмена работает на границе гейма», а
-    /// «отмена не умеет ошибаться нигде». Журнал ниже проходит гейм, «ровно»,
-    /// границу сета и тай-брейк, и на каждом розыгрыше состояние до записи
-    /// сравнивается с состоянием после отмены — вместе с подачей и исходом.
-    @Test("Отмена возвращает ровно то состояние, что было до розыгрыша")
+    /// The strongest check in the ticket: not "undo works on a game
+    /// boundary" but "undo cannot go wrong anywhere". The journal below runs
+    /// through a game, deuce, a set boundary and a tiebreak, and on every
+    /// rally the state before the record is compared with the state after the
+    /// undo — serve and outcome included.
+    @Test("Undo restores exactly the state that preceded the rally")
     func undoRestoresTheStateExactly() {
         var match = Match(ruleset: .classic(setsToWin: 2, goldenPoint: false), firstServer: .them)
 
@@ -32,14 +33,14 @@ struct UndoTests {
             sawSet = sawSet || state.sets != SideCounts()
         }
 
-        // Иначе фикстура однажды перестанет проходить границы, а тест будет
-        // всё так же зелёным и всё так же обещать, что их проходит.
-        #expect(sawDeuce, "журнал не дошёл до «ровно»")
-        #expect(sawTieBreak, "журнал не дошёл до тай-брейка")
-        #expect(sawSet, "журнал не дошёл до конца сета")
+        // Otherwise the fixture will one day stop crossing the boundaries
+        // while the test stays just as green and keeps promising it does.
+        #expect(sawDeuce, "the journal never reached deuce")
+        #expect(sawTieBreak, "the journal never reached a tiebreak")
+        #expect(sawSet, "the journal never reached the end of a set")
     }
 
-    @Test("Отмена работает и в счёте до N очков")
+    @Test("Undo works in the match to N points as well")
     func undoWorksInPointsToAsWell() {
         var match = Match(ruleset: .pointsTo(target: 16, serveChangesEvery: 4))
         for winner in [Side.us, .us, .them, .us] { match.record(rallyWonBy: winner) }
@@ -52,15 +53,16 @@ struct UndoTests {
         #expect(match.state.servingSide == .them)
     }
 
-    // MARK: Границы
+    // MARK: Boundaries
 
-    @Test("Отмена переходит границу гейма и возвращает подачу")
+    @Test("Undo crosses the game boundary and gives the serve back")
     func undoCrossesTheGameBoundary() {
         var match = Match(ruleset: .defaultClassic)
         for _ in 0..<3 { match.record(rallyWonBy: .us) }
         let atFortyLove = match.state
 
-        // Гейм выигран: очки обнулились, подача ушла к соперникам.
+        // The game is won: the points are zeroed, the serve went to the
+        // opponents.
         match.record(rallyWonBy: .us)
         #expect(match.state.games == SideCounts(us: 1, them: 0))
         #expect(match.state.servingSide == .them)
@@ -72,7 +74,7 @@ struct UndoTests {
         #expect(match.state.servingSide == .us)
     }
 
-    @Test("Отмена переходит границу сета")
+    @Test("Undo crosses the set boundary")
     func undoCrossesTheSetBoundary() {
         var match = Match(ruleset: .classic(setsToWin: 2, goldenPoint: true))
         for winner in gamesWonBy([.us, .us, .us, .us, .us]) { match.record(rallyWonBy: winner) }
@@ -90,14 +92,15 @@ struct UndoTests {
         #expect(match.state.games == SideCounts(us: 5, them: 0))
     }
 
-    @Test("Отмена переходит границу тай-брейка")
+    @Test("Undo crosses the tiebreak boundary")
     func undoCrossesTheTieBreakBoundary() {
         var match = Match(ruleset: .classic(setsToWin: 2, goldenPoint: true))
         for winner in toSixAll { match.record(rallyWonBy: winner) }
         for _ in 0..<6 { match.record(rallyWonBy: .us) }
         let inTheTieBreak = match.state
 
-        // Седьмое очко забирает тай-брейк, сет и обнуляет геймы.
+        // The seventh point takes the tiebreak and the set, and zeroes the
+        // games.
         match.record(rallyWonBy: .us)
         #expect(match.state.sets == SideCounts(us: 1, them: 0))
 
@@ -108,9 +111,9 @@ struct UndoTests {
         #expect(match.state.points == .count(SideCounts(us: 6, them: 0)))
     }
 
-    // MARK: Законченный матч
+    // MARK: A finished match
 
-    @Test("Отмена возвращает законченный матч в игру")
+    @Test("Undo brings a finished match back into play")
     func undoBringsAFinishedMatchBack() {
         var match = Match(ruleset: .pointsTo(target: 3, serveChangesEvery: 4))
         for _ in 0..<2 { match.record(rallyWonBy: .us) }
@@ -124,12 +127,13 @@ struct UndoTests {
         #expect(match.state == beforeTheEnd)
         #expect(match.state.outcome == .inProgress)
 
-        // И матч снова принимает розыгрыши: до отмены `record` их не писал.
+        // And the match accepts rallies again: before the undo, `record` was
+        // not writing them.
         match.record(rallyWonBy: .them)
         #expect(match.state.points == .count(SideCounts(us: 2, them: 1)))
     }
 
-    @Test("Отмена возвращает в игру и матч, законченный сетом")
+    @Test("Undo also brings back a match finished by a set")
     func undoBringsAFinishedClassicMatchBack() {
         var match = Match(ruleset: .defaultClassic)
         for winner in gamesWonBy([.us, .us, .us, .us, .us, .us]) { match.record(rallyWonBy: winner) }
@@ -142,9 +146,9 @@ struct UndoTests {
         #expect(match.state.points.label(for: .us) == "40")
     }
 
-    // MARK: Несколько отмен и пустой журнал
+    // MARK: Repeated undo and the empty journal
 
-    @Test("Несколько отмен подряд откатывают журнал последовательно")
+    @Test("Repeated undo walks the journal back step by step")
     func repeatedUndoWalksTheJournalBack() {
         var match = Match(ruleset: .defaultClassic)
         var states: [MatchState] = []
@@ -162,7 +166,7 @@ struct UndoTests {
         #expect(match.journal.isEmpty)
     }
 
-    @Test("Отмена на пустом журнале ничего не ломает")
+    @Test("Undo on an empty journal breaks nothing")
     func undoOnAnEmptyJournalIsHarmless() {
         var match = Match(ruleset: .defaultClassic)
         let fresh = match
@@ -173,22 +177,24 @@ struct UndoTests {
         #expect(match.journal.isEmpty)
         #expect(match.state.outcome == .inProgress)
 
-        // И матч по-прежнему живой.
+        // And the match is still alive.
         match.record(rallyWonBy: .them)
         #expect(match.state.points.label(for: .them) == "15")
     }
 }
 
-// MARK: - Постройка журналов
+// MARK: - Building journals
 
-/// Розыгрыши матча, проходящего гейм всухую, гейм через «ровно», границу сета
-/// и тай-брейк: каждый из них — граница, на которой отмена могла бы соврать.
+/// The rallies of a match that passes through a game to love, a game through
+/// deuce, a set boundary and a tiebreak: each of them a boundary where undo
+/// could have lied.
 private let aMatchThroughEveryBoundary: [Side] =
-    // Первый сет до 6:6 — ни один гейм по дороге сет не закрывает.
+    // The first set to 6:6 — no game along the way closes the set.
     gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
-    // Тай-брейк: 3:3, затем четыре наших очка подряд — сет 7:6.
+    // The tiebreak: 3:3, then four of our points in a row — the set at 7:6.
     + [.us, .them, .us, .them, .us, .them, .us, .us, .us, .us]
-    // Второй сет: обычный гейм, затем гейм через «ровно» и «больше».
+    // The second set: an ordinary game, then a game through deuce and
+    // advantage.
     + gamesWonBy([.us, .them])
     + [.us, .us, .us, .them, .them, .them, .us, .them, .us, .us]
 

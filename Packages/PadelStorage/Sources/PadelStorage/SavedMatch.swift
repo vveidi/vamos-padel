@@ -1,38 +1,40 @@
 import Foundation
 import PadelScoring
 
-/// Матч, каким его помнит хранилище: сам матч плюс когда он игрался.
+/// The match as the store remembers it: the match itself plus when it was
+/// played.
 ///
-/// Матч в движке — это набор правил и журнал розыгрышей, больше ничего
-/// (ADR-0001). Времени в нём нет и быть не должно: счёт от него не зависит,
-/// а истории на телефоне (тикеты 11, 12) без него нечего показать. Поэтому
-/// время живёт здесь, снаружи движка, и матч остаётся тем, чем был.
+/// A match in the engine is a ruleset and a rally journal, nothing more
+/// (ADR-0001). There is no time in it and there must not be: the score does
+/// not depend on it, while the history on the phone (tickets 11, 12) has
+/// nothing to show without it. So time lives here, outside the engine, and the
+/// match stays what it was.
 public struct SavedMatch: Equatable, Sendable, Identifiable {
-    /// Кто этот матч. Заводится один раз при первом розыгрыше и не меняется:
-    /// по нему хранилище узнаёт, что перед ним тот же матч, а не новый, — и по
-    /// нему же телефон отличит матч, доставленный дважды (тикет 10).
+    /// Which match this is. Created once on the first rally and never changed:
+    /// by it the store recognises that this is the same match and not a new
+    /// one — and by it the phone tells apart a match delivered twice
+    /// (ticket 10).
     public let id: UUID
 
     public var match: Match
 
-    /// Момент первого розыгрыша.
+    /// The moment of the first rally.
     public var startedAt: Date
 
-    /// Момент последнего розыгрыша.
+    /// The moment of the last rally.
     public var lastRallyAt: Date
 
-    /// Сколько матч длился.
+    /// How long the match lasted.
     ///
-    /// Вычисляется из двух моментов, а не хранится третьим числом, по той же
-    /// причине, по которой не хранится счёт (ADR-0001): величину, которую
-    /// кто-то обязан поддерживать в актуальном состоянии, однажды забудут
-    /// обновить. Конец матча здесь — последний розыгрыш, а не «сейчас»:
-    /// матч, прерванный севшей батареей, длился до последнего очка, а не до
-    /// момента, когда его открыли заново.
+    /// Computed from the two moments rather than stored as a third number, for
+    /// the same reason the score is not stored (ADR-0001): a value somebody has
+    /// to keep up to date will one day be forgotten. The end of the match here
+    /// is the last rally, not "now": a match cut short by a dead battery lasted
+    /// until its last point, not until the moment it was opened again.
     public var duration: TimeInterval { lastRallyAt.timeIntervalSince(startedAt) }
 
-    /// `lastRallyAt` по умолчанию совпадает с началом: у матча, в котором ещё
-    /// не сыграно ни одного розыгрыша, длительность нулевая.
+    /// `lastRallyAt` defaults to the start: a match in which not a single
+    /// rally has been played has zero duration.
     public init(
         id: UUID = UUID(), match: Match, startedAt: Date, lastRallyAt: Date? = nil
     ) {
@@ -44,14 +46,16 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
 }
 
 extension SavedMatch {
-    /// Записывает розыгрыш и запоминает, когда он случился.
+    /// Records a rally and remembers when it happened.
     ///
-    /// Матч начинается первым розыгрышем — так его определяет глоссарий, — а
-    /// не запуском приложения: между «открыл приложение на корте» и «подали»
-    /// проходит разминка, и она не длительность матча.
+    /// A match begins with its first rally — that is how the glossary defines
+    /// it — and not with the app launching: between "opened the app on court"
+    /// and "served" there is a warm-up, and that is not part of the match's
+    /// duration.
     ///
-    /// Розыгрыш, который движок не принял (матч уже закончен), не двигает и
-    /// время: иначе касание по инерции удлиняло бы законченный матч.
+    /// A rally the engine did not accept (the match is already over) does not
+    /// move the time either: otherwise a tap out of habit would lengthen a
+    /// finished match.
     public mutating func record(rallyWonBy side: Side, at moment: Date) {
         let journalBefore = match.journal
 

@@ -1,8 +1,8 @@
-/// Единица игры, которая заканчивается тем, что одна из сторон получает очко.
+/// A unit of play that ends with one of the sides winning a point.
 ///
-/// Наименьшее событие, которое приложение записывает.
+/// The smallest event the app records.
 public struct Rally: Equatable, Sendable {
-    /// Сторона, выигравшая розыгрыш.
+    /// The side that won the rally.
     public let winner: Side
 
     public init(wonBy winner: Side) {

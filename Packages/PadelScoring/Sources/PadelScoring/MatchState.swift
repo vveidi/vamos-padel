@@ -1,43 +1,45 @@
-/// Счёт матча и его исход — то, что показывает экран.
+/// The match score and its outcome — what the screen shows.
 ///
-/// Значение вычисляется из набора правил и журнала розыгрышей и нигде не
-/// хранится рядом с ними (ADR-0001).
+/// The value is computed from the ruleset and the rally journal and is nowhere
+/// stored alongside them (ADR-0001).
 public struct MatchState: Equatable, Sendable {
-    /// Очки в текущем гейме, а в счёте до N очков — за весь матч.
+    /// Points in the current game; in a match to N points, for the whole match.
     public let points: Points
 
-    /// Геймы в текущем сете. `nil` там, где геймов нет: счёт до N очков не
-    /// делится на геймы, и показывать в нём «0 : 0» было бы враньём.
+    /// Games in the current set. `nil` where there are no games: a match to N
+    /// points is not divided into games, and showing "0 : 0" there would be a
+    /// lie.
     public let games: SideCounts?
 
-    /// Выигранные сеты, `nil` там, где сетов нет.
+    /// Sets won, `nil` where there are no sets.
     public let sets: SideCounts?
 
-    /// Сторона, которая подаёт в следующем розыгрыше.
+    /// The side serving the next rally.
     ///
-    /// Как и счёт, вычисляется из журнала, набора правил и первой подачи, а не
-    /// хранится рядом с ними: иначе отмена розыгрыша (тикет 05) обязана была бы
-    /// откатывать её отдельно и однажды этого не сделала бы.
+    /// Like the score, computed from the journal, the ruleset and the first
+    /// serve rather than stored alongside them: otherwise undoing a rally
+    /// (ticket 05) would have to roll it back separately, and one day would
+    /// fail to.
     public let servingSide: Side
 
     public let outcome: MatchOutcome
 
-    /// Счёт, которым матч запомнится.
+    /// The score the match will be remembered by.
     ///
-    /// В классическом счёте это геймы — «6 : 4», — а не очки: последний
-    /// розыгрыш матча заканчивает гейм и обнуляет их. Матч длиннее одного сета
-    /// запоминается сетами, иначе счёт последнего сета выдавал бы себя за счёт
-    /// всего матча.
+    /// In classic scoring that is games — "6 : 4" — and not points: the last
+    /// rally of a match ends a game and zeroes them. A match longer than one
+    /// set is remembered by sets, otherwise the last set's score would pass
+    /// itself off as the score of the whole match.
     ///
-    /// Выбирает уровень набор правил, а не сыгранное: у матча, прекращённого
-    /// досрочно, сетов может не быть вовсе, и считать его коротким
-    /// по одному тому, что сетов сыграно мало, значило бы выдать счёт текущего
-    /// сета за счёт матча.
+    /// The level is chosen by the ruleset, not by what was played: a match
+    /// stopped early may have no sets at all, and calling it short merely
+    /// because few sets were played would mean passing the current set's score
+    /// off as the match's.
     public let finalScore: SideCounts
 
-    /// Внутренний намеренно: собрать состояние мимо журнала не должен уметь
-    /// никто, иначе счёт снова окажется величиной, которую кто-то хранит
-    /// рядом с журналом (ADR-0001).
+    /// Internal on purpose: nobody should be able to assemble a state behind
+    /// the journal's back, or the score will once again be a value someone
+    /// keeps next to the journal (ADR-0001).
     init(
         points: Points = .count(SideCounts()),
         games: SideCounts? = nil,
@@ -54,11 +56,12 @@ public struct MatchState: Equatable, Sendable {
         self.outcome = outcome
     }
 
-    /// То же состояние, но с исходом недоигранного матча.
+    /// The same state, but with the outcome of an abandoned match.
     ///
-    /// Счёт остаётся тем, на котором матч прекратили: недоигранность — это
-    /// про исход, а не про счёт. Меняет исход только матч (он один знает, что
-    /// его прекратили), поэтому наружу пакета свойство не выходит.
+    /// The score stays the one the match was stopped at: being abandoned is
+    /// about the outcome, not about the score. Only the match changes the
+    /// outcome (it alone knows it was stopped), so the property does not leave
+    /// the package.
     var abandoned: MatchState {
         MatchState(
             points: points,
@@ -71,11 +74,12 @@ public struct MatchState: Equatable, Sendable {
 }
 
 extension MatchState {
-    /// Движок: чистая функция от набора правил, журнала и первой подачи
-    /// к состоянию.
+    /// The engine: a pure function from the ruleset, the journal and the first
+    /// serve to a state.
     ///
-    /// Первая подача по умолчанию наша: спрашивает её стартовый экран, а
-    /// тестам и превью нужнее короткая запись, чем лишний аргумент.
+    /// The first serve is ours by default: the start screen is what asks for
+    /// it, while tests and previews want a short call more than an extra
+    /// argument.
     public init(ruleset: Ruleset, journal: RallyJournal, firstServer: Side = .us) {
         switch ruleset {
         case .pointsTo(let target, let serveChangesEvery):
@@ -93,16 +97,16 @@ extension MatchState {
         }
     }
 
-    /// Счёт до N очков: побеждает сторона, первой набравшая `target`.
+    /// A match to N points: the side that reaches `target` first wins.
     ///
-    /// Проверка стоит после розыгрыша, поэтому пустой журнал — всегда
-    /// незаконченный матч, а любое `target` меньше двух ведёт себя как
-    /// «до одного очка»: выигрывает тот, кто взял первый розыгрыш. Осмысленную
-    /// нижнюю границу N задаёт стартовый экран, но и бессмысленное
-    /// значение не должно ни ронять приложение, ни делать матч бесконечным.
-    /// Подача здесь переходит каждые X розыгрышей. X приходит извне и потому
-    /// подпирается снизу: при нуле подача не «не менялась бы», а
-    /// уронила бы приложение делением на ноль.
+    /// The check comes after a rally, so an empty journal is always an
+    /// unfinished match, and any `target` below two behaves like "to one
+    /// point": whoever takes the first rally wins. A sensible lower bound on N
+    /// is set by the start screen, but even a senseless value must neither
+    /// crash the app nor make the match endless. The serve here passes every X
+    /// rallies. X comes from outside and is therefore clamped from below: at
+    /// zero the serve would not merely "never change" — it would crash the app
+    /// on a division by zero.
     private static func pointsTo(
         target: Int, serveChangesEvery: Int, firstServer: Side, journal: RallyJournal
     ) -> MatchState {
@@ -129,23 +133,23 @@ extension MatchState {
         return state()
     }
 
-    /// Классический счёт: очки складываются в геймы, геймы в сеты, сеты
-    /// заканчивают матч.
+    /// Classic scoring: points add up into games, games into sets, sets end
+    /// the match.
     ///
-    /// Свёртка одна на все три уровня, потому что уровень поднимается только
-    /// тем же розыгрышем, который закрыл уровень ниже: очко, выигравшее гейм,
-    /// может тем же движением выиграть сет, а вместе с ним и матч.
+    /// One fold for all three levels, because a level only goes up on the very
+    /// rally that closed the level below: the point that wins a game can, in
+    /// the same motion, win the set and with it the match.
     ///
-    /// Число сетов приходит извне и потому подпирается снизу: матч до нуля
-    /// сетов невозможно ни начать, ни закончить.
+    /// The number of sets comes from outside and is therefore clamped from
+    /// below: a match to zero sets can be neither started nor finished.
     private static func classic(
         setsToWin: Int, goldenPoint: Bool, firstServer: Side, journal: RallyJournal
     ) -> MatchState {
         let setsToWin = max(setsToWin, 1)
 
-        // Тот же вопрос, что `Ruleset.isMultiSet`, и тот же ответ: матч
-        // длиннее одного сета запоминается сетами, иначе счёт последнего сета
-        // выдавал бы себя за счёт всего матча.
+        // The same question as `Ruleset.isMultiSet`, and the same answer: a
+        // match longer than one set is remembered by sets, otherwise the last
+        // set's score would pass itself off as the score of the whole match.
         let isMultiSet = setsToWin > 1
 
         var sets = SideCounts()
@@ -153,13 +157,14 @@ extension MatchState {
         var points = SideCounts()
         var isTieBreak = false
 
-        /// Геймы за весь матч, а не за текущий сет: подача ходит по границе
-        /// гейма и конца сета не замечает, а `games` обнуляется вместе с ним.
+        /// Games over the whole match, not over the current set: the serve
+        /// moves on game boundaries and never notices the end of a set,
+        /// whereas `games` is zeroed along with it.
         var gamesPlayed = 0
 
-        /// Состояние по текущему ходу свёртки. Собрано здесь, а не на каждом
-        /// выходе, чтобы уровень итогового счёта выбирался один раз и не мог
-        /// разойтись между концом матча и его серединой.
+        /// The state as of the current step of the fold. Assembled here rather
+        /// than at every exit, so that the level of the final score is chosen
+        /// once and cannot diverge between the end of the match and its middle.
         func state(outcome: MatchOutcome = .inProgress) -> MatchState {
             MatchState(
                 points: isTieBreak ? .count(points) : .game(points),
@@ -170,11 +175,11 @@ extension MatchState {
                 outcome: outcome)
         }
 
-        /// Переходы подачи внутри тай-брейка. Тай-брейк — единственное место,
-        /// где подача ходит не по границе гейма: первый розыгрыш подаёт тот,
-        /// чья очередь, дальше меняются каждые два. Без этого индикатор врал бы
-        /// все тринадцать розыгрышей тай-брейка — ровно там, где на него и
-        /// смотрят.
+        /// Service changes inside the tiebreak. The tiebreak is the one place
+        /// where the serve does not move on game boundaries: the first rally is
+        /// served by whoever's turn it is, after that it changes every two.
+        /// Without this the indicator would lie for all thirteen rallies of the
+        /// tiebreak — exactly where people are looking at it.
         var tieBreakServeChanges: Int {
             isTieBreak ? (points.total + 1) / 2 : 0
         }
@@ -197,8 +202,8 @@ extension MatchState {
                 sets = sets.incrementing(rally.winner)
 
                 if sets[rally.winner] >= setsToWin {
-                    // Геймы намеренно не обнуляются: счётом закончившегося
-                    // матча остаётся тот, которым он закончился.
+                    // Games are deliberately not zeroed: the score of a
+                    // finished match stays the one it finished on.
                     return state(outcome: .finished(winner: rally.winner))
                 }
 
@@ -216,37 +221,37 @@ extension MatchState {
 
     private static let tieBreakPoints = 7
 
-    /// Уровень взят: сторона дошла до порога и оторвалась на два.
+    /// The level is taken: a side reached the threshold and is two clear.
     ///
-    /// Гейм, тай-брейк и сет отличаются только порогом, поэтому правило одно.
-    /// Своё у каждого — лишь то, чем он от этого правила отступает.
+    /// A game, a tiebreak and a set differ only in the threshold, so the rule
+    /// is one. All each of them owns is where it departs from that rule.
     private static func isWon(by winner: Side, counts: SideCounts, reaching threshold: Int) -> Bool
     {
         counts[winner] >= threshold && counts[winner] - counts[winner.opposite] >= 2
     }
 
-    /// Гейм: четыре очка с разницей в два.
+    /// A game: four points, two clear.
     ///
-    /// Золотое очко сводит правило к «первому, кто дошёл до четырёх»: до
-    /// «ровно» четвёртое очко и так означает разницу минимум в два, а на самом
-    /// «ровно» решает один розыгрыш — тот, что делает счёт 4:3.
+    /// The golden point reduces the rule to "first to four": before deuce a
+    /// fourth point already means a lead of at least two, and at deuce itself
+    /// a single rally decides — the one that makes it 4:3.
     private static func gameIsWon(by winner: Side, points: SideCounts, goldenPoint: Bool) -> Bool {
         if goldenPoint { return points[winner] >= Points.pointsInGame }
 
         return isWon(by: winner, counts: points, reaching: Points.pointsInGame)
     }
 
-    /// Тай-брейк: семь очков с разницей в два.
+    /// A tiebreak: seven points, two clear.
     ///
-    /// Золотое очко на него не распространяется: это правило гейма, а тай-брейк
-    /// геймом не является.
+    /// The golden point does not extend to it: that is a rule of the game, and
+    /// a tiebreak is not a game.
     private static func tieBreakIsWon(by winner: Side, points: SideCounts) -> Bool {
         isWon(by: winner, counts: points, reaching: tieBreakPoints)
     }
 
-    /// Сет: шесть геймов с разницей в два, а после тай-брейка — 7:6, который
-    /// под разницу в два не подходит и потому назван отдельно. Другого способа
-    /// получить 7:6 в сете нет.
+    /// A set: six games, two clear — and, after a tiebreak, 7:6, which does
+    /// not fit a two-game lead and is therefore named separately. There is no
+    /// other way to reach 7:6 in a set.
     private static func setIsWon(by winner: Side, games: SideCounts) -> Bool {
         if games[winner] == gamesInSet + 1 && games[winner.opposite] == gamesInSet { return true }
 

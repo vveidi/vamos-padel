@@ -1,32 +1,33 @@
 import PadelScoring
 import SwiftUI
 
-/// Экран, с которого начинается матч.
+/// The screen a match starts from.
 ///
-/// Главное здесь — скорость. Компания играет по одним и тем же правилам
-/// месяцами, поэтому правила прошлого матча уже подставлены, а спрашивается
-/// ровно то, что меняется каждый раз, — чья первая подача. Она же и начинает
-/// матч: касание, которым игрок называет подающую сторону, и есть то самое
-/// «начать одним касанием». Отдельная кнопка «Начать» рядом с выбором подачи
-/// была бы вторым касанием, которое не сообщает ничего нового.
+/// Speed is what matters here. A group plays by the same rules for months, so
+/// the previous match's rules are already filled in and the only thing asked is
+/// what changes every time — whose serve is first. That same answer starts the
+/// match: the tap by which the player names the serving side is exactly the
+/// "start with one tap". A separate "Start" button next to the serve choice
+/// would be a second tap that says nothing new.
 ///
-/// Экран правил лежит за переходом: настройка, которую спрашивают перед каждым
-/// матчем, — налог на то, что случается раз в полгода.
+/// The rules screen sits behind a navigation push: a setting asked before every
+/// match is a tax paid for something that happens twice a year.
 struct StartView: View {
-    /// Набор правил, с которым начнётся матч. Меняет его экран правил, а
-    /// помнит — хранилище: сюда он приходит от прошлого матча.
+    /// The ruleset the match will start with. The rules screen changes it and
+    /// the store remembers it: it arrives here from the previous match.
     @Binding var ruleset: Ruleset
 
-    /// Начинает матч с указанной первой подачей.
+    /// Starts the match with the given first server.
     let onStart: (Side) -> Void
 
     var body: some View {
         NavigationStack {
             List {
-                // Соперники сверху, мы снизу — так же, как на экране счёта и
-                // как на корте: они за сеткой, перед нами. Цвета те же, и
-                // потому половина, в которую игрок будет весь матч тыкать за
-                // свои очки, узнаётся ещё до первого розыгрыша.
+                // The opponents on top, us at the bottom — the same as on the
+                // score screen and the same as on court: they are across the
+                // net, in front of us. The colours are the same, so the half
+                // the player will be tapping for their own points all match is
+                // recognisable before the first rally.
                 serve(.them)
                 serve(.us)
 
@@ -54,8 +55,8 @@ struct StartView: View {
                 .fill(side == .us ? ScoreView.ourColor.opacity(0.35) : .white.opacity(0.12)))
     }
 
-    /// Правила видно, а трогать их не нужно: строка говорит, по чему сегодня
-    /// играем, и открывает экран, где это меняют.
+    /// The rules are visible without needing to be touched: the row says what
+    /// we are playing by today, and opens the screen where that is changed.
     private var rules: some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(Self.name(of: ruleset))
@@ -69,9 +70,9 @@ struct StartView: View {
         .minimumScaleFactor(0.7)
     }
 
-    /// Название набора правил — то, как его называет глоссарий. Числа сюда не
-    /// подставляются: «Счёт до 21 очков» пришлось бы склонять, а «Счёт до N
-    /// очков» — это имя, и N в нём объясняет строку под ним.
+    /// The name of the ruleset — the one the glossary gives it. Numbers are
+    /// not substituted in: "Счёт до 21 очков" would need declension, whereas
+    /// "Счёт до N очков" is a name, and the N in it explains the row below.
     private static func name(of ruleset: Ruleset) -> String {
         switch ruleset {
         case .classic: "Классический счёт"
@@ -88,19 +89,20 @@ struct StartView: View {
         }
     }
 
-    /// Больше трёх сетов экран правил не предлагает, поэтому падежей ровно два.
+    /// The rules screen offers no more than three sets, so there are exactly
+    /// two grammatical cases to handle.
     private static func sets(_ count: Int) -> String {
         count == 1 ? "1 сет" : "\(count) сета"
     }
 }
 
-#Preview("Классический счёт") {
+#Preview("Classic scoring") {
     @Previewable @State var ruleset = Ruleset.defaultClassic
 
     StartView(ruleset: $ruleset, onStart: { _ in })
 }
 
-#Preview("Счёт до N очков") {
+#Preview("The match to N points") {
     @Previewable @State var ruleset = Ruleset.pointsTo(target: 21, serveChangesEvery: 2)
 
     StartView(ruleset: $ruleset, onStart: { _ in })

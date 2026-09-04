@@ -1,24 +1,26 @@
 import PadelScoring
 import SwiftUI
 
-/// Итог матча — то, что видно сразу после последнего розыгрыша или после
-/// того, как матч прекратили досрочно.
+/// The match's outcome — what is seen right after the last rally, or after the
+/// match was stopped early.
 struct OutcomeView: View {
-    /// Сторона, выигравшая матч, или `nil`, если матч остался недоигранным.
+    /// The side that won the match, or `nil` if the match was left abandoned.
     ///
-    /// Именно `nil`, а не «выиграли соперники»: недоигранный матч не считается
-    /// ни победой, ни поражением, и экран — последнее место, где эту разницу
-    /// можно было бы потерять.
+    /// `nil` precisely, and not "the opponents won": an abandoned match counts
+    /// as neither a win nor a loss, and the screen is the last place where that
+    /// difference could be lost.
     let winner: Side?
 
-    /// Счёт, которым матч запомнится: геймы в классическом счёте, очки в счёте
-    /// до N очков. Выбирает его набор правил, а не этот экран.
+    /// The score the match will be remembered by: games in classic scoring,
+    /// points in the match to N points. The ruleset chooses it, not this
+    /// screen.
     let score: SideCounts
 
     let onUndo: () -> Void
 
-    /// Уводит на стартовый экран за следующим матчем. Тем же касанием игрок
-    /// выбирает первую подачу — на корте её как раз разыгрывают заново.
+    /// Leads to the start screen for the next match. With the same tap the
+    /// player picks the first server — on court it is being decided anew right
+    /// then.
     let onFinish: () -> Void
 
     var body: some View {
@@ -35,28 +37,29 @@ struct OutcomeView: View {
             headline: winner == .us ? "Мы выиграли" : "Выиграли соперники",
             isOurs: winner == .us
         ) {
-            // Первым идёт счёт победителя — той стороны, которую назвала
-            // строка выше. Иначе итог читается задом наперёд: на экране счёта
-            // соперники сверху, а тут они шли бы вторыми.
+            // The winner's score comes first — the side the line above named.
+            // Otherwise the outcome reads backwards: on the score screen the
+            // opponents are on top, while here they would come second.
             Text("\(score[winner]) : \(score[winner.opposite])")
         }
-        // Тот же жест, что на экране счёта. Без него матч, законченный
-        // ошибочным касанием, отменить нечем: этот экран занимает место того,
-        // на котором жест живёт.
+        // The same gesture as on the score screen. Without it there is nothing
+        // to undo a match finished by a mistaken tap with: this screen takes
+        // the place of the one the gesture lives on.
         //
-        // У недоигранного матча жеста нет: прекращение — не розыгрыш, отменой
-        // очка оно не снимается, и жест, который на вид работает, а на деле
-        // только меняет счёт уже прекращённого матча, хуже, чем его
-        // отсутствие. От случайного прекращения защищает подтверждение.
+        // An abandoned match has no gesture: stopping is not a rally, undoing
+        // a point does not lift it, and a gesture that looks like it works
+        // while in fact only changing the score of an already stopped match is
+        // worse than none. An accidental stop is guarded against by the
+        // confirmation.
         .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
         .accessibilityAction(named: "Отменить последний розыгрыш", onUndo)
     }
 
     private var unfinished: some View {
         outcome(headline: "Матч не доигран", isOurs: false) {
-            // Кто есть кто, говорит цвет — тот же, которым помечена наша
-            // половина экрана счёта. Победителя, который задал бы порядок,
-            // здесь нет, а подпись «мы» отняла бы место у счёта.
+            // Who is who is said by the colour — the same one that marks our
+            // half of the score screen. There is no winner here to set the
+            // order, and a "us" label would take room away from the score.
             (Text("\(score[.us])").foregroundStyle(ScoreView.ourColor)
                 + Text(" : \(score[.them])"))
                 .accessibilityLabel("У нас \(score[.us]), у соперников \(score[.them])")
@@ -76,10 +79,11 @@ struct OutcomeView: View {
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
 
-            // Кнопка, а не жест: на этом экране игрок уже не на подаче и
-            // никуда не спешит, а промахнуться мимо неё в новый матч посреди
-            // разбора последнего розыгрыша не хочется. Матч к этому моменту
-            // записан целиком, поэтому уйти отсюда нечем не рискуя.
+            // A button, not a gesture: on this screen the player is no longer
+            // on serve and is in no hurry, and mis-tapping into a new match in
+            // the middle of dissecting the last rally is not something anybody
+            // wants. By this point the match is written down in full, so
+            // leaving here risks nothing.
             Button("Новый матч", action: onFinish)
                 .buttonStyle(.bordered)
                 .font(.footnote)
@@ -88,10 +92,10 @@ struct OutcomeView: View {
     }
 }
 
-#Preview("Победа") {
+#Preview("A win") {
     OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4), onUndo: {}, onFinish: {})
 }
 
-#Preview("Недоигранный матч") {
+#Preview("An abandoned match") {
     OutcomeView(winner: nil, score: SideCounts(us: 3, them: 5), onUndo: {}, onFinish: {})
 }

@@ -3,19 +3,20 @@ import PadelScoring
 
 @testable import PadelStorage
 
-/// Момент, с которого начинаются матчи в тестах.
+/// The moment the matches in these tests start from.
 ///
-/// Круглая секунда намеренно: GRDB хранит время с точностью до миллисекунды, и
-/// `Date()` с его долями микросекунды не вернулся бы из базы тем же значением.
-/// Матчу этой точности хватает с запасом, а тесту круговой рейс важнее.
+/// A round second on purpose: GRDB stores time to millisecond precision, and
+/// `Date()` with its fractions of a microsecond would not come back from the
+/// database as the same value. That precision is more than a match needs, and
+/// the test cares more about the round trip.
 let aMoment = Date(timeIntervalSince1970: 1_800_000_000)
 
-/// Матч кончается на втором очке: тестам, которым важно, что матч кончился, а
-/// не каким счётом, двух розыгрышей довольно.
+/// The match ends on the second point: two rallies are enough for tests that
+/// care that the match ended, not about the score it ended on.
 let toTwo = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
 
 extension SavedMatch {
-    /// Матч, в котором сыграны перечисленные розыгрыши, по одному в секунду.
+    /// A match in which the listed rallies were played, one per second.
     static func played(
         _ winners: [Side],
         ruleset: Ruleset = .defaultPointsTo,

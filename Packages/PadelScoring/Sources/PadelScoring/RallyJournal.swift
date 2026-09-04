@@ -1,9 +1,10 @@
-/// Упорядоченная последовательность розыгрышей матча — единственная
-/// сохраняемая правда о матче.
+/// The ordered sequence of a match's rallies — the single stored truth about
+/// the match.
 ///
-/// Счёт вычисляется из журнала и нигде не хранится рядом с ним (ADR-0001).
-/// Поэтому отмена последнего очка — это удаление последней записи, а не
-/// обратная арифметика, и рассинхронизироваться со счётом журнал не может.
+/// The score is computed from the journal and is nowhere stored alongside it
+/// (ADR-0001). Undoing the last point is therefore the removal of the last
+/// entry rather than arithmetic run backwards, and the journal cannot drift
+/// out of sync with the score.
 public struct RallyJournal: Equatable, Sendable {
     public private(set) var rallies: [Rally]
 
@@ -15,18 +16,18 @@ public struct RallyJournal: Equatable, Sendable {
 
     public var isEmpty: Bool { rallies.isEmpty }
 
-    /// Последний сыгранный розыгрыш, если он был.
+    /// The last rally played, if there was one.
     public var last: Rally? { rallies.last }
 
-    /// Записывает розыгрыш, выигранный указанной стороной.
+    /// Records a rally won by the given side.
     public mutating func append(wonBy side: Side) {
         rallies.append(Rally(wonBy: side))
     }
 
-    /// Убирает последний розыгрыш и возвращает его.
+    /// Removes the last rally and returns it.
     ///
-    /// На пустом журнале ничего не делает и возвращает `nil`: отмена, нажатая
-    /// до первого очка, не должна ничего ломать.
+    /// On an empty journal it does nothing and returns `nil`: undo pressed
+    /// before the first point must not break anything.
     @discardableResult
     public mutating func removeLast() -> Rally? {
         rallies.popLast()

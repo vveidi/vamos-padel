@@ -2,22 +2,23 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Набор правил")
+@Suite("Ruleset")
 struct RulesetTests {
-    @Test("Счёт до N очков по умолчанию идёт до 16 со сменой подачи каждые 4 розыгрыша")
+    @Test("A match to N points defaults to 16, with the serve changing every 4 rallies")
     func pointsToDefaults() {
         #expect(Ruleset.defaultPointsTo == .pointsTo(target: 16, serveChangesEvery: 4))
     }
 
-    @Test("Классический счёт по умолчанию — один сет с золотым очком")
+    @Test("Classic scoring defaults to one set with the golden point")
     func classicDefaults() {
         #expect(Ruleset.defaultClassic == .classic(setsToWin: 1, goldenPoint: true))
     }
 
-    /// От этого ответа зависит и то, каким счётом матч запомнится, и то,
-    /// показывает ли экран счёт по сетам: в матче до одного сета показывать
-    /// нечего, в матче до двух геймы без сетов не говорят, кто ведёт.
-    @Test("Матч длиннее одного сета отличается от короткого")
+    /// This answer decides both which score the match is remembered by and
+    /// whether the screen shows a set score: in a match to one set there is
+    /// nothing to show, and in a match to two, games without sets do not say
+    /// who is ahead.
+    @Test("A match longer than one set is told apart from a short one")
     func onlyAMatchLongerThanOneSetHasSetsWorthShowing() {
         #expect(Ruleset.classic(setsToWin: 2, goldenPoint: true).isMultiSet)
         #expect(Ruleset.classic(setsToWin: 3, goldenPoint: false).isMultiSet)
@@ -25,7 +26,7 @@ struct RulesetTests {
         #expect(!Ruleset.defaultPointsTo.isMultiSet)
     }
 
-    @Test("Наборы правил с разными параметрами различаются")
+    @Test("Rulesets with different parameters differ")
     func rulesetsWithDifferentParametersDiffer() {
         #expect(Ruleset.pointsTo(target: 16, serveChangesEvery: 4) != .pointsTo(target: 21, serveChangesEvery: 4))
         #expect(Ruleset.classic(setsToWin: 1, goldenPoint: true) != .classic(setsToWin: 1, goldenPoint: false))

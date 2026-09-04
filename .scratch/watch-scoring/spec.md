@@ -1,187 +1,188 @@
-# Счётчик падел-матча на Apple Watch (v1)
+# A padel match counter on Apple Watch (v1)
 
 Status: ready-for-agent
 
 ## Problem Statement
 
-Счёт падел-матча живёт в голове и исчезает вместе с матчем. Между розыгрышами четверо на корте вспоминают, у кого сколько геймов, и отдельно спорят, чья подача, — а после игры не остаётся ничего: ни счёта, ни того, как он складывался.
+The score of a padel match lives in people's heads and disappears with the match. Between rallies the four on court try to remember who has how many games, and argue separately about whose serve it is — and after the game nothing is left: neither the score nor how it came about.
 
-Телефон в этой ситуации бесполезен: он лежит в сумке за сеткой или в раздевалке, и лезть за ним между розыгрышами никто не будет. Существующие приложения либо требуют телефона в руках, либо считают только классический счёт, тогда как любительская компания на оплаченном часе корта часто играет до фиксированного числа очков.
+A phone is useless in that situation: it lies in a bag behind the net or in the changing room, and nobody is going to fetch it between rallies. The existing apps either need the phone in your hands or count classic scoring only, whereas an amateur group on a court paid for by the hour often plays to a fixed number of points.
 
 ## Solution
 
-Приложение на Apple Watch, которое ведёт счёт прямо на запястье и не нуждается в телефоне рядом. Матч регистрируется как тренировка, поэтому переживает полтора часа игры: экран не гаснет насовсем, приложение не выгружается, а поднятие руки возвращает счёт, а не циферблат.
+An Apple Watch app that keeps the score right on the wrist and needs no phone nearby. The match is registered as a workout, so it survives an hour and a half of play: the screen never fully goes dark, the app is not unloaded, and raising your wrist brings back the score rather than the watch face.
 
-Экран счёта поделён на две зоны во весь экран — касание в свою половину отдаёт очко этой стороне; жест Double Tap отдаёт очко нашей стороне вообще без касания часов. Ошибочное касание отменяется. На экране ровно три вещи: текущие очки крупно, счёт по геймам мельче, индикатор подающей стороны.
+The score screen is split into two zones filling the display — a tap in your own half awards a point to that side; the Double Tap gesture awards a point to our side without touching the watch at all. A mistaken tap can be undone. There are exactly three things on the screen: the current points in large type, the game score smaller, and the serving-side indicator.
 
-Приложение знает два **набора правил** — **классический счёт** и **счёт до N очков** — и помнит настройки прошлого матча, поэтому обычный старт это одно касание. Каждый матч сохраняется как **журнал розыгрышей** и уезжает на iPhone, где его можно посмотреть в истории.
+The app knows two **rulesets** — **classic scoring** and **the match to N points** — and remembers the previous match's settings, so an ordinary start is a single tap. Every match is saved as a **rally journal** and travels to the iPhone, where it can be looked at in the history.
 
 ## User Stories
 
-### Начало матча
+### Starting a match
 
-1. Как игрок, я хочу начинать матч одним касанием, чтобы не настраивать приложение, пока партнёры ждут на корте.
-2. Как игрок, я хочу, чтобы приложение помнило набор правил прошлого матча, чтобы не выставлять одно и то же каждую игру.
-3. Как игрок, я хочу выбрать между классическим счётом и счётом до N очков, чтобы приложение считало по тем правилам, по которым мы сегодня играем.
-4. Как игрок, я хочу включать и выключать золотое очко, потому что на оплаченном часе корта играть «больше-меньше» некогда.
-5. Как игрок, я хочу выбрать число сетов в классическом счёте, чтобы приложение знало, когда матч закончен.
-6. Как игрок, я хочу задать N в счёте до N очков, чтобы играть до 16, 21 или другого числа по договорённости.
-7. Как игрок, я хочу задать X — через сколько очков меняется подача, — потому что в разных компаниях это 2 или 4.
-8. Как игрок, я хочу указать, кто подаёт первым, чтобы индикатор подачи с самого начала показывал правду.
-9. Как игрок, я хочу видеть значения по умолчанию (N = 16, X = 4, один сет), чтобы новый матч можно было начать не думая.
+1. As a player, I want to start a match with one tap, so that I am not configuring the app while my partners wait on court.
+2. As a player, I want the app to remember the previous match's ruleset, so that I am not setting the same thing every game.
+3. As a player, I want to choose between classic scoring and the match to N points, so that the app counts by the rules we are playing by today.
+4. As a player, I want to switch the golden point on and off, because on a court paid for by the hour there is no time to play out deuce.
+5. As a player, I want to choose the number of sets in classic scoring, so that the app knows when the match is over.
+6. As a player, I want to set N in the match to N points, so that we can play to 16, 21 or whatever else we agreed on.
+7. As a player, I want to set X — how many points before the serve changes — because in different groups it is 2 or 4.
+8. As a player, I want to say who serves first, so that the serve indicator tells the truth from the start.
+9. As a player, I want to see the default values (N = 16, X = 4, one set), so that a new match can be started without thinking.
 
-### Ведение счёта
+### Keeping the score
 
-10. Как игрок, я хочу отдавать очко касанием в половину экрана, чтобы попадать не глядя и мокрой рукой.
-11. Как игрок, я хочу отдавать очко нашей стороне жестом Double Tap, чтобы не выпускать ракетку из руки.
-12. Как игрок, я хочу видеть текущие очки крупно, чтобы читать их мельком между розыгрышами.
-13. Как игрок, я хочу видеть счёт по геймам, чтобы понимать положение в сете.
-14. Как игрок, я хочу видеть, чья сейчас подача, чтобы прекратить единственный спор, который регулярно возникает на корте.
-15. Как игрок, я хочу, чтобы подача сама переходила к другой стороне после гейма в классическом счёте, чтобы не следить за этим вручную.
-16. Как игрок, я хочу, чтобы подача сама переходила каждые X очков в счёте до N очков, по той же причине.
-17. Как игрок, я хочу отменить последнее очко, потому что промахи по зонам и ложные срабатывания Double Tap неизбежны.
-18. Как игрок, я хочу отменить несколько очков подряд, если ошибку заметили не сразу.
-19. Как игрок, я хочу, чтобы после отмены счёт, подача и завершённость матча вернулись ровно в то состояние, в котором были.
-20. Как игрок, я хочу, чтобы при золотом очке счёт «ровно» разыгрывался одним решающим розыгрышем, а не игрой до разницы в два.
-21. Как игрок, я хочу, чтобы при 6:6 начинался тай-брейк по правилам падела.
-22. Как игрок, я хочу, чтобы приложение само определяло конец гейма, сета и матча, чтобы никто не считал в уме.
+10. As a player, I want to award a point by tapping my half of the screen, so that I can hit it without looking and with a wet hand.
+11. As a player, I want to award a point to our side with the Double Tap gesture, so that I do not have to let go of my racket.
+12. As a player, I want to see the current points in large type, so that I can read them at a glance between rallies.
+13. As a player, I want to see the game score, so that I know where we stand in the set.
+14. As a player, I want to see whose serve it is, so as to end the one argument that comes up on court regularly.
+15. As a player, I want the serve to pass to the other side by itself after a game in classic scoring, so that I do not have to track it by hand.
+16. As a player, I want the serve to pass by itself every X points in the match to N points, for the same reason.
+17. As a player, I want to undo the last point, because mis-taps on the zones and false Double Tap triggers are inevitable.
+18. As a player, I want to undo several points in a row, in case the mistake was not noticed at once.
+19. As a player, I want the score, the serve and the state of completion to come back to exactly what they were after an undo.
+20. As a player, I want deuce to be settled by a single decisive rally when the golden point is on, rather than by playing on for a two-point lead.
+21. As a player, I want a tiebreak by padel's rules to begin at 6:6.
+22. As a player, I want the app to work out the end of a game, a set and a match by itself, so that nobody counts in their head.
 
-### Матч длиной в полтора часа
+### A match an hour and a half long
 
-23. Как игрок, я хочу, чтобы приложение не выгружалось из памяти в середине матча, чтобы не терять счёт.
-24. Как игрок, я хочу видеть счёт при опущенной руке, чтобы не будить часы ради взгляда на экран.
-25. Как игрок, я хочу, чтобы поднятие руки возвращало меня в счёт, а не на циферблат.
-26. Как игрок, я хочу, чтобы матч попадал в кольца активности и Health, потому что полтора часа падела — это тренировка.
-27. Как игрок, я хочу, чтобы пульс и калории писались сами, без единого действия с моей стороны.
-28. Как игрок, я хочу, чтобы после перезапуска приложения матч восстанавливался с того же места, потому что севшая батарея не должна стирать час игры.
+23. As a player, I want the app not to be unloaded from memory in the middle of a match, so that the score is not lost.
+24. As a player, I want to see the score with my wrist down, so that I do not have to wake the watch to look at the screen.
+25. As a player, I want raising my wrist to bring me back to the score, not to the watch face.
+26. As a player, I want the match to land in the activity rings and in Health, because an hour and a half of padel is a workout.
+27. As a player, I want heart rate and calories written by themselves, without a single action from me.
+28. As a player, I want the match restored from the same place after the app is relaunched, because a dead battery must not erase an hour of play.
 
-### Конец матча
+### The end of a match
 
-29. Как игрок, я хочу видеть итог сразу после последнего розыгрыша, чтобы понять, чем всё кончилось.
-30. Как игрок, я хочу прекратить матч досрочно, потому что кончается время корта, начинается дождь или кто-то потянул спину.
-31. Как игрок, я хочу, чтобы прекращённый матч всё равно сохранился, чтобы час игры не пропал.
-32. Как игрок, я хочу, чтобы недоигранный матч был помечен явно и не считался ни победой, ни поражением.
+29. As a player, I want to see the outcome right after the last rally, so as to know how it all ended.
+30. As a player, I want to stop a match early, because the court time is running out, it is starting to rain, or somebody pulled their back.
+31. As a player, I want a stopped match saved all the same, so that an hour of play is not lost.
+32. As a player, I want an abandoned match marked explicitly and counted as neither a win nor a loss.
 
-### История на телефоне
+### The history on the phone
 
-33. Как владелец истории, я хочу, чтобы законченный матч сам оказывался на телефоне, без нажатия «синхронизировать».
-34. Как владелец истории, я хочу, чтобы передача происходила, когда телефон окажется рядом, а не требовала его во время игры.
-35. Как владелец истории, я хочу видеть список сыгранных матчей с датой, счётом и длительностью.
-36. Как владелец истории, я хочу открыть матч и увидеть, как складывался счёт, а не только чем он кончился.
-37. Как владелец истории, я хочу отличать недоигранные матчи в списке с одного взгляда.
-38. Как владелец истории, я хочу видеть, по какому набору правил игрался матч, чтобы «16:14» не выглядело странным теннисным счётом.
-39. Как владелец истории, я хочу, чтобы история пережила перезапуск телефона и обновление приложения.
+33. As the owner of the history, I want a finished match to end up on the phone by itself, without pressing "sync".
+34. As the owner of the history, I want the hand-off to happen once the phone is nearby, rather than requiring it during play.
+35. As the owner of the history, I want to see a list of the matches played, with the date, the score and the duration.
+36. As the owner of the history, I want to open a match and see how the score came about, not only how it ended.
+37. As the owner of the history, I want to tell abandoned matches apart in the list at a glance.
+38. As the owner of the history, I want to see which ruleset a match was played by, so that "16:14" does not look like a strange tennis score.
+39. As the owner of the history, I want the history to survive a restart of the phone and an update of the app.
 
 ## Implementation Decisions
 
-### Пакет `PadelScoring`
+### The `PadelScoring` package
 
-Локальный Swift-пакет с движком правил. Не зависит ни от SwiftUI, ни от GRDB, ни от HealthKit, ни от WatchConnectivity — ограничение обеспечивается тем, что пакет физически не линкуется с ними, а не соглашением. Оба таргета приложения ссылаются на пакет.
+A local Swift package holding the rules engine. It depends on neither SwiftUI, nor GRDB, nor HealthKit, nor WatchConnectivity — the constraint is enforced by the package physically not linking against them, not by convention. Both app targets reference the package.
 
-Публичный интерфейс держится на трёх понятиях:
+The public interface rests on three concepts:
 
-- **Набор правил** — значение, описывающее вариант счёта: классический (число сетов и золотое очко; тай-брейк при 6:6 — правило падела, а не настройка) либо до N очков (N, X). Именно значение, а не ветвление в коде: «играем до 9 геймов» должно становиться другим числом, а не другой веткой.
-- **Журнал розыгрышей** — упорядоченная последовательность, где каждый элемент говорит, какая сторона выиграла розыгрыш.
-- **Состояние матча** — вычисляемый результат: очки, геймы, сеты, подающая сторона, признак завершённости.
+- **Ruleset** — a value describing a way of scoring: classic (the number of sets and the golden point; a tiebreak at 6:6 is a rule of padel, not a setting) or to N points (N, X). A value precisely, and not a branch in the code: "we are playing to 9 games" has to become a different number, not a different branch.
+- **Rally journal** — an ordered sequence in which every element says which side won the rally.
+- **Match state** — the computed result: points, games, sets, serving side, whether it is over.
 
-Движок — чистая функция от набора правил и журнала к состоянию. Добавление розыгрыша дописывает элемент в журнал; отмена убирает последний. Состояние нигде не хранится параллельно журналу (ADR-0001), поэтому отмена не требует обратной арифметики и не может рассинхронизироваться.
+The engine is a pure function from the ruleset and the journal to a state. Adding a rally appends an element to the journal; an undo removes the last one. The state is nowhere stored in parallel with the journal (ADR-0001), so an undo needs no arithmetic run backwards and cannot drift out of sync.
 
-Подающая сторона тоже вычисляется из журнала и набора правил, а не хранится: в классическом счёте она меняется на границе гейма, в счёте до N очков — каждые X розыгрышей, отсчитывая от указанной перед матчем первой подачи.
+The serving side is likewise computed from the journal and the ruleset rather than stored: in classic scoring it changes on a game boundary, in the match to N points every X rallies, counting from the first server named before the match.
 
-### Хранилище
+### The store
 
-SQLite через GRDB на обоих устройствах (ADR-0003). Доступ спрятан за протоколом хранилища, чтобы движок и экраны не знали о базе. Схема версионируется миграциями GRDB с первой версии — она заведомо изменится, когда появятся игроки.
+SQLite through GRDB on both devices (ADR-0003). Access is hidden behind a store protocol, so that the engine and the screens know nothing about the database. The schema is versioned by GRDB migrations from its first version — it will certainly change once players appear.
 
-Матч хранится вместе со своим набором правил: без него журнал невозможно интерпретировать, а правила со временем поменяются. Записываются также момент начала, длительность и признак недоигранности.
+A match is stored together with its ruleset: without it the journal cannot be interpreted, and the rules will change over time. The moment of the start, the duration and the abandoned mark are written as well.
 
-Журнал пишется после каждого розыгрыша, а не в конце матча. Это то, что делает восстановление после выгрузки приложения почти бесплатным: незавершённый матч — это журнал без финального состояния, и при запуске приложение предлагает продолжить именно его.
+The journal is written after every rally, not at the end of the match. That is what makes restoring after the app is unloaded nearly free: an unfinished match is a journal without a final state, and at launch the app offers to continue that very one.
 
-### Приложение на часах
+### The app on the watch
 
-Три экрана: старт (набор правил и первая подача) → счёт → итог. Списка матчей на часах нет.
+Three screens: start (ruleset and first server) → score → outcome. There is no list of matches on the watch.
 
-Матч выполняется внутри `HKWorkoutSession` — это единственный способ гарантировать, что приложение переживёт полтора часа и получит Always-On. Требует разрешения HealthKit при первом запуске. Сессия начинается вместе с матчем и завершается вместе с ним, в том числе при досрочном прекращении.
+The match runs inside an `HKWorkoutSession` — the only way to guarantee that the app survives an hour and a half and gets Always-On. It requires HealthKit permission on first launch. The session starts with the match and ends with it, including when the match is stopped early.
 
-Экран счёта — две зоны касания во весь экран, по одной на сторону. Жест Double Tap привязан к нашей стороне через `.handGestureShortcut(.primaryAction)`; primaryAction в системе ровно одна, поэтому вторая сторона доступна только касанием. Отмена последнего очка обязательна; конкретный жест уточняется прототипом.
+The score screen is two tap zones filling the display, one per side. The Double Tap gesture is bound to our side through `.handGestureShortcut(.primaryAction)`; there is exactly one primaryAction in the system, so the other side is reachable by tap only. Undoing the last point is mandatory; the exact gesture is to be settled by the prototype.
 
-Отображаются ровно три величины: очки крупно, геймы мельче, индикатор подачи. Пульс и время матча доступны из сессии тренировки, но на экран не выносятся — они конкурируют за место с тем, ради чего на часы смотрят.
+Exactly three quantities are shown: the points in large type, the games smaller, and the serve indicator. Heart rate and match time are available from the workout session but are kept off the screen — they compete for room with the very thing the watch is looked at for.
 
-Набор правил прошлого матча сохраняется и подставляется в стартовый экран.
+The previous match's ruleset is saved and filled into the start screen.
 
-### Передача на телефон
+### The hand-off to the phone
 
-Законченный матч ставится в очередь на передачу через WatchConnectivity (`transferUserInfo`), которая переживает перезапуск приложения и доставляет, когда телефон окажется доступен. Часы остаются источником правды до момента подтверждённой доставки и не удаляют матч раньше.
+A finished match is put in a queue for hand-off through WatchConnectivity (`transferUserInfo`), which survives a relaunch of the app and delivers once the phone becomes reachable. The watch stays the source of truth until delivery is confirmed and does not delete the match before that.
 
-Транспорт спрятан за протоколом (ADR-0002): именно этот шов позже подменяется на CloudKit или сервер без переезда данных.
+The transport is hidden behind a protocol (ADR-0002): this is precisely the seam that is later swapped for CloudKit or a server without moving the data.
 
-Облака, сервера и аккаунтов в v1 нет. Следствие принято сознательно: бэкапа не существует, потеря устройства до передачи означает потерю матча.
+There is no cloud, no server and no accounts in v1. The consequence is accepted deliberately: no backup exists, and losing the device before the hand-off means losing the match.
 
-### Приложение на телефоне
+### The app on the phone
 
-Два экрана: список матчей и карточка матча. Список показывает дату, счёт, длительность и пометку недоигранного. Карточка показывает, как складывался счёт, восстанавливая ход матча из журнала тем же движком, что считал его на часах, — это и есть выгода от того, что движок лежит в общем пакете.
+Two screens: the list of matches and the match card. The list shows the date, the score, the duration and the abandoned mark. The card shows how the score came about, reconstructing the course of the match from the journal with the same engine that counted it on the watch — and that is the payoff for the engine living in a shared package.
 
-Только iPhone; iPad из таргета убран.
+iPhone only; the iPad is out of the target.
 
-### Минимальные версии
+### Minimum versions
 
-iOS 18 и watchOS 11. Версии выбираются парой, а не по отдельности: watchOS 11
-требует, чтобы на спаренном iPhone стояла iOS 18, поэтому комбинации вроде
-«iOS 17 + watchOS 11» не существует в природе.
+iOS 18 and watchOS 11. The versions are chosen as a pair rather than separately:
+watchOS 11 requires iOS 18 on the paired iPhone, so a combination like
+"iOS 17 + watchOS 11" does not exist in nature.
 
-Нижняя граница задана watchOS 11 (Apple Watch Series 6 и новее), и причина
-именно в экране счёта: Always-On появился с Series 5, а watchOS 10 включает
-Series 4, где его нет вовсе. Поддерживать версию, на которой главный экран
-приложения ведёт себя принципиально иначе, дороже, чем отказаться от неё.
-Побочная выгода — Double Tap доступен без проверок доступности.
+The lower bound is set by watchOS 11 (Apple Watch Series 6 and newer), and the
+reason is the score screen specifically: Always-On arrived with the Series 5,
+while watchOS 10 includes the Series 4, which does not have it at all.
+Supporting a version on which the app's main screen behaves fundamentally
+differently costs more than dropping it. A side benefit is that Double Tap is
+available without availability checks.
 
 ## Testing Decisions
 
-Хороший тест здесь проверяет **внешнее поведение**: подаёшь на вход набор правил и последовательность выигранных розыгрышей — утверждаешь о наблюдаемом состоянии матча. Тест не знает, как устроено вычисление внутри, не обращается к приватным типам и не ломается от переименования внутренних функций.
+A good test here checks **external behaviour**: you feed in a ruleset and a sequence of won rallies, and assert about the observable match state. The test knows nothing about how the computation is arranged inside, does not reach for private types, and does not break when internal functions are renamed.
 
-Прежнего кода в репозитории нет, поэтому прототипов тестов не существует — эти тесты и станут образцом для последующих.
+There is no prior code in the repository, so no prototype tests exist — these tests will become the pattern for the ones that follow.
 
-### Шов 1: публичный API `PadelScoring`
+### Seam 1: the public API of `PadelScoring`
 
-Основной шов, через который проверяется вся доменная логика. Тесты живут в пакете, гоняются без симулятора и без устройства.
+The main seam, through which the whole of the domain logic is checked. The tests live in the package and run without a simulator and without a device.
 
-Покрывается:
+Covered:
 
-- Классический счёт: 15/30/40, гейм при разнице в два, «ровно» и преимущество.
-- Золотое очко: при 40:40 разыгрывается одно решающее очко.
-- Конец сета, тай-брейк при 6:6, конец матча при заданном числе сетов.
-- Счёт до N очков: матч заканчивается, как только сторона первой набирает N.
-- Смена подачи: по границе гейма в классическом счёте, каждые X розыгрышей в счёте до N очков, с учётом первой подачи.
-- Отмена: одна и несколько подряд; состояние после отмены совпадает с состоянием до соответствующего розыгрыша, включая подачу и признак завершённости.
-- Недоигранный матч: журнал без финального состояния читается корректно.
-- Граничные значения набора правил (N = 1, X = 1) не приводят к некорректному состоянию.
+- Classic scoring: 15/30/40, a game at a two-point lead, deuce and advantage.
+- The golden point: at 40:40 a single decisive point is played.
+- The end of a set, a tiebreak at 6:6, the end of a match at the given number of sets.
+- The match to N points: the match ends as soon as a side is first to reach N.
+- Changes of serve: on a game boundary in classic scoring, every X rallies in the match to N points, taking the first server into account.
+- Undo: one and several in a row; the state after an undo matches the state before the corresponding rally, serve and completion included.
+- An abandoned match: a journal without a final state reads back correctly.
+- Boundary values of the ruleset (N = 1, X = 1) do not lead to an invalid state.
 
-Свойство, которое стоит проверить отдельно: **состояние зависит только от набора правил и журнала**. Один и тот же журнал, прочитанный дважды, даёт одно и то же состояние — именно это делает восстановление после выгрузки и повтор матча на телефоне надёжными.
+One property worth checking on its own: **the state depends on nothing but the ruleset and the journal**. The same journal read twice yields the same state — that is exactly what makes restoring after an unload, and replaying a match on the phone, dependable.
 
-### Шов 2: `MatchStore`
+### Seam 2: `MatchStore`
 
-Круговой рейс через хранилище на SQLite в памяти: сохранённый матч читается обратно с тем же журналом, набором правил и пометкой недоигранности. Отдельно проверяются миграции схемы — ради них и выбран GRDB (ADR-0003).
+The round trip through a store on an in-memory SQLite database: a saved match reads back with the same journal, ruleset and abandoned mark. Schema migrations are checked separately — GRDB was chosen for their sake (ADR-0003).
 
-### Что тестами не покрывается
+### What the tests do not cover
 
-- **WatchConnectivity**: требует двух устройств. За протоколом-заглушкой, проверяется руками.
-- **`HKWorkoutSession`**: тонкая обёртка над системным API.
-- **Экраны SwiftUI**: зоны касания, Double Tap и жест отмены проверяются прототипом и руками — тест не покажет, промахивается ли мокрая рука.
+- **WatchConnectivity**: needs two devices. It sits behind a protocol with a stub, and is checked by hand.
+- **`HKWorkoutSession`**: a thin wrapper over a system API.
+- **The SwiftUI screens**: the tap zones, Double Tap and the undo gesture are checked by the prototype and by hand — no test will show whether a wet hand misses.
 
 ## Out of Scope
 
-- **Игроки и имена.** Стороны обезличены: «мы» и «они». Журнал сохраняется в форме, к которой игроков можно привязать позже, но в v1 их нет.
-- **Статистика.** Без игроков она сводится к «выиграно 62% матчей» — цифре без применения.
-- **Американо.** Турнирный формат на 8–16 игроков с ротацией партнёров и личным зачётом. Отдельный продукт для телефона организатора, не этот. Термин зарезервирован за турниром и не обозначает счёт до N очков.
-- **Облачная синхронизация, аккаунты, сервер.** Отложены за шов транспорта.
-- **Android.** Учтён только в выборе формата хранения: файл SQLite переносим.
-- **Бронирование кортов, поиск партнёров, рейтинги.**
-- **iPad.**
-- **История матчей на самих часах.**
+- **Players and names.** The sides are anonymous: "us" and "them". The journal is saved in a form that players can be attached to later, but in v1 there are none.
+- **Statistics.** Without players it comes down to "62% of matches won" — a figure with no use.
+- **Americano.** A tournament format for 8–16 players with rotating partners and individual scoring. A separate product for the organiser's phone, not this one. The term is reserved for the tournament and does not denote the match to N points.
+- **Cloud sync, accounts, a server.** Deferred behind the transport seam.
+- **Android.** Accounted for only in the choice of storage format: an SQLite file is portable.
+- **Booking courts, finding partners, ratings.**
+- **The iPad.**
+- **A match history on the watch itself.**
 
 ## Further Notes
 
-Открытый вопрос, который не решается на бумаге: геометрия зон касания, жест отмены и надёжность Double Tap на потной руке. Это кандидат на детур `/prototype` до реализации экрана счёта; результат уточнит решения по экрану счёта, но не затронет ни один из швов.
+An open question that cannot be settled on paper: the geometry of the tap zones, the undo gesture, and how dependable Double Tap is with a sweaty hand. This is a candidate for a `/prototype` detour before the score screen is implemented; the result will refine the decisions about the score screen but will not touch a single seam.
 
-Стоит проверить на реальном устройстве до того, как лечь на решение: поведение Always-On в затемнённом состоянии. Tap-to-wake отключить нельзя, поэтому касание при опущенной руке будит экран, а не отдаёт очко. При поднятой руке часы функциональны сразу и касание засчитывается — но это предположение, а не измеренный факт.
+Worth checking on a real device before committing to a decision: how Always-On behaves in the dimmed state. Tap-to-wake cannot be switched off, so a tap with the wrist down wakes the screen rather than awarding a point. With the wrist raised the watch is functional at once and the tap counts — but that is an assumption, not a measured fact.
 
-Порядок реализации задаётся зависимостями: движок правил в пакете не зависит ни от чего и делается первым; хранилище и экран счёта опираются на него; передача на телефон и экраны истории — последними, потому что до них нечего передавать.
+The order of implementation is set by the dependencies: the rules engine in the package depends on nothing and is done first; the store and the score screen rest on it; the hand-off to the phone and the history screens come last, because until then there is nothing to hand off.

@@ -1,10 +1,10 @@
-# Хранение только локальное, синхронизация спрятана за швом
+# Storage is local only, and syncing is hidden behind a seam
 
-Данные не покидают устройства пользователя: часы пишут матч локально и передают его на iPhone через WatchConnectivity. Ни облака, ни сервера, ни аккаунтов. Рассматривались CloudKit (бесплатен, но только Apple) и кроссплатформенный бэкенд вроде Supabase (работает с Android, но требует аккаунтов и ежемесячного счёта за гипотезу, которой пока не пользуется ни один человек).
+The data never leaves the user's devices: the watch writes the match locally and hands it to the iPhone over WatchConnectivity. No cloud, no server, no accounts. CloudKit was considered (free, but Apple-only), as was a cross-platform backend such as Supabase (works with Android, but demands accounts and a monthly bill for a hypothesis not a single person is using yet).
 
-Ключевое в решении — не «локально», а то, что доступ к хранилищу и доставка матчей скрыты за протоколом: CloudKit или сервер добавляются позже сменой одной реализации, без переезда данных.
+What matters in the decision is not "local" but that access to the store and the delivery of matches are hidden behind a protocol: CloudKit or a server can be added later by swapping one implementation, without moving the data.
 
-## Следствия
+## Consequences
 
-- **Бэкапа нет.** Потеря часов до передачи матча на телефон означает потерю матча; потеря телефона — потерю истории. Это принято сознательно.
-- Часы остаются источником правды до момента передачи, поэтому обязаны доводить матч до конца без телефона рядом.
+- **There is no backup.** Losing the watch before a match has been handed to the phone means losing the match; losing the phone means losing the history. This is accepted deliberately.
+- The watch stays the source of truth until the hand-off, and therefore has to see a match through to the end with no phone nearby.

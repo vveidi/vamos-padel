@@ -2,9 +2,9 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Матч")
+@Suite("Match")
 struct MatchTests {
-    @Test("Новый матч начинается с пустого журнала и нулевого счёта")
+    @Test("A new match starts with an empty journal and a nil score")
     func newMatchStartsEmpty() {
         let match = Match(ruleset: .defaultPointsTo)
 
@@ -12,7 +12,7 @@ struct MatchTests {
         #expect(match.state == MatchState())
     }
 
-    @Test("Записанный розыгрыш попадает в журнал и увеличивает счёт")
+    @Test("A recorded rally lands in the journal and raises the score")
     func recordingARallyScores() {
         var match = Match(ruleset: .defaultPointsTo)
 
@@ -22,7 +22,7 @@ struct MatchTests {
         #expect(match.state.points == .count(SideCounts(us: 0, them: 1)))
     }
 
-    @Test("После окончания матча розыгрыши не записываются")
+    @Test("A finished match records no rallies")
     func finishedMatchRecordsNothing() {
         var match = Match(ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
         match.record(rallyWonBy: .us)
@@ -36,7 +36,7 @@ struct MatchTests {
         #expect(match.state.outcome == .finished(winner: .us))
     }
 
-    @Test("Прекращённый досрочно матч помечается недоигранным")
+    @Test("A match stopped early is marked abandoned")
     func abandoningMarksTheMatchUnfinished() {
         var match = Match(ruleset: .defaultPointsTo)
         match.record(rallyWonBy: .us)
@@ -48,8 +48,9 @@ struct MatchTests {
         #expect(match.state.outcome.winner == nil)
     }
 
-    /// Час игры не пропадает: прекращение меняет исход, а не сыгранное.
-    @Test("Прекращение оставляет журнал и счёт такими, какими они были")
+    /// The hour of play is not lost: stopping changes the outcome, not what
+    /// was played.
+    @Test("Stopping leaves the journal and the score as they were")
     func abandoningKeepsTheJournalAndTheScore() {
         var match = Match(ruleset: .defaultPointsTo)
         for winner in [Side.us, .us, .them, .us, .them] { match.record(rallyWonBy: winner) }
@@ -62,7 +63,7 @@ struct MatchTests {
         #expect(match.state.finalScore == SideCounts(us: 3, them: 2))
     }
 
-    @Test("В прекращённом матче розыгрыши не записываются")
+    @Test("An abandoned match records no rallies")
     func anAbandonedMatchRecordsNothing() {
         var match = Match(ruleset: .defaultPointsTo)
         match.record(rallyWonBy: .us)
@@ -74,9 +75,10 @@ struct MatchTests {
         #expect(match == abandoned)
     }
 
-    /// Победа уже случилась, и объявлять её недоигранной нечем: набор правил
-    /// закончил матч раньше, чем игрок собрался с корта.
-    @Test("Выигранный матч прекратить досрочно нельзя")
+    /// The win has already happened, and there is nothing to declare
+    /// abandoned: the ruleset ended the match before the player made to leave
+    /// the court.
+    @Test("A won match cannot be stopped early")
     func aWonMatchCannotBeAbandoned() {
         var match = Match(ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
         match.record(rallyWonBy: .us)
@@ -88,10 +90,10 @@ struct MatchTests {
         #expect(match.state.outcome == .finished(winner: .us))
     }
 
-    /// Отмена возвращает в игру матч, законченный ошибочным касанием, — но не
-    /// матч, прекращённый досрочно: от случайного прекращения защищает
-    /// подтверждение на экране, а не отмена очка.
-    @Test("Отмена не возвращает прекращённый матч в игру")
+    /// Undo brings back into play a match finished by a mistaken tap — but not
+    /// a match stopped early: an accidental stop is guarded against by the
+    /// confirmation on screen, not by undoing a point.
+    @Test("Undo does not resume an abandoned match")
     func undoDoesNotResumeAnAbandonedMatch() {
         var match = Match(ruleset: .defaultPointsTo)
         match.record(rallyWonBy: .us)
@@ -103,11 +105,11 @@ struct MatchTests {
         #expect(match == abandoned)
     }
 
-    /// Стартового экрана пока нет, и приложение открывается сразу на счёте:
-    /// прекратить матч можно раньше первого розыгрыша. Отдельного правила на
-    /// этот случай нет намеренно — недоигранный матч с пустым журналом и есть
-    /// точное описание того, что произошло.
-    @Test("Матч, прекращённый до первого розыгрыша, недоигран с нулевым счётом")
+    /// There is no start screen yet and the app opens straight onto the score:
+    /// a match can be stopped before its first rally. There is deliberately no
+    /// special rule for that case — an abandoned match with an empty journal is
+    /// the exact description of what happened.
+    @Test("A match stopped before the first rally is abandoned at a nil score")
     func abandoningBeforeTheFirstRallyLeavesAnEmptyMatch() {
         var match = Match(ruleset: .defaultClassic)
 

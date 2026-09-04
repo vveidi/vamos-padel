@@ -1,33 +1,35 @@
 import Foundation
 
-/// Очередь матчей, ждущих доставки на телефон.
+/// The queue of matches waiting to be delivered to the phone.
 ///
-/// Отдельный протокол, а не пара методов на `MatchStore`: хранилище отвечает
-/// на вопрос «что мы сыграли», очередь — на вопрос «что из этого уехало», и
-/// меняться они будут по разным поводам. Реализация при этом одна и та же
-/// (ADR-0004): очередь и есть хранилище, потому что второй список рядом с ним
-/// однажды с ним разойдётся.
+/// A protocol of its own rather than a couple of methods on `MatchStore`: the
+/// store answers "what did we play", the queue answers "which of it has left",
+/// and they will change for different reasons. The implementation is one and
+/// the same all along (ADR-0004): the queue is the store, because a second
+/// list beside it would one day diverge from it.
 public protocol MatchDeliveryQueue: Sendable {
-    /// Законченные матчи, которые ещё не доехали.
+    /// Finished matches that have not arrived yet.
     ///
-    /// Перезапуск приложения очередь переживает даром — вместе с матчами.
+    /// The queue survives a restart of the app for free — along with the
+    /// matches.
     ///
-    /// Идущий матч сюда не попадает: доставлять нечего, пока счёт растёт. И не
-    /// попадает матч без единого розыгрыша: матч начинается первым розыгрышем,
-    /// а прекращённый раньше — след от промаха, которому в истории на телефоне
-    /// делать нечего.
+    /// A match in progress does not land here: there is nothing to deliver
+    /// while the score is still growing. Nor does a match without a single
+    /// rally: a match begins with its first rally, and one stopped earlier is
+    /// the trace of a mis-tap, which has no business in the history on the
+    /// phone.
     func matchesAwaitingDelivery() throws -> [SavedMatch]
 
-    /// Отмечает матч доехавшим.
+    /// Marks the match as arrived.
     ///
-    /// Зовётся по подтверждению с телефона, а не по факту отправки: часы
-    /// остаются источником правды до подтверждённой доставки (ADR-0002), и
-    /// отправленный в никуда матч обязан уехать снова.
+    /// Called on confirmation from the phone, not on the fact of sending: the
+    /// watch stays the source of truth until delivery is confirmed (ADR-0002),
+    /// and a match sent into the void has to leave again.
     ///
-    /// Принимает матч целиком, а не его идентификатор, потому что доставленной
-    /// бывает версия, а не матч: отменённое очко в законченном матче меняет
-    /// журнал, и подтверждение старой посылки не должно гасить очередь, в
-    /// которую матч из-за этой правки вернулся. Матч, разошедшийся с тем, что
-    /// лежит в хранилище, не отмечается.
+    /// Takes the whole match rather than its identifier, because what gets
+    /// delivered is a version, not a match: a point undone in a finished match
+    /// changes the journal, and confirmation of the old parcel must not clear
+    /// the queue the match returned to because of that edit. A match that has
+    /// diverged from what lies in the store is not marked.
     func markDelivered(_ match: SavedMatch) throws
 }

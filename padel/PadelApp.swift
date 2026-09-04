@@ -5,27 +5,28 @@ import os
 
 @main
 struct PadelApp: App {
-    /// Хранилище телефона — своё, не то же, что на часах: у каждого
-    /// приложения свой контейнер, и договариваться им не о чем. Матчи
-    /// приезжают сюда с часов и остаются здесь навсегда.
+    /// The phone's store — its own, not the one on the watch: each app has a
+    /// container of its own, and they have nothing to agree about. Matches
+    /// arrive here from the watch and stay here for good.
     private let store: any MatchStore
 
-    /// Приём матчей. Живёт столько же, сколько приложение: матч приезжает в
-    /// приложение, разбуженное системой ради него одного, а не в открытое
-    /// владельцем, — и подписаться на это надо до того, как экран появится.
+    /// Receiving matches. Lives as long as the app: a match arrives into an
+    /// app woken by the system for its sake alone rather than into one opened
+    /// by its owner — and subscribing to that has to happen before any screen
+    /// appears.
     private let reception: MatchReception
 
     init() {
         do {
             store = try SQLiteMatchStore.inApplicationSupport()
         } catch {
-            logger.error("Хранилище не открылось: \(error.localizedDescription)")
+            logger.error("the store did not open: \(error.localizedDescription)")
 
             store = NoMatchStore()
         }
 
-        // Сессия поднимается после того, как приём подписался: посылка,
-        // приехавшая в приложение без обработчика, не приедет второй раз.
+        // The session comes up after reception has subscribed: a parcel that
+        // arrives into an app without a handler will not arrive a second time.
         let transport = WatchConnectivityTransport()
 
         reception = MatchReception(store: store, receiver: transport)

@@ -1,17 +1,18 @@
 import PadelScoring
 import SwiftUI
 
-/// Экран счёта и страница управления рядом с ним.
+/// The score screen and the control page beside it.
 ///
-/// Прекратить матч нужно уметь с корта, а места на экране счёта нет: там
-/// ровно две зоны касания и три величины, и любая кнопка отняла бы у них
-/// пространство или перехватила бы касание, которым отдают очко. Поэтому
-/// управление уезжает на соседнюю страницу — туда же, куда его убирает
-/// системная тренировка: матч и так идёт внутри неё, а свайп к странице с
-/// кнопкой «Завершить» — то, что игрок уже делал на этих часах.
+/// Stopping a match has to be possible from the court, and there is no room for
+/// it on the score screen: there are exactly two tap zones and three numbers
+/// there, and any button would take space from them or intercept the tap that
+/// awards a point. So the controls move to a neighbouring page — the same place
+/// the system's workout puts them: the match runs inside one anyway, and a
+/// swipe to a page with an "End" button is something the player has already
+/// done on this watch.
 ///
-/// Открывается всегда счёт, а не управление: страница управления нужна раз
-/// за матч, счёт — между каждыми двумя розыгрышами.
+/// What opens is always the score, never the controls: the control page is
+/// needed once per match, the score between every two rallies.
 struct ScorePages: View {
     let points: Points
     let games: SideCounts?
@@ -20,8 +21,8 @@ struct ScorePages: View {
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
-    /// Прекращает матч досрочно. Подтверждение спрашивает страница управления,
-    /// поэтому наружу уходит уже решённое.
+    /// Stops the match early. The confirmation is asked for by the control
+    /// page, so what leaves here is already decided.
     let onAbandon: () -> Void
 
     @State private var page = Page.score
@@ -49,8 +50,8 @@ struct ScorePages: View {
     }
 }
 
-/// Страница управления: единственное, что можно сделать с идущим матчем
-/// помимо счёта, — прекратить его.
+/// The control page: the only thing that can be done to a running match apart
+/// from scoring it is to stop it.
 private struct MatchControls: View {
     let onAbandon: () -> Void
 
@@ -63,9 +64,10 @@ private struct MatchControls: View {
             Label("Завершить", systemImage: "xmark")
         }
         .padding(.horizontal)
-        // Подтверждение обязательно: свайп мокрой рукой и промах по кнопке —
-        // ровно то, чем матч не должен обрываться. Оно же единственная защита
-        // от случайного прекращения: обратно в игру матч не возвращается.
+        // The confirmation is mandatory: a swipe with a wet hand and a
+        // mis-tap on the button are exactly what a match must not be cut short
+        // by. It is also the only guard against an accidental stop: the match
+        // does not come back into play.
         .confirmationDialog(
             "Завершить матч?",
             isPresented: $isConfirming,

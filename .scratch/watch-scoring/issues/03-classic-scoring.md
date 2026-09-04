@@ -1,121 +1,117 @@
-# 03: Классический счёт
+# 03: Classic scoring
 
-**What to build:** Второй **набор правил** — падел по классическим правилам. Игрок выбирает его, и приложение считает 15/30/40, определяет конец гейма, сета и матча, при 6:6 начинает тай-брейк. Если включено **золотое очко**, счёт «ровно» разыгрывается одним решающим розыгрышем вместо игры до разницы в два.
+**What to build:** The second **ruleset** — padel by the classic rules. The player picks it, and the app counts 15/30/40, works out the end of a game, a set and the match, and starts a tiebreak at 6:6. If the **golden point** is on, deuce is settled by a single decisive rally instead of playing on for a two-point lead.
 
-На экране счёта рядом с очками появляется счёт по геймам — мельче, чем очки.
+The game score appears next to the points on the score screen, smaller than the points.
 
 **Blocked by:** 02
 
 **Status:** done
 
-- [x] Очки идут 15 / 30 / 40 и гейм выигрывается при разнице в два
-- [x] При выключенном золотом очке счёт «ровно» продолжается до разницы в два
-- [x] При включённом золотом очке «ровно» разыгрывается одним розыгрышем
-- [x] Сет выигрывается при шести геймах и разнице в два
-- [x] При 6:6 начинается тай-брейк и разыгрывается по правилам падела
-- [x] Матч заканчивается при заданном числе выигранных сетов, по умолчанию одном
-- [x] Счёт по геймам показан на экране и не мешает читать очки
-- [x] Тесты покрывают: гейм, «ровно» в обоих режимах, конец сета, тай-брейк, конец матча
+- [x] The points run 15 / 30 / 40 and a game is won at a two-point lead
+- [x] With the golden point off, deuce runs on until a two-point lead
+- [x] With the golden point on, deuce is settled by a single rally
+- [x] A set is won at six games and a two-point lead
+- [x] At 6:6 a tiebreak begins and is played by padel's rules
+- [x] The match ends at the given number of sets won, one by default
+- [x] The game score is shown on screen and does not get in the way of reading the points
+- [x] The tests cover: the game, deuce in both modes, the end of a set, the tiebreak, the end of the match
 
 ## Comments
 
-Выполнено. Проверка каждого критерия:
+Done. Every criterion checked:
 
-- **15/30/40 и гейм при разнице в два**: лестница очков проверена касаниями
-  на симуляторе — 0, 15, 30, 40, — четвёртое очко закрывает гейм и обнуляет
-  очки, счётчик геймов растёт до 1. Тест проходит лестницу целиком и отдельно
-  проверяет гейм, выигранный не всухую.
-- **Без золотого очка «ровно» идёт до разницы в два**: с 40:40 одно очко даёт
-  «больше», ответное возвращает «ровно», два подряд выигрывают гейм. Проверено
-  и тестом, и на экране — временной сборкой с `goldenPoint: false`, потому что
-  при включённом золотом очке «больше» недостижимо.
-- **С золотым очком «ровно» решается одним розыгрышем**: на 40:40 следующее
-  касание отдало гейм соперникам (геймы 0:1). Правило в движке сводится к
-  «первый, кто дошёл до четырёх»: до «ровно» четвёртое очко и так означает
-  разницу в два.
-- **Сет при шести геймах и разнице в два**: тесты покрывают 6:0, 6:5 (сет ещё
-  не выигран) и 7:5 (выигран).
-- **Тай-брейк при 6:6**: доведено касаниями до 6:6 на симуляторе — очки в
-  тай-брейке снова показываются числом, а не как «40». Тесты покрывают выигрыш
-  семью очками, продолжение при 6:6 внутри тай-брейка и то, что сет становится
-  7:6.
-- **Конец матча по числу сетов**: по умолчанию матч кончается первым же сетом —
-  на экране это видно как «Мы выиграли, 7:6». Тест проверяет, что матч до двух
-  сетов первый сет переживает.
-- **Геймы на экране**: стоят рядом с очками на общей базовой линии, 22-й кегль
-  против 60-го. Проверено на 42 mm — самом узком экране — в самом плотном
-  состоянии: 40:40 при геймах 5:5 цифры не сжимаются и не сталкиваются ни друг
-  с другом, ни с системными часами.
-- **Тесты**: 48 в пакете, `swift test` без симулятора, 0.002 секунды.
+- **15/30/40 and a game at a two-point lead**: the ladder of points was checked by tapping
+  in the simulator — 0, 15, 30, 40 — the fourth point closes the game and zeroes the points,
+  and the game counter goes up to 1. The test walks the whole ladder and separately checks a
+  game won against resistance.
+- **Without the golden point, deuce runs to a two-point lead**: from 40:40 one point gives
+  advantage, the reply brings back deuce, two in a row win the game. Checked both by test and
+  on screen — with a temporary build using `goldenPoint: false`, because with the golden
+  point on, advantage is unreachable.
+- **With the golden point, deuce is settled by a single rally**: at 40:40 the next tap gave
+  the game to the opponents (games 0:1). In the engine the rule reduces to "first to four":
+  before deuce a fourth point already means a two-point lead.
+- **A set at six games and a two-point lead**: the tests cover 6:0, 6:5 (the set is not won
+  yet) and 7:5 (won).
+- **A tiebreak at 6:6**: taken to 6:6 by tapping in the simulator — the points in a tiebreak
+  are shown as numbers again rather than as "40". The tests cover winning by seven points,
+  playing on at 6:6 inside the tiebreak, and the set becoming 7:6.
+- **The end of the match by the number of sets**: by default the match ends on the very first
+  set — on screen that reads as "Мы выиграли, 7:6". The test checks that a match to two sets
+  outlives its first set.
+- **The games on screen**: they stand next to the points on a shared baseline, 22pt against
+  60pt. Checked on 42 mm — the narrowest screen — in the densest state: at 40:40 with games
+  at 5:5 the digits neither shrink nor collide with each other or with the system clock.
+- **The tests**: 48 in the package, `swift test` without a simulator, 0.002 seconds.
 
-Решения по ходу:
+Decisions taken along the way:
 
-- **Очки стали типом `Points`, а не числом.** 15/30/40 числом не выражаются, а
-  «больше» тем более. Форма счёта при этом не оформление, а часть правил: в
-  тай-брейке те же розыгрыши снова называются числами. Поэтому способ называть
-  очки хранится вместе со счётчиками — назвать очки гейма числом невозможно, —
-  а экран только просит подпись. Тикет 02 хранил `SideCounts` напрямую, его
-  тесты обновлены.
-- **`classic(sets:)` переименован в `setsToWin:`.** Прежнее имя не отвечало на
-  вопрос, который задаёт критерий: `sets: 2` — это матч из двух сетов или до
-  двух побед? Матч до двух сетов длится два или три.
-- **Итоговый счёт матча — геймы, а не очки.** Розыгрыш, заканчивающий матч,
-  заканчивает и гейм, поэтому очки в этот момент уже обнулены, и экран итога
-  показывал бы 0:0. Матч длиннее одного сета запоминается сетами, иначе счёт
-  последнего сета выдавал бы себя за счёт всего матча.
-- **Золотое очко не распространяется на тай-брейк**: это правило гейма, а
-  тай-брейк геймом не является. Закреплено отдельным тестом.
-- **Число сетов меньше единицы** ведёт себя как один сет — так же, как N < 1 в
-  тикете 02. Значение приходит со стартового экрана (тикет 06), и матч, который
-  невозможно закончить, — не тот способ сообщить о бессмысленной настройке.
-- **Набор правил по умолчанию сменился на классический.** Выбирать не из чего
-  до тикета 06, а классический счёт — то, чем падел является по умолчанию.
-  Счёт до N очков до стартового экрана остаётся доступен только из тестов.
+- **The points became a `Points` type rather than a number.** 15/30/40 cannot be expressed as
+  a number, and advantage even less so. The shape of the score is not presentation but part of
+  the rules: in a tiebreak the very same rallies are called by numbers again. So the way
+  points are named is kept together with the counters — naming a game's points with a number
+  is impossible — and the screen only asks for a label. Ticket 02 stored `SideCounts`
+  directly; its tests were updated.
+- **`classic(sets:)` renamed to `setsToWin:`.** The old name did not answer the question the
+  criterion asks: is `sets: 2` a match of two sets or to two wins? A match to two sets lasts
+  two or three.
+- **The match's final score is games, not points.** The rally that ends the match also ends a
+  game, so by that moment the points are already zeroed and the outcome screen would show 0:0.
+  A match longer than one set is remembered by sets, otherwise the last set's score would pass
+  itself off as the score of the whole match.
+- **The golden point does not extend to the tiebreak**: it is a rule of the game, and a
+  tiebreak is not a game. Pinned down by a test of its own.
+- **A set count below one** behaves like a single set — the same as N < 1 in ticket 02. The
+  value comes from the start screen (ticket 06), and a match that can never be finished is not
+  the way to report a senseless setting.
+- **The default ruleset changed to classic.** There is nothing to choose between until ticket
+  06, and classic scoring is what padel is by default. Until the start screen, the match to N
+  points stays reachable only from the tests.
 
-Замечание на будущее: **сеты на экран не выводятся** — спека называет ровно три
-величины (очки, геймы, подача). При одном сете этого достаточно, но как только
-тикет 06 разрешит выбрать два, строка геймов останется без указания, какой это
-сет по счёту. Решать это стоит там же, где появится выбор.
+A note for the future: **the sets are not shown on screen** — the spec names exactly three
+quantities (points, games, serve). With a single set that is enough, but as soon as ticket 06
+allows two to be chosen, the games line will be left without saying which set it belongs to.
+That is worth settling where the choice appears.
 
-### По итогам /code-review
+### Following /code-review
 
-Ревью прошло по двум осям. Ось стандартов жёстких нарушений не нашла: пакет
-остался чистым, инициализатор `MatchState` — внутренним, глоссарий не нарушен.
-Остальное исправлено.
+The review ran along two axes. The standards axis found no hard violations: the package
+stayed clean, `MatchState`'s initialiser stayed internal, the glossary was not broken. The
+rest was fixed.
 
-- **Итоговый счёт больше не гадает.** `finalScore` выбирал уровень по сумме
-  сыгранных сетов, и недоигранный матч до двух сетов (тикет 09) выдал бы счёт
-  текущего сета за счёт всего матча. Теперь уровень выбирает набор правил:
-  `setsToWin > 1` — сеты, иначе геймы. Закреплено двумя тестами на незаконченный
-  матч.
-- **Одно правило вместо трёх написаний.** Гейм, тай-брейк и сет — это «дошёл до
-  порога и оторвался на два» с разными порогами; предикат стал общим, у каждого
-  уровня осталось только то, чем он от правила отступает.
-- **Порог гейма жил в двух местах**: `>= 4` в движке и `>= 3` в подписи очков.
-  Оба выведены из длины лестницы `["0", "15", "30", "40"]` — теперь правило
-  одно, и «40» в коде тоже не написано числом.
-- **Кегль очков возвращён с 60 на 64.** Уменьшение ради геймов было размеченным
-  разменом, которого ревью не нашло в записке, — и, как выяснилось, ненужным:
-  на 42 mm при геймах 5:5 помещается и «40», и «AD», ни то ни другое не
-  сжимается. `minimumScaleFactor` вернулся на сами очки: на контейнере он давал
-  геймам ужимать главную цифру.
-- **Матч, законченный тай-брейком**, отдавал очки как `.game(0:0)`, хотя гейма
-  не было. Безвредно сейчас, но всплыло бы в тикете 12; теперь `.count`.
-- **`ScoreZone.points`** переименовано в `pointsLabel`: поле держит подпись
-  («AD»), а не число. **`Points.counts`** закрыт до внутреннего — снаружи пакета
-  счёт читают, а не считают.
-- Дублирующий тест про обнуление геймов слит с тестом про выигранный сет.
+- **The final score no longer guesses.** `finalScore` chose the level by the number of sets
+  played, and an abandoned match to two sets (ticket 09) would have passed the current set's
+  score off as the score of the whole match. Now the ruleset chooses the level:
+  `setsToWin > 1` means sets, otherwise games. Pinned down by two tests on an unfinished
+  match.
+- **One rule instead of three spellings.** A game, a tiebreak and a set are all "reached the
+  threshold and is two clear" with different thresholds; the predicate became shared, and each
+  level kept only what it departs from the rule by.
+- **The game's threshold lived in two places**: `>= 4` in the engine and `>= 3` in the points
+  label. Both are now derived from the length of the ladder `["0", "15", "30", "40"]` — the
+  rule is one, and "40" is no longer written out as a number in the code either.
+- **The point size went back from 60 to 64.** Shrinking it for the games' sake was a marked
+  trade-off the review did not find in the note — and, as it turned out, an unnecessary one:
+  at 42 mm with games at 5:5, both "40" and "AD" fit, and neither shrinks.
+  `minimumScaleFactor` went back onto the points themselves: on the container it let the games
+  squeeze the main digit.
+- **A match ended by a tiebreak** handed back its points as `.game(0:0)`, though there was no
+  game. Harmless now, but it would have surfaced in ticket 12; it is `.count` now.
+- **`ScoreZone.points`** was renamed to `pointsLabel`: the field holds a label ("AD"), not a
+  number. **`Points.counts`** was closed down to internal — outside the package the score is
+  read, not computed.
+- A duplicate test about the games being zeroed was merged into the test about a won set.
 
-Не исправлено осознанно:
+Deliberately not fixed:
 
-- **Пара `points` + `games`, едущая через три вызова** — это форма `MatchState`,
-  и по-хорошему её стоило бы передавать целиком. Нельзя: инициализатор
-  `MatchState` внутренний намеренно (ADR-0001), поэтому превью в таргете часов
-  такое состояние не соберут. Кортеж здесь — цена того самого запрета, ради
-  которого он и стоит.
-- **Лестница `["0", "15", "30", "40"]`, повторённая в тесте**, — не дубликат:
-  тест обязан называть ожидаемое сам, иначе он проверяет реализацию её же
-  константой.
-- **Кейсы `Points` публичны**, поэтому снаружи пакета можно собрать очки без
-  журнала. Закрыть нечем: у enum нельзя сузить доступ к кейсам, а превью
-  экрана счёта их конструируют.
+- **The `points` + `games` pair travelling through three calls** is the shape of `MatchState`,
+  and by rights it should be passed whole. It cannot be: `MatchState`'s initialiser is
+  internal on purpose (ADR-0001), so previews in the watch target cannot assemble such a
+  state. The tuple here is the price of the very ban it exists for.
+- **The ladder `["0", "15", "30", "40"]` repeated in the test** is not a duplicate: a test has
+  to name what it expects itself, otherwise it checks the implementation against its own
+  constant.
+- **`Points`' cases are public**, so points can be assembled outside the package without a
+  journal. There is nothing to close: an enum's cases cannot be given narrower access, and the
+  score screen's previews construct them.

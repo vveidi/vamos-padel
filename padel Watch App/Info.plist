@@ -2,11 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Матч выполняется внутри тренировки, и это единственный ключ, ради
-	     которого файлу вообще положено существовать: остальные Xcode
-	     генерирует из настроек сборки, а массив он генерировать не умеет.
-	     Без workout-processing система выгрузила бы приложение между геймами
-	     и не включила бы Always-On. -->
+	<!-- The match runs inside a workout, and this is the only key the file
+	     has any business existing for: Xcode generates the rest from the
+	     build settings, and an array is the one thing it cannot generate.
+	     Without workout-processing the system would unload the app between
+	     games and would not switch Always-On on. -->
 	<key>WKBackgroundModes</key>
 	<array>
 		<string>workout-processing</string>

@@ -1,29 +1,32 @@
-/// Тренировка, внутри которой идёт матч.
+/// The workout the match runs inside.
 ///
-/// Полтора часа на корте приложение не переживает само по себе: система
-/// выгружает его между геймами, экран гаснет, а поднятие руки возвращает к
-/// циферблату. Регистрация матча тренировкой — единственный способ это
-/// изменить. Пульс, калории и кольца активности достаются побочно, но не они
-/// причина: причина в том, что счёт должен быть на экране весь матч.
+/// The app does not survive an hour and a half on court by itself: the system
+/// unloads it between games, the screen goes dark, and raising your wrist
+/// returns you to the watch face. Registering the match as a workout is the
+/// only way to change that. Heart rate, calories and activity rings come as a
+/// side effect, but they are not the reason: the reason is that the score has
+/// to be on the screen for the whole match.
 ///
-/// Протокол, а не сразу HealthKit, по той же причине, по которой за протоколом
-/// стоят хранилище и транспорт (ADR-0002): экраны не должны знать о здоровье.
-/// Ближайшая выгода — превью, которое иначе просило бы доступ к Health и
-/// писало бы туда тренировку каждый раз, когда кто-то открыл канвас.
+/// A protocol rather than HealthKit outright, for the same reason the store and
+/// the transport sit behind protocols (ADR-0002): the screens must know nothing
+/// about health. The immediate benefit is the preview, which would otherwise
+/// ask for Health access and write a workout into it every time somebody opened
+/// the canvas.
 protocol Workout {
-    /// Начинает тренировку. На уже идущей ничего не делает.
+    /// Starts the workout. Does nothing if one is already running.
     func start()
 
-    /// Завершает тренировку и отдаёт её в Health. На незапущенной ничего
-    /// не делает.
+    /// Ends the workout and hands it to Health. Does nothing if none was
+    /// started.
     func end()
 }
 
-/// Тренировки нет: матч ведётся, счёт считается, в Health не попадает ничего.
+/// No workout at all: the match is played, the score is counted, and nothing
+/// reaches Health.
 ///
-/// Для превью и для случая, когда доступа к здоровью нет вовсе. Отказ в
-/// разрешении сюда не приводит: матч с отказом всё равно идёт через
-/// `HealthKitWorkout`, просто ничего не записывает.
+/// For previews, and for the case where there is no health access whatsoever. A
+/// denied permission does not lead here: a match with a denial still runs
+/// through `HealthKitWorkout`, which simply writes nothing.
 struct NoWorkout: Workout {
     func start() {}
 

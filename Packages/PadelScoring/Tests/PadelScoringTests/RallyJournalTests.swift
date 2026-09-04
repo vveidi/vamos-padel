@@ -2,9 +2,9 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Журнал розыгрышей")
+@Suite("Rally journal")
 struct RallyJournalTests {
-    @Test("Новый журнал пуст")
+    @Test("A new journal is empty")
     func newJournalIsEmpty() {
         let journal = RallyJournal()
 
@@ -13,7 +13,7 @@ struct RallyJournalTests {
         #expect(journal.last == nil)
     }
 
-    @Test("Розыгрыш дописывается в конец и запоминает победившую сторону")
+    @Test("A rally is appended at the end and remembers the winning side")
     func appendRecordsWinner() {
         var journal = RallyJournal()
 
@@ -24,7 +24,7 @@ struct RallyJournalTests {
         #expect(journal.last == Rally(wonBy: .them))
     }
 
-    @Test("Отмена возвращает журнал ровно в предыдущее состояние")
+    @Test("Undo returns the journal to exactly its previous state")
     func removeLastRestoresPreviousState() {
         var journal = RallyJournal()
         journal.append(wonBy: .us)
@@ -36,7 +36,7 @@ struct RallyJournalTests {
         #expect(journal == beforeLastRally)
     }
 
-    @Test("Отмена возвращает убранный розыгрыш")
+    @Test("Undo returns the rally it removed")
     func removeLastReturnsTheRemovedRally() {
         var journal = RallyJournal()
         journal.append(wonBy: .them)
@@ -44,7 +44,7 @@ struct RallyJournalTests {
         #expect(journal.removeLast() == Rally(wonBy: .them))
     }
 
-    @Test("Отмена на пустом журнале безопасна")
+    @Test("Undo on an empty journal is safe")
     func removeLastOnEmptyJournalIsSafe() {
         var journal = RallyJournal()
 
@@ -52,7 +52,7 @@ struct RallyJournalTests {
         #expect(journal.isEmpty)
     }
 
-    @Test("Журналы с одинаковой последовательностью розыгрышей равны")
+    @Test("Journals with the same sequence of rallies are equal")
     func journalsWithSameRalliesAreEqual() {
         var one = RallyJournal()
         one.append(wonBy: .us)
@@ -65,7 +65,7 @@ struct RallyJournalTests {
         #expect(one == another)
     }
 
-    @Test("Порядок розыгрышей значим")
+    @Test("The order of rallies matters")
     func rallyOrderMatters() {
         var one = RallyJournal()
         one.append(wonBy: .us)

@@ -3,8 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "PadelScoring",
-    // macOS присутствует намеренно: тесты движка гоняются нативно, без симулятора,
-    // и заодно HealthKit с WatchConnectivity перестают компилироваться в пакете.
+    // macOS is here on purpose: the engine's tests run natively, without a
+    // simulator, and it also keeps HealthKit and WatchConnectivity from
+    // compiling inside the package.
     platforms: [
         .iOS(.v18),
         .watchOS(.v11),

@@ -5,36 +5,38 @@ import Testing
 
 @testable import PadelStorage
 
-@Suite("Миграции схемы")
+@Suite("Schema migrations")
 struct MigrationTests {
-    /// Версия пока одна, и до первого выпуска новых не появляется: у
-    /// приложения нет пользователей, поэтому схема правится прямо в `v1`.
-    /// Тест перечисляет версии буквально, чтобы вторая не завелась по
-    /// привычке — «добавить колонку» сейчас значит дописать её в `v1`, а не
-    /// рядом.
+    /// There is one version so far, and no new one appears before the first
+    /// release: the app has no users, so the schema is edited directly in
+    /// `v1`. The test lists the versions literally so that a second one does
+    /// not appear out of habit — "add a column" currently means appending it
+    /// to `v1`, not beside it.
     ///
-    /// С первым выпуском правило станет обратным: список версий — append-only,
-    /// потому что переписанная миграция применится заново к базе, где она уже
-    /// применена, и уронит открытие. База на часах существует в одном
-    /// экземпляре и до передачи на телефон является единственной копией матча
-    /// (ADR-0002).
-    @Test("Схема версионируется с первой версии")
+    /// With the first release the rule inverts: the list of versions is
+    /// append-only, because a rewritten migration will be applied afresh to a
+    /// database where it has already been applied, and will crash the opening.
+    /// The database on the watch exists in a single copy and, until the
+    /// transfer to the phone, is the only copy of the match (ADR-0002).
+    @Test("The schema is versioned from its first version")
     func theSchemaIsVersionedFromTheFirstVersion() {
         #expect(
             MatchDatabase.migrator.migrations == ["v1"],
-            "до выпуска схема правится в v1 — новую версию заводить рано")
+            "before release the schema is edited in v1 — it is too early for a new version")
     }
 
-    /// Ради этой проверки и выбран GRDB (ADR-0003): матч, записанный старой
-    /// версией приложения, должен дочитываться сегодняшней. Фикстура написана
-    /// голым SQL намеренно — так её и писала бы та версия, а не сегодняшнее
-    /// хранилище, которого тогда не существовало.
+    /// GRDB was chosen for exactly this check (ADR-0003): a match written by
+    /// an old version of the app has to remain readable by today's. The
+    /// fixture is written in bare SQL on purpose — that is how that version
+    /// would have written it, and not today's store, which did not exist back
+    /// then.
     ///
-    /// Пока версия схемы одна, «предыдущая» и «первая» — одно и то же, и
-    /// проверка держится на том, что чтение не зависит от сегодняшней записи.
-    /// С появлением второй версии тест начнёт делать ровно то, что обещает
-    /// названием, не поменяв ни строки: `migrations.first` останется v1.
-    @Test("База, оставшаяся на предыдущей версии схемы, дочитывается после миграций")
+    /// While there is only one schema version, "previous" and "first" are the
+    /// same thing, and the check rests on the reading not depending on today's
+    /// writing. Once a second version appears the test will start doing exactly
+    /// what its name promises without a line changing: `migrations.first` will
+    /// still be v1.
+    @Test("A database left at the previous schema version reads back after migrating")
     func aDatabaseLeftAtThePreviousVersionMigrates() throws {
         let queue = try DatabaseQueue()
 
@@ -60,7 +62,7 @@ struct MigrationTests {
             }
         }
 
-        // Открытие хранилища и есть применение миграций.
+        // Opening the store is what applies the migrations.
         let store = try SQLiteMatchStore(queue)
 
         let restored = try #require(try store.matchInProgress())
@@ -75,23 +77,23 @@ struct MigrationTests {
         #expect(restored.match.isAbandoned == false)
     }
 
-    @Test("Миграции применяются к уже мигрированной базе не повторно")
+    @Test("Migrations are not applied twice to an already migrated database")
     func migratingTwiceChangesNothing() throws {
         let database = "twice-\(UUID().uuidString)"
         let store = try SQLiteMatchStore.inMemory(named: database)
         let saved = SavedMatch.played([.us, .them])
         try store.save(saved)
 
-        // Второе открытие той же базы снова прогоняет мигратор.
+        // Opening the same database a second time runs the migrator again.
         let reopened = try SQLiteMatchStore.inMemory(named: database)
 
         #expect(try reopened.matchInProgress() == saved)
     }
 
-    /// Набор правил разложен по колонкам, у каждого варианта своя половина.
-    /// Проверка живёт в схеме, а не только в коде, потому что читать и писать
-    /// этот файл будет не только наш код (ADR-0003).
-    @Test("Схема не пускает набор правил, собранный наполовину")
+    /// The ruleset is spread across columns, each case owning its half. The
+    /// check lives in the schema and not only in the code, because code other
+    /// than ours will read and write this file (ADR-0003).
+    @Test("The schema turns away a half-assembled ruleset")
     func theSchemaRejectsAHalfRuleset() throws {
         let queue = try DatabaseQueue()
         try MatchDatabase.migrator.migrate(queue)

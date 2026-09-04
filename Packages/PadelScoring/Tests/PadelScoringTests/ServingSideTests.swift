@@ -2,18 +2,18 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Подающая сторона")
+@Suite("Serving side")
 struct ServingSideTests {
-    // MARK: Счёт до N очков
+    // MARK: The match to N points
 
-    @Test("До первого розыгрыша подаёт тот, кто назван первым подающим", arguments: [Side.us, .them])
+    @Test("Before the first rally the named first server serves", arguments: [Side.us, .them])
     func theFirstServerServesTheFirstRally(firstServer: Side) {
         #expect(pointsToState([], firstServer: firstServer).servingSide == firstServer)
     }
 
-    @Test("Подача переходит каждые X розыгрышей и возвращается через 2X")
+    @Test("The serve passes every X rallies and comes back after 2X")
     func serveChangesEveryXRallies() {
-        // Кто выигрывает розыгрыши, на подачу не влияет — важно их число.
+        // Who wins the rallies has no bearing on the serve — only how many.
         let winners: [Side] = [.us, .them, .them, .us, .us, .them, .us, .them]
 
         for played in 0...8 {
@@ -23,7 +23,7 @@ struct ServingSideTests {
         }
     }
 
-    @Test("При X = 1 подача переходит после каждого розыгрыша")
+    @Test("With X = 1 the serve passes after every rally")
     func serveChangesEveryRallyWhenXIsOne() {
         #expect(pointsToState([], every: 1).servingSide == .us)
         #expect(pointsToState([.them], every: 1).servingSide == .them)
@@ -31,18 +31,18 @@ struct ServingSideTests {
         #expect(pointsToState([.them, .them, .us], every: 1).servingSide == .them)
     }
 
-    /// X приходит со стартового экрана (тикет 06) и может оказаться нулём;
-    /// делить на него — не тот способ об этом сообщить.
-    @Test("X меньше единицы не роняет матч, а ведёт себя как X = 1", arguments: [0, -2])
+    /// X comes from the start screen (ticket 06) and may turn out to be zero;
+    /// dividing by it is not the way to report that.
+    @Test("An X below one does not crash the match but behaves like X = 1", arguments: [0, -2])
     func serveChangeBelowOneBehavesLikeOne(every: Int) {
         #expect(pointsToState([.us], every: every).servingSide == .them)
     }
 
-    // MARK: Классический счёт
+    // MARK: Classic scoring
 
-    @Test("В классическом счёте подача переходит после каждого гейма")
+    @Test("In classic scoring the serve passes after every game")
     func serveChangesAfterEveryGame() {
-        // Внутри гейма подача не двигается.
+        // Inside a game the serve does not move.
         for played in 0...3 {
             #expect(classicState(rallies(.us, played)).servingSide == .us)
         }
@@ -52,33 +52,34 @@ struct ServingSideTests {
         #expect(classicState(gamesWonBy([.us, .them, .them])).servingSide == .them)
     }
 
-    @Test("Подача не сбивается на границе сета")
+    @Test("The set boundary does not throw the serve off")
     func theSetBoundaryDoesNotDisturbTheServe() {
-        // Шесть геймов позади — подача вернулась к нам, и новый сет ничего
-        // в этом не меняет.
+        // Six games in, the serve is back with us, and a new set changes
+        // nothing about that.
         let firstSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
 
         #expect(classicState(firstSet, setsToWin: 2).servingSide == .us)
         #expect(classicState(firstSet + gamesWonBy([.them]), setsToWin: 2).servingSide == .them)
     }
 
-    @Test("Первая подача переносится и на классический счёт")
+    @Test("The first server carries into classic scoring too")
     func theFirstServerCarriesIntoClassic() {
         #expect(classicState([], firstServer: .them).servingSide == .them)
         #expect(classicState(gamesWonBy([.us]), firstServer: .them).servingSide == .us)
     }
 
-    // MARK: Тай-брейк
+    // MARK: The tiebreak
 
-    /// Тай-брейк — единственное место, где подача ходит не по границе гейма:
-    /// первый розыгрыш подаёт тот, чья очередь, дальше меняются каждые два.
-    @Test("В тай-брейке подача переходит после первого очка, затем каждые два")
+    /// The tiebreak is the one place where the serve does not move on game
+    /// boundaries: the first rally is served by whoever's turn it is, after
+    /// that it changes every two.
+    @Test("In a tiebreak the serve passes after one point, then every two")
     func theTieBreakServeChangesAfterOnePointThenEveryTwo() {
-        // Двенадцать геймов позади — очередь снова наша.
+        // Twelve games in, it is our turn again.
         let expected: [Side] = [.us, .them, .them, .us, .us, .them, .them, .us, .us]
 
-        // Очки в тай-брейке делятся поровну: иначе он кончится раньше, чем
-        // ротация подачи успеет пройти круг.
+        // The tiebreak points are split evenly: otherwise it would end before
+        // the serve rotation completes a full cycle.
         let traded: [Side] = (0..<expected.count).map { $0.isMultiple(of: 2) ? .us : .them }
 
         for (played, side) in expected.enumerated() {
@@ -89,9 +90,9 @@ struct ServingSideTests {
         }
     }
 
-    // MARK: Через матч
+    // MARK: Through the match
 
-    @Test("Матч отдаёт подачу, считая от своей первой")
+    @Test("The match reports the serve counting from its own first server")
     func theMatchServesFromItsOwnFirstServer() {
         var match = Match(ruleset: .defaultPointsTo, firstServer: .them)
 
@@ -103,7 +104,7 @@ struct ServingSideTests {
     }
 }
 
-// MARK: - Постройка журналов
+// MARK: - Building journals
 
 private let toSixAll = gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
 
@@ -111,7 +112,8 @@ private func pointsToState(
     _ winners: [Side], every: Int = 4, firstServer: Side = .us
 ) -> MatchState {
     MatchState(
-        // Цель заведомо недостижима: тикет про подачу, а не про конец матча.
+        // The target is deliberately out of reach: this ticket is about the
+        // serve, not about the end of the match.
         ruleset: .pointsTo(target: 99, serveChangesEvery: every),
         journal: journal(winners),
         firstServer: firstServer)

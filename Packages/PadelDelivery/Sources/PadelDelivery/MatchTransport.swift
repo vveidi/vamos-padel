@@ -1,65 +1,67 @@
 import Foundation
 import PadelStorage
 
-/// Отправляющая сторона транспорта: то, чем законченный матч уезжает с часов.
+/// The sending side of the transport: what a finished match leaves the watch
+/// by.
 ///
-/// Протокол, а не сразу WatchConnectivity, — тот самый шов, ради которого
-/// написан ADR-0002: облако или сервер появятся здесь сменой одной реализации,
-/// без переезда данных. Ближайшая выгода та же, что у хранилища и тренировки:
-/// очередь на доставку проверяется тестом на заглушке, а не парой устройств на
-/// столе.
+/// A protocol rather than WatchConnectivity outright — the very seam ADR-0002
+/// was written for: a cloud or a server will appear here by swapping one
+/// implementation, without moving the data. The immediate benefit is the same
+/// as for the store and the workout: the delivery queue is checked by a test
+/// against a stub, not by a pair of devices on the desk.
 public protocol MatchSender: Sendable {
-    /// Ставит матч в очередь на доставку.
+    /// Puts the match in the delivery queue.
     ///
-    /// Не «отправляет»: телефон во время игры лежит в сумке или в раздевалке,
-    /// и доставка случится, когда он окажется доступен, — хоть через час,
-    /// хоть вечером дома. Отправитель поэтому ничего не обещает и ничего не
-    /// возвращает; единственное, что о матче становится известно, — это
-    /// расписка в `onDelivery`.
+    /// Not "sends": during the game the phone lies in a bag or in the changing
+    /// room, and delivery will happen when it becomes reachable — in an hour,
+    /// or at home that evening. The sender therefore promises nothing and
+    /// returns nothing; the only thing that becomes known about the match is
+    /// the receipt in `onDelivery`.
     func send(_ match: SavedMatch)
 
-    /// Транспорт готов везти.
+    /// The transport is ready to carry.
     ///
-    /// Существует потому, что готовность приходит не сразу: сессия к телефону
-    /// поднимается асинхронно, и матч, отданный до этого, не уехал бы никуда.
-    /// Отсюда же берётся отправка накопившегося при запуске — звать её по
-    /// таймеру или из экрана значило бы гадать, когда транспорт проснулся.
+    /// It exists because readiness does not arrive at once: the session to the
+    /// phone comes up asynchronously, and a match handed over before that would
+    /// go nowhere. Sending what has piled up at launch starts from here too —
+    /// calling it on a timer or from a screen would mean guessing when the
+    /// transport woke up.
     func onReady(_ ready: @escaping @Sendable () -> Void)
 
-    /// Кому отдавать расписку о доставке.
+    /// Who to hand the delivery receipt to.
     ///
-    /// Ставится один раз при сборке приложения, а не передаётся с каждым
-    /// матчем: расписка приходит когда угодно, в том числе после того, как
-    /// приложение выгрузили и запустили заново, — замыкание, отданное вместе с
-    /// матчем, столько не живёт.
+    /// Set once when the app is assembled rather than passed with every match:
+    /// the receipt arrives whenever, including after the app was unloaded and
+    /// launched again — a closure handed over along with the match does not
+    /// live that long.
     ///
-    /// Приезжает матч целиком, а не его идентификатор: телефон расписывается в
-    /// том, что записал вот эту версию, а на часах она за это время могла
-    /// смениться.
+    /// The whole match arrives, not its identifier: the phone signs for having
+    /// written this particular version, and on the watch it may have changed in
+    /// the meantime.
     func onDelivery(_ confirm: @escaping @Sendable (SavedMatch) -> Void)
 }
 
-/// Принимающая сторона транспорта: то, чем матч приезжает на телефон.
+/// The receiving side of the transport: what a match arrives on the phone by.
 public protocol MatchReceiver: Sendable {
-    /// Что делать с каждым приехавшим матчем.
+    /// What to do with every match that arrives.
     ///
-    /// Ставится один раз при сборке приложения, и по той же причине, что и
-    /// `onDelivery`: матч приезжает в приложение, разбуженное системой ради
-    /// него одного, а не в открытое владельцем.
+    /// Set once when the app is assembled, and for the same reason as
+    /// `onDelivery`: the match arrives into an app woken by the system for its
+    /// sake alone, not into one opened by its owner.
     func onArrival(_ receive: @escaping @Sendable (SavedMatch) -> Void)
 
-    /// Расписывается в том, что матч записан.
+    /// Signs for the match having been written.
     ///
-    /// Отдельный шаг, а не подтверждение самого транспорта: транспорт знает
-    /// только, что посылка доехала до приложения, а часы обязаны узнать, что
-    /// она доехала до истории. Разница видна ровно в тот день, когда на
-    /// телефоне не открылась база.
+    /// A step of its own rather than the transport's own acknowledgement: the
+    /// transport only knows that the parcel reached the app, whereas the watch
+    /// has to learn that it reached the history. The difference shows on
+    /// exactly the day the database failed to open on the phone.
     func confirmArrival(of match: SavedMatch)
 }
 
-/// Транспорта нет: матч играется и записывается, никуда не уезжает.
+/// No transport at all: the match is played and written, and goes nowhere.
 ///
-/// Для превью и для устройства, на котором пары «часы — телефон» не бывает.
+/// For previews, and for a device where a watch-and-phone pair does not exist.
 public struct NoMatchTransport: MatchSender, MatchReceiver {
     public init() {}
 

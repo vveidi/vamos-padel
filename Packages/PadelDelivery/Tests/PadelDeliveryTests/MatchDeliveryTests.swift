@@ -5,11 +5,12 @@ import Testing
 
 @testable import PadelDelivery
 
-@Suite("Доставка матчей на телефон")
+@Suite("Delivering matches to the phone")
 struct MatchDeliveryTests {
-    /// То, ради чего тикет и написан: игрок не нажимает «синхронизировать».
-    /// Матч кончился — и уехал, телефон при этом может лежать в раздевалке.
-    @Test("Законченный матч ставится в очередь")
+    /// What the ticket was written for: the player never presses "sync". The
+    /// match ended and left, and the phone may be lying in the changing room
+    /// all the while.
+    @Test("A finished match is put in the queue")
     func aFinishedMatchIsQueued() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -21,10 +22,10 @@ struct MatchDeliveryTests {
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// Матч уезжает целиком, а не одним счётом: журнал розыгрышей и есть
-    /// единственная сохраняемая правда о матче (ADR-0001), и карточке матча
-    /// на телефоне (тикет 12) нужен он, а не «6:4».
-    @Test("Уезжает весь матч, а не его итог")
+    /// The whole match leaves, not just a score: the rally journal is the
+    /// single stored truth about a match (ADR-0001), and the match card on the
+    /// phone (ticket 12) needs it, not "6:4".
+    @Test("The whole match travels, not its result")
     func theWholeMatchTravels() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -41,7 +42,7 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [abandoned])
     }
 
-    @Test("Идущий матч в очередь не попадает")
+    @Test("A match in progress is not put in the queue")
     func aMatchInProgressIsNotQueued() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -52,9 +53,9 @@ struct MatchDeliveryTests {
         #expect(transport.sent.isEmpty)
     }
 
-    /// Очередь — это само хранилище, поэтому перезапуск она переживает вместе
-    /// с матчами. Второе соединение к той же базе — это и есть перезапуск.
-    @Test("Очередь переживает перезапуск приложения")
+    /// The queue is the store itself, so it survives a relaunch along with the
+    /// matches. A second connection to the same database is that relaunch.
+    @Test("The queue survives a relaunch of the app")
     func theQueueSurvivesARelaunch() throws {
         let database = "delivery-\(UUID().uuidString)"
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -65,18 +66,19 @@ struct MatchDeliveryTests {
         let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
         let transport = FakeTransport()
 
-        // Никто не зовёт доставку руками: приложение запустилось, транспорт
-        // поднялся — этого довольно.
+        // Nobody calls delivery by hand: the app launched, the transport came
+        // up — that is enough.
         _ = MatchDelivery(queue: afterRelaunch, sender: transport)
         transport.becomeReady()
 
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// Сессия к телефону поднимается асинхронно. Матч, отданный ей до этого,
-    /// не уехал бы никуда, а второй попытки в этот запуск не случилось бы —
-    /// поэтому очередь ждёт готовности, а не наоборот.
-    @Test("До готовности транспорта не уезжает ничего")
+    /// The session to the phone comes up asynchronously. A match handed to it
+    /// before that would go nowhere, and there would be no second attempt in
+    /// that launch — which is why the queue waits for readiness and not the
+    /// other way round.
+    @Test("Nothing leaves before the transport is ready")
     func nothingIsSentBeforeTheTransportIsReady() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -91,9 +93,10 @@ struct MatchDeliveryTests {
         #expect(transport.sent.count == 1)
     }
 
-    /// Часы — источник правды до подтверждённой доставки (ADR-0002), поэтому
-    /// с очереди матч снимает подтверждение, а не отправка.
-    @Test("Подтверждённый матч больше не уезжает")
+    /// The watch is the source of truth until delivery is confirmed
+    /// (ADR-0002), so what takes a match off the queue is the confirmation,
+    /// not the sending.
+    @Test("A confirmed match is not sent again")
     func aConfirmedMatchIsNotSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -109,9 +112,9 @@ struct MatchDeliveryTests {
         #expect(transport.sent.isEmpty)
     }
 
-    /// Телефона не было весь вечер, а приложение выгрузили. Неподтверждённый
-    /// матч обязан уехать снова — иначе он не уедет никогда.
-    @Test("Неподтверждённый матч уезжает снова")
+    /// The phone was away all evening and the app was unloaded. An unconfirmed
+    /// match has to leave again — otherwise it will never leave at all.
+    @Test("An unconfirmed match is sent again")
     func anUnconfirmedMatchIsSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -127,11 +130,12 @@ struct MatchDeliveryTests {
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// Отмена очка в законченном матче (тикет 05) возвращает его в игру, и
-    /// доигранный заново он расходится с тем, что уже на телефоне. Отметка о
-    /// доставке гаснет с любой записью матча, поэтому он уезжает второй раз —
-    /// а второй приезд на телефоне затирает первый.
-    @Test("Матч, изменившийся после доставки, уезжает заново")
+    /// Undoing a point in a finished match (ticket 05) brings it back into
+    /// play, and once played out again it diverges from what is already on the
+    /// phone. The delivery mark is cleared by any write of the match, so it
+    /// leaves a second time — and on the phone the second arrival overwrites
+    /// the first.
+    @Test("A match changed after delivery is sent again")
     func aMatchChangedAfterDeliveryIsSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -143,7 +147,8 @@ struct MatchDeliveryTests {
         transport.confirmDelivered()
         transport.forget()
 
-        // Последнее очко было ошибкой: его отменяют, и матч доигрывают.
+        // The last point was a mistake: it is undone, and the match is played
+        // out again.
         saved.match.undo()
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
@@ -155,10 +160,11 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [saved])
     }
 
-    /// Расписка приходит когда угодно, в том числе через час после отправки.
-    /// За это время матч мог измениться — и расписка о прошлой версии не
-    /// вправе гасить очередь, в которую он из-за этой правки вернулся.
-    @Test("Расписка о прошлой версии матча очередь не гасит")
+    /// The receipt arrives whenever, including an hour after the sending. In
+    /// that time the match may have changed — and a receipt for a previous
+    /// version has no right to clear the queue it returned to because of that
+    /// edit.
+    @Test("A receipt for an older version of the match does not clear the queue")
     func aReceiptForAnOlderVersionDoesNotClearTheQueue() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -170,7 +176,8 @@ struct MatchDeliveryTests {
 
         let delivered = saved
 
-        // Пока расписка ехала, последнее очко отменили и матч доиграли заново.
+        // While the receipt was travelling, the last point was undone and the
+        // match played out again.
         saved.match.undo()
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
@@ -184,10 +191,11 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [saved])
     }
 
-    /// Матч начинается первым розыгрышем — так его определяет глоссарий.
-    /// Прекращённый раньше сохраняется честно, но в истории на телефоне ему
-    /// делать нечего: «0:0, 0 минут» это не история, а след от промаха.
-    @Test("Матч без единого розыгрыша не уезжает")
+    /// A match begins with its first rally — that is how the glossary defines
+    /// it. One stopped earlier is saved honestly, but it has no business in the
+    /// history on the phone: "0:0, 0 minutes" is not history but the trace of a
+    /// mis-tap.
+    @Test("A match without a single rally is not sent")
     func aMatchWithoutRalliesIsNotSent() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
@@ -202,7 +210,7 @@ struct MatchDeliveryTests {
         #expect(transport.sent.isEmpty)
     }
 
-    @Test("В пустом хранилище доставлять нечего")
+    @Test("An empty store has nothing to deliver")
     func anEmptyStoreQueuesNothing() throws {
         let transport = FakeTransport()
 

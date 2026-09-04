@@ -3,8 +3,8 @@ import PackageDescription
 
 let package = Package(
     name: "PadelStorage",
-    // macOS присутствует по той же причине, что и в PadelScoring: круговой рейс
-    // через SQLite гоняется нативно, без симулятора и без устройства.
+    // macOS is here for the same reason as in PadelScoring: the round trip
+    // through SQLite runs natively, without a simulator and without a device.
     platforms: [
         .iOS(.v18),
         .watchOS(.v11),
@@ -28,8 +28,9 @@ let package = Package(
             name: "PadelStorageTests",
             dependencies: [
                 "PadelStorage",
-                // Тестам миграций нужна база до того, как её открыло хранилище:
-                // иначе «базу предыдущей версии» неоткуда взять.
+                // The migration tests need a database before the store has
+                // opened it: otherwise there is nowhere to get a "database of
+                // the previous version" from.
                 .product(name: "GRDB", package: "GRDB.swift"),
             ]),
     ]

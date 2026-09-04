@@ -1,15 +1,16 @@
 import Foundation
 import PadelStorage
 
-/// Доставка матчей на телефон — сторона часов.
+/// Delivering matches to the phone — the watch's side.
 ///
-/// Связывает две вещи, которые друг о друге не знают: очередь, где лежат
-/// недоехавшие матчи, и транспорт, который умеет только «поставить в очередь»,
-/// «сказать, что готов» и «привезти расписку». Игрок при этом не нажимает
-/// ничего — ни во время игры, ни после.
+/// Ties together two things that know nothing of each other: the queue holding
+/// the matches that have not arrived, and the transport, which can only
+/// "enqueue", "say it is ready" and "bring back a receipt". The player presses
+/// nothing throughout — neither during the game nor after it.
 ///
-/// Часы остаются источником правды до подтверждённой доставки (ADR-0002),
-/// поэтому матч снимает с очереди расписка с телефона, а не отправка.
+/// The watch stays the source of truth until delivery is confirmed
+/// (ADR-0002), so what takes a match off the queue is the receipt from the
+/// phone, not the sending.
 public final class MatchDelivery: Sendable {
     private let queue: any MatchDeliveryQueue
     private let sender: any MatchSender
@@ -18,10 +19,11 @@ public final class MatchDelivery: Sendable {
         self.queue = queue
         self.sender = sender
 
-        // Накопившееся уезжает, как только транспорт готов, — в этом и состоит
-        // «очередь переживает перезапуск». Не при запуске экрана: сессия к
-        // телефону поднимается асинхронно, и матч, отданный до готовности, не
-        // уехал бы никуда, а следующей попытки в этот запуск не случилось бы.
+        // What has piled up leaves as soon as the transport is ready — that is
+        // what "the queue survives a restart" amounts to. Not when the screen
+        // starts: the session to the phone comes up asynchronously, and a match
+        // handed over before readiness would go nowhere, with no further
+        // attempt in that launch.
         sender.onReady { [queue, sender] in
             Self.deliverPending(from: queue, to: sender)
         }
@@ -30,22 +32,24 @@ public final class MatchDelivery: Sendable {
             do {
                 try queue.markDelivered(match)
             } catch {
-                // Матч останется в очереди и уедет ещё раз — это дешевле, чем
-                // считать доставленным то, о чём мы не смогли записать.
-                logger.error("Доставка не отмечена: \(error.localizedDescription)")
+                // The match stays in the queue and will leave again — that is
+                // cheaper than counting as delivered something we failed to
+                // write down.
+                logger.error("delivery was not marked: \(error.localizedDescription)")
             }
         }
     }
 
-    /// Отправляет всё, что ещё не доехало.
+    /// Sends everything that has not arrived yet.
     ///
-    /// Зовётся, когда матч закончился; при запуске то же самое делает
-    /// готовность транспорта.
+    /// Called when the match has ended; at launch the transport's readiness
+    /// does the same.
     ///
-    /// Повторная отправка — не ошибка, а замысел. Своя очередь есть и у
-    /// транспорта, и вместе они иногда доставят один матч дважды; телефон
-    /// узнаёт его по идентификатору, и второй приезд ничего не создаёт.
-    /// Потерянный матч восстановить неоткуда, лишний — не стоит ничего.
+    /// Sending again is not a bug but the design. The transport has a queue of
+    /// its own, and together they will sometimes deliver one match twice; the
+    /// phone recognises it by its identifier, and the second arrival creates
+    /// nothing. A lost match cannot be recovered from anywhere; a redundant one
+    /// costs nothing.
     public func deliverPending() {
         Self.deliverPending(from: queue, to: sender)
     }
@@ -58,9 +62,10 @@ public final class MatchDelivery: Sendable {
                 sender.send(match)
             }
         } catch {
-            // До матча неудача не долетает: на корте важнее счёт, чем то, что
-            // с ним будет вечером. Следующий запуск попробует снова.
-            logger.error("Очередь на доставку не прочитана: \(error.localizedDescription)")
+            // The failure never reaches the match: on court the score matters
+            // more than what becomes of it in the evening. The next launch will
+            // try again.
+            logger.error("the delivery queue was not read: \(error.localizedDescription)")
         }
     }
 }

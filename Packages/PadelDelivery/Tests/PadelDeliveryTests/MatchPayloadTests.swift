@@ -5,13 +5,13 @@ import Testing
 
 @testable import PadelDelivery
 
-@Suite("Посылка с матчем")
+@Suite("The match parcel")
 struct MatchPayloadTests {
-    /// Круговой рейс через то единственное, что умеет переносить транспорт, —
-    /// словарь. Матч обязан вернуться тем же: идентификатор, набор правил,
-    /// первая подача, журнал розыгрышей, времена и пометка недоигранности.
+    /// The round trip through the one thing the transport can carry — a
+    /// dictionary. The match has to come back the same: identifier, ruleset,
+    /// first server, rally journal, times and abandoned mark.
     @Test(
-        "Матч разбирается обратно тем же",
+        "A match decodes back unchanged",
         arguments: [
             SavedMatch.played([.us, .them, .us], ruleset: .classic(setsToWin: 2, goldenPoint: false)),
             SavedMatch.played([.them, .them], ruleset: .pointsTo(target: 21, serveChangesEvery: 2)),
@@ -21,10 +21,10 @@ struct MatchPayloadTests {
         #expect(try MatchPayload.decode(MatchPayload.encode(.match(saved))) == .match(saved))
     }
 
-    /// Расписка ходит тем же каналом и тем же форматом, что и матч, поэтому
-    /// различить их обязана сама посылка: принимающая сторона знает только то,
-    /// что ей привезли словарь.
-    @Test("Расписка не путается с матчем")
+    /// The receipt travels over the same channel and in the same format as the
+    /// match, so telling them apart is the parcel's own job: the receiving side
+    /// only knows that it was handed a dictionary.
+    @Test("A receipt is not mistaken for a match")
     func aReceiptIsNotMistakenForAMatch() throws {
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
@@ -34,14 +34,14 @@ struct MatchPayloadTests {
                 != .receipt(saved))
     }
 
-    @Test("Недоигранный матч приезжает недоигранным")
+    @Test("An abandoned match arrives abandoned")
     func anAbandonedMatchArrivesAbandoned() throws {
         var saved = SavedMatch.played([.us, .them])
         saved.match.abandon()
 
         guard case .match(let arrived) = try MatchPayload.decode(MatchPayload.encode(.match(saved)))
         else {
-            Issue.record("матч приехал не матчем")
+            Issue.record("the match arrived as something other than a match")
             return
         }
 
@@ -49,13 +49,15 @@ struct MatchPayloadTests {
         #expect(arrived.match.isAbandoned)
     }
 
-    /// Приложения на часах и на телефоне обновляются порознь, поэтому старое
-    /// однажды получит посылку, которой не понимает. Потерять матч с записью в
-    /// логе лучше, чем показать в истории счёт, собранный из умолчаний.
+    /// The apps on the watch and on the phone are updated separately, so one
+    /// day the older one will receive a parcel it does not understand. Losing a
+    /// match with a line in the log is better than showing a score assembled
+    /// out of defaults in the history.
     ///
-    /// Случаи перечислены внутри теста, а не аргументами: словарь с `Any`
-    /// нельзя передать между потоками, а параметры теста этого требуют.
-    @Test("Непонятная посылка не превращается в матч")
+    /// The cases are listed inside the test rather than as arguments: a
+    /// dictionary of `Any` cannot be passed between threads, and test
+    /// parameters require exactly that.
+    @Test("An unreadable parcel does not turn into a match")
     func anUnreadablePayloadIsRefused() {
         let id = UUID().uuidString
         let times: [String: Any] = [
@@ -64,45 +66,45 @@ struct MatchPayloadTests {
         let journal: [String: Any] = ["rallies": ["us"], "abandoned": false]
 
         let payloads: [(what: String, payload: [String: Any])] = [
-            ("пустая посылка", [:]),
-            ("идентификатор не UUID", ["id": "не UUID"]),
-            ("матч без времени", ["id": id]),
-            ("матч без набора правил", ["id": id].merging(times) { a, _ in a }),
+            ("an empty parcel", [:]),
+            ("an identifier that is not a UUID", ["id": "not a UUID"]),
+            ("a match without times", ["id": id]),
+            ("a match without a ruleset", ["id": id].merging(times) { a, _ in a }),
             (
-                "неизвестный набор правил",
+                "an unknown ruleset",
                 ["id": id, "ruleset": "americano", "firstServer": "us"]
                     .merging(times) { a, _ in a }
             ),
             (
-                "классический счёт без правил",
+                "classic scoring without its rules",
                 ["id": id, "ruleset": "classic", "firstServer": "us"]
                     .merging(times) { a, _ in a }
             ),
             (
-                "неизвестная первая подача",
+                "an unknown first server",
                 [
                     "id": id, "ruleset": "classic", "setsToWin": 1, "goldenPoint": true,
-                    "firstServer": "судья",
+                    "firstServer": "referee",
                 ].merging(times) { a, _ in a }.merging(journal) { a, _ in a }
             ),
             (
-                "неизвестная сторона в журнале",
+                "an unknown side in the journal",
                 [
                     "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
-                    "firstServer": "us", "rallies": ["us", "никто"], "abandoned": false,
+                    "firstServer": "us", "rallies": ["us", "nobody"], "abandoned": false,
                 ].merging(times) { a, _ in a }
             ),
             (
-                "матч без журнала розыгрышей",
+                "a match without a rally journal",
                 [
                     "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
                     "firstServer": "us",
                 ].merging(times) { a, _ in a }
             ),
             (
-                "посылка неизвестного вида",
+                "a parcel of an unknown kind",
                 [
-                    "id": id, "kind": "письмо", "ruleset": "pointsTo", "target": 16,
+                    "id": id, "kind": "letter", "ruleset": "pointsTo", "target": 16,
                     "serveChangesEvery": 4, "firstServer": "us", "startedAt": aMoment,
                     "lastRallyAt": aMoment,
                 ].merging(journal) { a, _ in a }

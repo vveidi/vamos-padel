@@ -1,66 +1,70 @@
 import Foundation
 import PadelScoring
 
-/// Хранилище матчей: то, благодаря чему матч переживает выгрузку приложения
-/// и перезагрузку часов.
+/// The match store: what lets a match outlive the app being unloaded and the
+/// watch being restarted.
 ///
-/// Протокол, а не сразу SQLite, чтобы движок и экраны не знали о базе, — и по
-/// той же причине, по которой за протоколами стоят тренировка и транспорт
-/// (ADR-0002): именно этот шов позже подменяется на CloudKit или сервер без
-/// переезда данных.
+/// A protocol rather than SQLite outright, so that the engine and the screens
+/// know nothing about the database — and for the same reason the workout and
+/// the transport sit behind protocols (ADR-0002): this is precisely the seam
+/// that is later swapped for CloudKit or a server without moving the data.
 ///
-/// Методы бросают, а не глотают ошибку молча: хранилище — не то место, где
-/// решают, что делать с несостоявшейся записью. На часах это решает экран, и
-/// решает одинаково для всех неудач — матч продолжается, в лог падает строка.
+/// The methods throw rather than swallow an error silently: the store is not
+/// the place to decide what to do about a write that did not happen. On the
+/// watch the screen decides that, and decides it the same way for every
+/// failure — the match goes on, a line lands in the log.
 public protocol MatchStore: Sendable {
-    /// Записывает матч: новый заводит, известный обновляет.
+    /// Writes the match: creates a new one, updates a known one.
     ///
-    /// Зовётся после каждого розыгрыша, а не в конце матча. В этом весь смысл
-    /// хранилища: матч, прерванный на середине, — это журнал без финального
-    /// состояния, и восстановить его можно ровно потому, что он уже записан.
+    /// Called after every rally, not at the end of the match. That is the whole
+    /// point of the store: a match interrupted halfway is a journal without a
+    /// final state, and it can be restored precisely because it is already
+    /// written.
     func save(_ match: SavedMatch) throws
 
-    /// Матч, который ещё идёт, если он есть.
+    /// The match still in progress, if there is one.
     ///
-    /// То, что приложение спрашивает при запуске, чтобы игрок продолжил с того
-    /// же места, а не начал заново.
+    /// What the app asks for at launch, so that the player carries on from the
+    /// same place instead of starting over.
     func matchInProgress() throws -> SavedMatch?
 
-    /// Записанный матч целиком, каким бы он ни кончился.
+    /// A recorded match in full, however it ended.
     ///
-    /// Вторая половина контракта: хранилище, которое умеет записать и не умеет
-    /// прочесть, проверяется только на слово. `matchInProgress` для этого не
-    /// годится — законченный и недоигранный матчи оно не отдаёт по замыслу, а
-    /// пометка недоигранности живёт ровно в них.
+    /// The second half of the contract: a store that can write but cannot read
+    /// can only be taken at its word. `matchInProgress` will not do for this —
+    /// by design it hands back neither finished nor abandoned matches, and the
+    /// abandoned mark lives in exactly those.
     ///
-    /// Спрашивается по идентификатору, потому что он для этого и заведён: по
-    /// нему хранилище узнаёт, что перед ним тот же матч. Списка здесь нет —
-    /// он появится вместе с историей на телефоне (тикеты 10, 11), которой
-    /// нужен именно список, а не один матч.
+    /// Asked for by identifier, because that is what the identifier is for: by
+    /// it the store recognises that this is the same match. There is no listing
+    /// here — that arrives with the history on the phone (tickets 10, 11),
+    /// which needs a list rather than a single match.
     func match(id: UUID) throws -> SavedMatch?
 
-    /// Набор правил прошлого матча — тот, который стартовый экран подставляет
-    /// в новый.
+    /// The previous match's ruleset — the one the start screen fills into a
+    /// new match.
     ///
-    /// Спрашивается у хранилища, а не хранится отдельной настройкой рядом с
-    /// ним: правила прошлого матча уже записаны вместе с матчем, и вторая
-    /// копия того же значения однажды разошлась бы с первой — по той же
-    /// причине, по которой рядом с журналом не хранится счёт (ADR-0001).
-    /// Помнится ровно то, чем игрок закончил играть, а не то, что он успел
-    /// покрутить на экране параметров и передумал.
+    /// Asked of the store rather than kept as a separate setting beside it:
+    /// the previous match's rules are already written down with the match, and
+    /// a second copy of the same value would one day diverge from the first —
+    /// for the same reason the score is not stored next to the journal
+    /// (ADR-0001). What is remembered is exactly what the player finished
+    /// playing with, not what they span up on the parameters screen and then
+    /// thought better of.
     ///
-    /// `nil` — матчей ещё нет, и подставлять нечего.
+    /// `nil` — there are no matches yet, and nothing to fill in.
     func lastRuleset() throws -> Ruleset?
 
-    /// Все записанные матчи, начиная с самых свежих, — история, которую
-    /// показывает телефон.
+    /// Every recorded match, freshest first — the history the phone shows.
     func matches() throws -> [SavedMatch]
 }
 
-/// Хранилища нет: матч ведётся, счёт считается, никуда не записывается.
+/// No store at all: the match is played, the score is counted, nothing is
+/// written anywhere.
 ///
-/// Для превью и для случая, когда база не открылась. Матч без записи хуже
-/// матча с записью, но лучше, чем приложение, которое не запустилось.
+/// For previews, and for the case where the database did not open. A match
+/// without a record is worse than a match with one, but better than an app
+/// that did not launch.
 public struct NoMatchStore: MatchStore, MatchDeliveryQueue {
     public init() {}
 

@@ -1,135 +1,128 @@
-# 09: Досрочное прекращение матча
+# 09: Stopping a match early
 
-**What to build:** Игрок может прекратить матч, не доиграв: кончилось время корта, пошёл дождь, кто-то потянул спину. Час игры при этом не пропадает — матч сохраняется наравне с остальными, но помечается как **недоигранный**.
+**What to build:** The player can stop a match without playing it out: the court time ran out, it started raining, somebody pulled their back. The hour of play is not lost by it — the match is saved alongside the rest, but marked as **abandoned**.
 
-Пометка существует ради будущей статистики: без неё матч, брошенный при 5:2, невозможно отличить от поражения, и эта информация теряется безвозвратно, потому что журнал не знает разницы между «доиграли» и «ушли».
+The mark exists for the sake of future statistics: without it a match dropped at 5:2 cannot be told apart from a loss, and that information is lost for good, because the journal knows no difference between "played it out" and "walked off".
 
 **Blocked by:** 07
 
 **Status:** done
 
-- [x] На экране счёта есть способ завершить матч досрочно
-- [x] Завершение подтверждается, чтобы случайное касание не обрывало матч
-- [x] Недоигранный матч сохраняется вместе со своим журналом
-- [x] Пометка недоигранности сохраняется и читается обратно
-- [x] Недоигранный матч не считается ни победой, ни поражением
-- [x] Сессия тренировки корректно завершается при досрочном прекращении
+- [x] The score screen offers a way to end a match early
+- [x] Ending is confirmed, so that an accidental tap does not cut the match short
+- [x] An abandoned match is saved together with its journal
+- [x] The abandoned mark is saved and reads back
+- [x] An abandoned match counts as neither a win nor a loss
+- [x] The workout session ends correctly when the match is stopped early
 
 ## Comments
 
-**Что построено.**
+**What was built.**
 
-Исход матча стал третьим значением: `MatchOutcome.abandoned`. Победителя у него
-нет, а `isOver` — есть; на это свойство (бывшее `isFinished`) теперь смотрят все,
-кто спрашивал «матч кончился?», и одинаково отвечают доигранному и прекращённому.
+The match outcome became a third value: `MatchOutcome.abandoned`. It has no winner, but it
+does have `isOver`; everyone who used to ask "is the match over?" now looks at that property
+(formerly `isFinished`) and answers the same way for a match played out and one stopped.
 
-Недоигранность — единственное, что о матче приходится **хранить**: из журнала
-розыгрышей её не вывести, журнал матча, прекращённого при 5:2, ничем не отличается
-от журнала матча, который вот-вот продолжат. Поэтому у `Match` появилось поле
-`isAbandoned` и метод `abandon()`, а у схемы — колонка `abandoned`. Движок при этом остался чистой функцией от набора правил и журнала:
-пометка накладывается поверх посчитанного состояния (`MatchState.abandoned`), а не
-подмешивается в счёт, поэтому недоигранный матч помнит счёт, на котором его
-прекратили. ADR-0001 дополнен следствием об этом исключении, глоссарий — уточнением
-в «Состоянии матча».
+Being abandoned is the only thing about a match that has to be **stored**: it cannot be
+derived from the rally journal, and the journal of a match stopped at 5:2 is no different from
+the journal of a match about to resume. So `Match` gained an `isAbandoned` field and an
+`abandon()` method, and the schema gained an `abandoned` column. The engine meanwhile stayed a
+pure function of the ruleset and the journal: the mark is laid over the computed state
+(`MatchState.abandoned`) rather than mixed into the score, so an abandoned match remembers the
+score it was stopped at. ADR-0001 gained a consequence about that exception, and the glossary
+a clarification in "Match state".
 
-На экране счёта места под кнопку нет — там ровно две зоны касания и три величины, —
-поэтому управление уехало на соседнюю страницу `TabView` (`ScorePages.swift`), туда
-же, куда его убирает системная тренировка: матч и так идёт внутри неё, и свайп к
-кнопке «Завершить» — жест, который игрок на этих часах уже делал. Открывается всегда
-счёт. Кнопка поднимает `confirmationDialog` «Завершить матч? / Матч сохранится
-недоигранным».
+There is no room for a button on the score screen — there are exactly two tap zones and three
+quantities there — so the controls moved to a neighbouring `TabView` page (`ScorePages.swift`),
+the same place the system's workout puts them: the match runs inside one anyway, and a swipe
+to a "Завершить" button is a gesture the player has already made on this watch. What opens is
+always the score. The button raises a `confirmationDialog`: "Завершить матч? / Матч сохранится
+недоигранным".
 
-Экран итога (`OutcomeView`) принимает теперь `Side?`: `nil` — недоигранный матч.
-Победителя он не назначает, показывает «Матч не доигран» и счёт, в котором наша
-сторона отмечена тем же зелёным, что и наша половина экрана счёта. Жеста отмены на
-нём нет — см. ниже.
+The outcome screen (`OutcomeView`) now takes a `Side?`: `nil` means an abandoned match. It
+assigns no winner, shows "Матч не доигран" and the score, in which our side is marked with the
+same green as our half of the score screen. There is no undo gesture on it — see below.
 
-**Как проверен каждый критерий.**
+**How each criterion was checked.**
 
-- *Способ завершить досрочно* — страница управления рядом со счётом; отснята в
-  симуляторе (Series 11 46mm).
-- *Подтверждение* — `confirmationDialog` с деструктивным «Завершить» и «Играть
-  дальше»; отснят там же.
-- *Журнал сохраняется* — «Недоигранный матч сохраняется вместе со своим журналом»:
-  после прекращения все четыре розыгрыша лежат в `rally`, колонка `abandoned`
-  равна 1.
-- *Пометка сохраняется и читается обратно* — «Прекращённый матч сохраняется
-  недоигранным и продолжать не предлагается» и «Пометка недоигранности переживает
-  перезапуск приложения»: до прекращения новое соединение к той же базе предлагает
-  матч продолжить, после — нет. Проверка ловит обе стороны рейса сразу: не запишись
-  пометка или не прочитайся, матч снова попал бы на корт. Плюс «База, оставшаяся на
-  предыдущей версии схемы»: матч, записанный до появления колонки, дочитывается
-  доигрываемым.
-- *Не победа и не поражение* — `MatchOutcome.abandoned.winner == nil` и
-  «Прекращённый досрочно матч помечается недоигранным».
-- *Тренировка завершается* — `MatchView` держит тренировку по `outcome ==
-  .inProgress`, а не по наличию победителя, поэтому прекращение закрывает её тем же
-  переходом, что и последний розыгрыш. Тестами не покрыто по решению спеки
-  (обёртка над `HKWorkoutSession`).
+- *A way to end early* — the control page next to the score; captured in the simulator
+  (Series 11 46mm).
+- *The confirmation* — a `confirmationDialog` with a destructive "Завершить" and "Играть
+  дальше"; captured in the same place.
+- *The journal is saved* — after the stop all four rallies lie in `rally`, and the `abandoned`
+  column is 1.
+- *The mark is saved and reads back* — "A stopped match is saved abandoned and not offered for
+  continuation" and "The abandoned mark survives a relaunch of the app": before the stop a new
+  connection to the same database offers the match for continuation, afterwards it does not.
+  The check catches both legs of the trip at once: had the mark not been written, or not been
+  read, the match would land on court again. Plus "A database left at the previous schema
+  version reads back after migrating": a match written before the column appeared reads back
+  as still playable.
+- *Neither a win nor a loss* — `MatchOutcome.abandoned.winner == nil` and "A match stopped
+  early is marked abandoned".
+- *The workout ends* — `MatchView` holds the workout by `outcome == .inProgress` rather than
+  by the presence of a winner, so a stop closes it by the same transition as the last rally.
+  Not covered by tests, by the spec's decision (a wrapper over `HKWorkoutSession`).
 
-`swift test` в обоих пакетах: 75 и 21 тест, всё зелено. Собираются оба таргета.
+`swift test` in both packages: 75 and 21 tests, all green. Both targets build.
 
-**Решения, которых тикет не требовал.**
+**Decisions the ticket did not ask for.**
 
-- **Отмена прекращённый матч в игру не возвращает** (`Match.undo()` на нём ничего
-  не делает, жеста на экране итога нет). Прекращение — не розыгрыш, отменой очка
-  оно не снимается, а жест, который на вид работает, а на деле только меняет счёт
-  уже прекращённого матча, хуже, чем его отсутствие. От случайного касания защищает
-  подтверждение — так тикет и просил.
-- **Выигранный матч прекратить нельзя**: у него уже есть победитель, и объявлять
-  его недоигранным значило бы отменить исход.
-- **Матч, прекращённый до первого розыгрыша**, — недоигранный с пустым журналом.
-  Отдельного правила нет намеренно: это точное описание того, что произошло, а
-  пустые строки матчей база и так допускает (отмена до нуля).
-- **Читать законченный матч обратно API пока нечем**: `matchInProgress()`
-  недоигранный матч не отдаёт по определению. Чтение появится вместе с тем, кому
-  оно нужно, — передачей на телефон и историей (тикеты 10, 11); до тех пор один
-  тест смотрит в базу голым SQL, как это уже делают тесты миграций.
+- **Undo does not bring an abandoned match back into play** (`Match.undo()` does nothing on
+  one, and there is no gesture on the outcome screen). Stopping is not a rally, undoing a
+  point does not lift it, and a gesture that looks like it works while in fact only changing
+  the score of an already stopped match is worse than none. An accidental tap is guarded
+  against by the confirmation — which is what the ticket asked for.
+- **A won match cannot be stopped**: it already has a winner, and declaring it abandoned would
+  mean cancelling the outcome.
+- **A match stopped before its first rally** is abandoned with an empty journal. There is
+  deliberately no special rule: that is the exact description of what happened, and the
+  database already allows empty match rows anyway (an undo down to zero).
+- **The API has as yet no way to read a finished match back**: `matchInProgress()` does not
+  hand back an abandoned match by definition. Reading will appear together with whoever needs
+  it — the hand-off to the phone and the history (tickets 10, 11); until then one test looks
+  into the database with bare SQL, as the migration tests already do.
 
-**Что осталось проверить руками** (спека относит жесты к непокрываемому тестами):
-свайп к странице управления на потной руке — не перехватывают ли его зоны касания
-и не уводит ли он со счёта случайно. Точки-индикатор страниц стоят внизу по центру
-нашей зоны; если они начнут глотать касания, зону стоит поднять.
+**What is left to check by hand** (the spec puts gestures among what tests do not cover): the
+swipe to the control page with a sweaty hand — whether the tap zones intercept it and whether
+it leads away from the score by accident. The page indicator dots sit at the bottom, centred
+in our zone; if they start swallowing taps, the zone should be raised.
 
-**Ревью по двум осям (стандарты и спека).** Починено:
+**A review along two axes (standards and spec).** Fixed:
 
-- Хранилище получило `match(id:)` — вторую половину контракта. Спека требует от
-  Шва 2 круговой рейс «с тем же журналом, набором правил и пометкой
-  недоигранности», а `matchInProgress()` недоигранный матч не отдаёт по
-  замыслу, поэтому пометка читалась обратно только косвенно, через `nil`.
-  Теперь тест сравнивает восстановленный матч с сохранённым целиком, на двух
-  наборах правил, и голый SQL из тестов ушёл.
-- `onEnd`/`endMatch()` переименованы в `onAbandon`/`abandon()`: глоссарий уже
-  выбрал слово, а «end» вдобавок сталкивалось с `isOver` — тот верен и для
-  выигранного матча.
-- Убраны протухшая ссылка «(тикет 09)» в `ClassicScoringTests`, дублированный
-  абзац комментария в `MatchView` и avoid-синоним «прерванный» в правке ADR-0001.
-- Случай «прекратили до первого розыгрыша» записан в тикет 11: такой матч
-  сохраняется честно, но в списке истории ему делать нечего.
+- The store gained `match(id:)` — the second half of the contract. The spec demands of Seam 2
+  a round trip "with the same journal, ruleset and abandoned mark", and `matchInProgress()`
+  does not hand back an abandoned match by design, so the mark used to read back only
+  indirectly, through a `nil`. Now the test compares the restored match with the saved one in
+  full, across two rulesets, and the bare SQL is gone from the tests.
+- `onEnd`/`endMatch()` were renamed to `onAbandon`/`abandon()`: the glossary had already
+  chosen the word, and "end" additionally collided with `isOver` — which is true of a won
+  match as well.
+- Removed: a stale "(ticket 09)" reference in `ClassicScoringTests`, a duplicated paragraph of
+  comment in `MatchView`, and an avoid-synonym "interrupted" in the amendment to ADR-0001.
+- The case "stopped before the first rally" was written into ticket 11: such a match is saved
+  honestly, but has no business in the history list.
 
-Оставлено сознательно:
+Deliberately left as is:
 
-- **Управление на соседней странице, а не на самом экране счёта.** Спека держит
-  экран счёта пустым намеренно: «две зоны касания во весь экран», «ровно три
-  величины». Кнопка на нём отняла бы либо место у цифры, либо касание у зоны.
-  Свайп к странице управления — то, что игрок делает в системной тренировке, а
-  матч внутри неё и идёт. Риск, что зоны перехватят свайп или точки-индикатор
-  съедят касание, остаётся в списке для проверки руками.
-- **Отмена прекращённый матч в игру не возвращает.** Тикет прямо отдаёт защиту
-  от случайного касания подтверждению. Жест, который на вид работает, а на деле
-  меняет счёт уже прекращённого матча, хуже, чем его отсутствие.
-- **Длительность считается до последнего розыгрыша, а не до прекращения.** Так
-  её определяет глоссарий: «Время от первого розыгрыша до последнего», и
-  отдельно — не до «сейчас».
-- **`OutcomeView` принимает `Side?`, а не `MatchOutcome`.** Экран итога
-  существует только после матча, и `.inProgress` на нём должно быть
-  непредставимо. Тип шире был бы честнее по названию и хуже по смыслу.
+- **The controls on a neighbouring page rather than on the score screen itself.** The spec
+  keeps the score screen empty on purpose: "two tap zones filling the display", "exactly three
+  quantities". A button on it would take either room from the digit or a tap from the zone. A
+  swipe to the control page is what the player does in the system's workout, and the match
+  runs inside one. The risk that the zones intercept the swipe, or that the indicator dots eat
+  a tap, stays on the list to check by hand.
+- **Undo does not bring an abandoned match back into play.** The ticket explicitly hands the
+  guard against an accidental tap to the confirmation. A gesture that looks like it works
+  while in fact changing the score of an already stopped match is worse than none.
+- **The duration is counted to the last rally, not to the stop.** That is how the glossary
+  defines it: "the time from the first rally to the last", and separately, not up to "now".
+- **`OutcomeView` takes a `Side?` rather than a `MatchOutcome`.** The outcome screen exists
+  only after the match, and `.inProgress` has to be unrepresentable on it. The wider type
+  would have been more honest by name and worse by meaning.
 
-**Миграций пока не заводим.** Колонка `abandoned` сначала приехала отдельной
-миграцией `v2`; по решению владельца она свёрнута обратно в `v1`. Пользователей
-у приложения нет, мигрировать нечего и не для кого, а лишняя версия схемы — это
-код, который никогда не выполнится ни на одном устройстве, кроме
-разработческого. Пока так: схема правится прямо в `v1`, вторая версия заводится
-не раньше первого выпуска. Правило записано там, где его увидят, — в доке
-`MatchDatabase` и в тесте, который перечисляет версии буквально.
-
+**No migrations yet.** The `abandoned` column first arrived as a separate `v2` migration; by
+the owner's decision it was folded back into `v1`. The app has no users, there is nothing to
+migrate and nobody to migrate it for, and an extra schema version is code that will never run
+on any device but the developer's. For now: the schema is edited directly in `v1`, and a
+second version is not created before the first release. The rule is written down where it will
+be seen — in `MatchDatabase`'s doc comment and in the test that lists the versions literally.

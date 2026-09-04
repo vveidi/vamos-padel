@@ -1,39 +1,41 @@
 import GRDB
 
-/// Схема базы матчей и её история.
+/// The schema of the match database and its history.
 ///
-/// Схема версионируется миграциями с самой первой версии, и это не запас на
-/// будущее: журнал розыгрышей точно изменится, когда появятся игроки
-/// (ADR-0003).
+/// The schema is versioned by migrations from its very first version, and that
+/// is not provision for the future: the rally journal will certainly change
+/// once players appear (ADR-0003).
 ///
-/// Версия пока ровно одна, и до первого выпуска новых не появляется: у
-/// приложения нет ни одного пользователя, поэтому схема правится прямо в `v1`,
-/// а не дописывается миграцией к базе, которой ни у кого нет. Второй `v1`
-/// у себя на устройстве разработчик получает, стерев приложение.
+/// There is exactly one version so far, and no new one appears before the
+/// first release: the app has not a single user, so the schema is edited
+/// directly in `v1` rather than appended by a migration to a database nobody
+/// has. On their own device the developer gets a second `v1` by deleting the
+/// app.
 ///
-/// Правило меняется в день, когда приложение попадёт к кому-то ещё: с этого
-/// момента выпущенная миграция неприкосновенна, а новая версия дописывается
-/// следующей. База на часах существует в единственном экземпляре и до передачи
-/// на телефон является единственной копией матча (ADR-0002) — переписать
-/// историю миграций тогда будет значить потерять то, что в ней лежит.
+/// The rule changes the day the app reaches somebody else: from that moment a
+/// released migration is untouchable and a new version is appended after it.
+/// The database on the watch exists in a single copy and, until the transfer
+/// to the phone, is the only copy of the match (ADR-0002) — rewriting the
+/// migration history will then mean losing what it holds.
 enum MatchDatabase {
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
 
-        // Названо явно, хотя это и значение по умолчанию: единственное, что
-        // делает эта строка, — превращает «стереть базу при расхождении схемы»
-        // из настройки, которую можно включить не подумав, в решение, принятое
-        // здесь. Бэкапа у нас нет (ADR-0002), стирать нечего и незачем.
+        // Spelled out even though it is the default: all this line does is
+        // turn "erase the database on a schema mismatch" from a setting that
+        // can be switched on without thinking into a decision taken here. We
+        // have no backup (ADR-0002); there is nothing to erase and no reason
+        // to.
         migrator.eraseDatabaseOnSchemaChange = false
 
         migrator.registerMigration("v1") { db in
             try db.create(table: "match") { t in
                 t.primaryKey("id", .text)
 
-                // Набор правил разложен по колонкам, а не свёрнут в JSON:
-                // файл SQLite выбран за переносимость (ADR-0003), а строка
-                // JSON внутри колонки переносима ровно настолько, насколько
-                // читатель знает наш формат.
+                // The ruleset is spread across columns rather than folded
+                // into JSON: the SQLite file was chosen for portability
+                // (ADR-0003), and a JSON string inside a column is portable
+                // exactly as far as the reader knows our format.
                 t.column("ruleset", .text).notNull()
                 t.column("setsToWin", .integer)
                 t.column("goldenPoint", .boolean)
@@ -44,28 +46,30 @@ enum MatchDatabase {
                 t.column("startedAt", .datetime).notNull()
                 t.column("lastRallyAt", .datetime).notNull()
 
-                // Единственное состояние матча, которое хранится колонкой, а
-                // не считается движком из журнала (ADR-0001): недоигранность
-                // неоткуда вывести. Журнал матча, прекращённого при 5:2, ничем
-                // не отличается от журнала матча, который вот-вот продолжат, —
-                // разницу знает только игрок, ушедший с корта.
+                // The one piece of match state kept in a column rather than
+                // computed by the engine from the journal (ADR-0001): there is
+                // nowhere to derive abandonment from. The journal of a match
+                // stopped at 5:2 is no different from the journal of a match
+                // about to resume — only the player who left the court knows
+                // the difference.
                 t.column("abandoned", .boolean).notNull()
 
-                // Отметка о доставке на телефон — не свойство матча, а
-                // расписка очереди: очередью служит само хранилище (ADR-0004),
-                // потому что второй список рядом с ним однажды с ним
-                // разойдётся. На телефоне колонка есть и всегда пуста —
-                // доставлять ему некуда.
+                // The delivered-to-the-phone mark is not a property of the
+                // match but a receipt of the queue: the store itself serves as
+                // the queue (ADR-0004), because a second list beside it would
+                // one day diverge from it. On the phone the column exists and
+                // is always empty — it has nowhere to deliver to.
                 //
-                // Умолчание нужно затем, что запись матча о доставке не знает
-                // и не должна: она случается после каждого розыгрыша, а
-                // доставка — один раз в конце.
+                // The default is there because writing the match knows nothing
+                // about delivery, and should not: it happens after every rally,
+                // while delivery happens once, at the end.
                 t.column("delivered", .boolean).notNull().defaults(to: false)
 
-                // Колонки набора правил заполнены по половине на вариант, и
-                // без этой проверки половинка от другого варианта пролезла бы
-                // в базу молча. Правило записано в схеме, а не только в коде,
-                // потому что читать этот файл будет и не наш код (ADR-0003).
+                // The ruleset columns are filled half per case, and without
+                // this check a half belonging to the other case would slip into
+                // the database silently. The rule is written into the schema
+                // and not only into the code, because code that is not ours
+                // will read this file too (ADR-0003).
                 t.check(
                     sql: """
                         (ruleset = 'classic'
@@ -77,18 +81,18 @@ enum MatchDatabase {
                         """)
             }
 
-            // Розыгрыш — строка, а не элемент массива в колонке матча: журнал
-            // и есть единственная сохраняемая правда о матче (ADR-0001), и
-            // хранить его так, чтобы прочитать мог только наш код, значило бы
-            // отдать половину того, ради чего выбран SQLite.
+            // A rally is a row, not an element of an array in a column of the
+            // match: the journal is the single stored truth about the match
+            // (ADR-0001), and storing it so that only our code can read it
+            // would give away half of what SQLite was chosen for.
             try db.create(table: "rally") { t in
                 t.column("matchId", .text)
                     .notNull()
                     .references("match", onDelete: .cascade)
 
-                // Журнал упорядочен, и порядок в нём — часть данных: по нему
-                // считается счёт. Полагаться на порядок вставки нельзя, номер
-                // хранится явно.
+                // The journal is ordered, and the order in it is part of the
+                // data: the score is computed from it. Insertion order cannot
+                // be relied on, so the index is stored explicitly.
                 t.column("ordinal", .integer).notNull()
 
                 t.column("winner", .text).notNull()

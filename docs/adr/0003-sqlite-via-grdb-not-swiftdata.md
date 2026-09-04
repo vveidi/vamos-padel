@@ -1,11 +1,11 @@
-# Хранилище на SQLite через GRDB, а не SwiftData
+# The store is SQLite through GRDB, not SwiftData
 
-Обе платформы (watchOS и iOS) хранят матчи в SQLite, доступ — через GRDB. Очевидным выбором для нового приложения на SwiftUI был бы SwiftData, поэтому решение стоит объяснить: файл SQLite — самый переносимый локальный формат из существующих, и Android читает его нативно. Когда дойдёт до Android (см. ADR-0002), переносить придётся код, а не данные.
+Both platforms (watchOS and iOS) keep matches in SQLite, accessed through GRDB. The obvious choice for a new SwiftUI app would have been SwiftData, so the decision is worth explaining: an SQLite file is the most portable local format there is, and Android reads it natively. When Android comes around (see ADR-0002), what will have to be ported is the code, not the data.
 
-Вторая причина — миграции: схема журнала точно изменится, когда появятся игроки, а версионирование схемы у GRDB явное и проверяемое тестами.
+The second reason is migrations: the journal's schema will certainly change once players appear, and GRDB's schema versioning is explicit and checkable by tests.
 
-## Следствия
+## Consequences
 
-- GRDB — зависимость через SPM.
-- Пакет `PadelScoring` не знает ни про GRDB, ни про SQLite: движок правил работает на чистых Swift-типах, а адаптер хранилища живёт снаружи — в отдельном пакете `PadelStorage`, который зависит и от GRDB, и от движка. Ограничение обеспечивается структурой пакетов, а не соглашением: тест-предохранитель роняет сборку, если в манифесте `PadelScoring` появляется внешняя зависимость.
-- Адаптер вынесен в пакет, а не в таргеты приложений, по двум причинам: круговой рейс через SQLite обязан гоняться без симулятора, а хранилище нужно обеим платформам одинаковым, и двух копий у него быть не должно.
+- GRDB is a dependency through SPM.
+- The `PadelScoring` package knows nothing about GRDB or SQLite: the rules engine works on plain Swift types, while the storage adapter lives outside it — in a separate `PadelStorage` package that depends on both GRDB and the engine. The constraint is enforced by the structure of the packages rather than by convention: a guard test fails the build if an external dependency appears in `PadelScoring`'s manifest.
+- The adapter was moved into a package rather than into the app targets for two reasons: the round trip through SQLite has to run without a simulator, and both platforms need the store to be identical, so it must not exist in two copies.

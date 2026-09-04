@@ -1,21 +1,22 @@
 import Foundation
 import PadelStorage
 
-/// Приём матчей с часов — сторона телефона.
+/// Receiving matches from the watch — the phone's side.
 ///
-/// Записывает приехавший матч и расписывается в этом перед часами. Расписка
-/// — не формальность: пока она не пришла, матч на часах стоит в очереди и
-/// уедет снова (ADR-0002), поэтому не записанный здесь матч не теряется, а
-/// приезжает ещё раз.
+/// Writes the match that arrived and signs for it to the watch. The receipt is
+/// no formality: until it arrives, the match on the watch stands in the queue
+/// and will leave again (ADR-0002), so a match not written here is not lost —
+/// it arrives once more.
 ///
-/// Экрану истории (тикеты 11, 12) матч потом достаётся из хранилища, а не
-/// отсюда: он приезжает в приложение, разбуженное системой ради него одного,
-/// и никакого экрана в этот момент может не быть.
+/// The history screen (tickets 11, 12) later gets the match from the store
+/// rather than from here: it arrives into an app woken by the system for its
+/// sake alone, and there may be no screen at all at that moment.
 ///
-/// Один и тот же матч приезжает дважды, если расписка не дошла. Второй приезд
-/// не заводит второй матч: хранилище узнаёт его по идентификатору и обновляет
-/// запись — тем же журналом, если он не менялся, и продолженным, если после
-/// доставки отменили очко и доиграли.
+/// The same match arrives twice if the receipt did not get through. The second
+/// arrival does not create a second match: the store recognises it by its
+/// identifier and updates the record — with the same journal if it did not
+/// change, and with a continued one if a point was undone after delivery and
+/// the match played on.
 public final class MatchReception: Sendable {
     private let store: any MatchStore
     private let receiver: any MatchReceiver
@@ -29,7 +30,7 @@ public final class MatchReception: Sendable {
         }
     }
 
-    /// Записывает приехавший матч и расписывается в этом.
+    /// Writes the match that arrived and signs for it.
     public func receive(_ match: SavedMatch) {
         Self.receive(match, into: store, confirmingTo: receiver)
     }
@@ -40,9 +41,9 @@ public final class MatchReception: Sendable {
         do {
             try store.save(match)
         } catch {
-            // Расписка не уходит, и часы привезут матч ещё раз — со следующим
-            // запуском приложения на часах.
-            logger.error("Приехавший матч не сохранён: \(error.localizedDescription)")
+            // The receipt does not go out, and the watch will bring the match
+            // again — with the next launch of the app on the watch.
+            logger.error("the match that arrived was not saved: \(error.localizedDescription)")
             return
         }
 

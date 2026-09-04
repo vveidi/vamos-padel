@@ -1,29 +1,31 @@
-/// Данные, определяющие, как из журнала розыгрышей вычисляется счёт и когда
-/// матч закончен.
+/// The data that decides how the score is computed from the rally journal and
+/// when the match is over.
 ///
-/// Именно данные, а не ветвление в коде: «сегодня играем до 9 геймов» должно
-/// становиться другим значением, а не другой веткой движка.
+/// Data precisely, not a branch in the code: "today we play to 9 games" has to
+/// become a different value, not a different branch of the engine.
 public enum Ruleset: Equatable, Sendable {
-    /// Классический счёт падела: 15/30/40, геймы, сеты, тай-брейк при 6:6.
+    /// Classic padel scoring: 15/30/40, games, sets, a tiebreak at 6:6.
     ///
-    /// `setsToWin` — сколько сетов нужно выиграть, а не сколько их сыграют:
-    /// матч до двух сетов длится два или три. При `goldenPoint` счёт «ровно»
-    /// разыгрывается одним решающим очком вместо игры до разницы в два.
+    /// `setsToWin` is how many sets have to be won, not how many will be
+    /// played: a match to two sets lasts two or three. With `goldenPoint`,
+    /// deuce is settled by a single decisive point instead of playing on for
+    /// a two-point lead.
     case classic(setsToWin: Int, goldenPoint: Bool)
 
-    /// Матч до `target` очков; подача переходит к другой стороне каждые
-    /// `serveChangesEvery` розыгрышей.
+    /// A match to `target` points; the serve passes to the other side every
+    /// `serveChangesEvery` rallies.
     case pointsTo(target: Int, serveChangesEvery: Int)
 
-    /// Матч длиннее одного сета.
+    /// A match longer than a single set.
     ///
-    /// Вопрос набора правил, а не экрана. В матче до одного сета счёт по сетам
-    /// показывать нечего: он равен 0:0 до самого последнего розыгрыша. В матче
-    /// до двух его не показывать нельзя: геймы обнуляются с каждым сетом, и
-    /// «4 : 1» без сетов не говорит, кто ведёт в матче.
+    /// A question for the ruleset, not for the screen. In a match to one set
+    /// there is no set score worth showing: it stays 0:0 until the very last
+    /// rally. In a match to two it cannot be left out: games reset with every
+    /// set, and "4 : 1" without sets does not say who is ahead in the match.
     ///
-    /// Тот же вопрос решает `MatchState.finalScore`, выбирая, каким счётом
-    /// матч запомнится, — и ответ обязан совпадать.
+    /// `MatchState.finalScore` settles the same question when it picks the
+    /// score the match will be remembered by — and the two answers have to
+    /// agree.
     public var isMultiSet: Bool {
         switch self {
         case .classic(let setsToWin, _): setsToWin > 1
@@ -31,9 +33,9 @@ public enum Ruleset: Equatable, Sendable {
         }
     }
 
-    /// Стартовые значения подобраны под любительскую игру на оплаченный
-    /// час корта; дальше приложение помнит правила прошлого матча — их
-    /// подставляет стартовый экран, спрашивая хранилище.
+    /// The starting values are picked for an amateur game on a court paid
+    /// for by the hour; after that the app remembers the previous match's
+    /// ruleset — the start screen fills it in by asking the store.
     public static let defaultClassic = Ruleset.classic(setsToWin: 1, goldenPoint: true)
 
     public static let defaultPointsTo = Ruleset.pointsTo(target: 16, serveChangesEvery: 4)

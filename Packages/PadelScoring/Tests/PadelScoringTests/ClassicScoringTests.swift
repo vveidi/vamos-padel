@@ -2,11 +2,11 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Состояние матча: классический счёт")
+@Suite("Match state: classic scoring")
 struct ClassicScoringTests {
-    // MARK: Гейм
+    // MARK: The game
 
-    @Test("Очки в гейме называются 15, 30 и 40")
+    @Test("A game's points are named 15, 30 and 40")
     func gamePointsAreNamedTheClassicWay() {
         let ladder = ["0", "15", "30", "40"]
 
@@ -19,7 +19,7 @@ struct ClassicScoringTests {
         }
     }
 
-    @Test("Четвёртое очко при разнице в два выигрывает гейм")
+    @Test("A fourth point two clear wins the game")
     func fourthPointWinsTheGame() {
         let state = classicState(rallies(.us, 4), goldenPoint: false)
 
@@ -27,37 +27,37 @@ struct ClassicScoringTests {
         #expect(state.points == .game(SideCounts()))
     }
 
-    @Test("Гейм, выигранный не всухую, тоже считается")
+    @Test("A game won against resistance counts too")
     func aGameWonAgainstResistanceCounts() {
         let state = classicState([.us, .them, .us, .them, .us, .us], goldenPoint: false)
 
         #expect(state.games == SideCounts(us: 1, them: 0))
     }
 
-    // MARK: «Ровно»
+    // MARK: Deuce
 
-    @Test("Без золотого очка «ровно» продолжается до разницы в два")
+    @Test("Without the golden point, deuce runs on until two clear")
     func withoutGoldenPointDeuceRunsUntilTwoClear() {
         let deuce = rallies(.us, 3) + rallies(.them, 3)
 
-        // «Больше» у нас: гейм ещё не выигран.
+        // The advantage is ours: the game is not won yet.
         let advantage = classicState(deuce + [.us], goldenPoint: false)
         #expect(advantage.points.label(for: .us) == "AD")
         #expect(advantage.points.label(for: .them) == "40")
         #expect(advantage.games == SideCounts())
 
-        // Соперники отыгрались — снова «ровно», а не гейм.
+        // The opponents pulled it back — deuce again, not a game.
         let backToDeuce = classicState(deuce + [.us, .them], goldenPoint: false)
         #expect(backToDeuce.points.label(for: .us) == "40")
         #expect(backToDeuce.points.label(for: .them) == "40")
         #expect(backToDeuce.games == SideCounts())
 
-        // Два подряд после «ровно» — гейм.
+        // Two in a row after deuce is a game.
         let won = classicState(deuce + [.us, .us], goldenPoint: false)
         #expect(won.games == SideCounts(us: 1, them: 0))
     }
 
-    @Test("С золотым очком «ровно» разыгрывается одним розыгрышем")
+    @Test("With the golden point, deuce is settled by a single rally")
     func withGoldenPointDeuceIsDecidedByOneRally() {
         let deuce = rallies(.us, 3) + rallies(.them, 3)
 
@@ -65,16 +65,16 @@ struct ClassicScoringTests {
         #expect(classicState(deuce + [.them], goldenPoint: true).games == SideCounts(us: 0, them: 1))
     }
 
-    @Test("Золотое очко не мешает выиграть гейм до «ровно»")
+    @Test("The golden point does not stop a game being won before deuce")
     func goldenPointLeavesTheOrdinaryGameAlone() {
         let state = classicState(rallies(.us, 3) + [.them, .us], goldenPoint: true)
 
         #expect(state.games == SideCounts(us: 1, them: 0))
     }
 
-    // MARK: Сет
+    // MARK: The set
 
-    @Test("Сет выигрывается шестью геймами при разнице в два и обнуляет их")
+    @Test("A set is won by six games two clear, and zeroes them")
     func aSetIsWonBySixGamesTwoClear() {
         let state = classicState(gamesWonBy([.us, .us, .us, .us, .us, .us]), setsToWin: 2)
 
@@ -83,7 +83,7 @@ struct ClassicScoringTests {
         #expect(state.outcome == .inProgress)
     }
 
-    @Test("При 6:5 сет ещё не выигран, при 7:5 — выигран")
+    @Test("At 6:5 the set is not won yet; at 7:5 it is")
     func fiveGamesBehindIsNotYetASet() {
         let toFiveAll = gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
 
@@ -95,9 +95,9 @@ struct ClassicScoringTests {
         #expect(sevenFive.sets == SideCounts(us: 1, them: 0))
     }
 
-    // MARK: Тай-брейк
+    // MARK: The tiebreak
 
-    @Test("При 6:6 начинается тай-брейк: очки снова считаются числом")
+    @Test("At 6:6 a tiebreak begins: points are counted as numbers again")
     func sixAllStartsATieBreak() {
         let state = classicState(toSixAll + rallies(.us, 3))
 
@@ -106,13 +106,13 @@ struct ClassicScoringTests {
         #expect(state.points.label(for: .us) == "3")
     }
 
-    @Test("Тай-брейк выигрывается семью очками при разнице в два, сет — 7:6")
+    @Test("A tiebreak is won by seven points two clear, the set at 7:6")
     func aTieBreakIsWonBySevenTwoClear() {
         let sixPoints = classicState(toSixAll + rallies(.us, 6), setsToWin: 2)
         #expect(sixPoints.sets == SideCounts())
 
-        // Матч в один сет: геймы не обнуляются под следующий сет, и счёт,
-        // которым тай-брейк закончил сет, виден целиком.
+        // A one-set match: the games are not zeroed for a next set, and the
+        // score the tiebreak ended the set on is visible in full.
         let state = classicState(toSixAll + rallies(.us, 7))
 
         #expect(state.games == SideCounts(us: 7, them: 6))
@@ -122,7 +122,7 @@ struct ClassicScoringTests {
     }
 
 
-    @Test("При 6:6 в тай-брейке игра продолжается до разницы в два")
+    @Test("At 6:6 in a tiebreak play runs on until two clear")
     func aTieBreakAtSixAllRunsOn() {
         let tieBreakDeuce = toSixAll + rallies(.us, 6) + rallies(.them, 6)
 
@@ -134,24 +134,24 @@ struct ClassicScoringTests {
         #expect(nineSeven.sets == SideCounts(us: 1, them: 0))
     }
 
-    /// Золотое очко — правило гейма, а тай-брейк геймом не является.
-    @Test("Золотое очко не укорачивает тай-брейк")
+    /// The golden point is a rule of the game, and a tiebreak is not a game.
+    @Test("The golden point does not shorten a tiebreak")
     func goldenPointDoesNotShortenATieBreak() {
         let atSixAll = toSixAll + rallies(.us, 6) + rallies(.them, 6)
 
         #expect(classicState(atSixAll + [.us], goldenPoint: true, setsToWin: 2).sets == SideCounts())
     }
 
-    @Test("Матч, законченный тай-брейком, не выдаёт его за гейм")
+    @Test("A match ended by a tiebreak does not pass it off as a game")
     func aMatchEndedByATieBreakDoesNotClaimAGame() {
         let state = classicState(toSixAll + rallies(.us, 7))
 
         #expect(state.points == .count(SideCounts()))
     }
 
-    // MARK: Конец матча
+    // MARK: The end of the match
 
-    @Test("По умолчанию матч заканчивается первым же выигранным сетом")
+    @Test("By default the match ends on the very first set won")
     func oneSetFinishesTheMatchByDefault() {
         let state = classicState(gamesWonBy([.them, .them, .them, .them, .them, .them]))
 
@@ -159,7 +159,7 @@ struct ClassicScoringTests {
         #expect(state.sets == SideCounts(us: 0, them: 1))
     }
 
-    @Test("Матч до двух сетов не заканчивается на первом")
+    @Test("A match to two sets outlives its first set")
     func aTwoSetMatchOutlivesItsFirstSet() {
         let firstSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
 
@@ -167,7 +167,7 @@ struct ClassicScoringTests {
         #expect(classicState(firstSet + firstSet, setsToWin: 2).outcome == .finished(winner: .us))
     }
 
-    @Test("После окончания матча розыгрыши больше не меняют счёт")
+    @Test("Rallies after the finish no longer change the score")
     func ralliesAfterTheFinishDoNotCount() {
         let set = gamesWonBy([.us, .us, .us, .us, .us, .us])
         let finished = classicState(set)
@@ -175,26 +175,26 @@ struct ClassicScoringTests {
         #expect(classicState(set + rallies(.them, 9)) == finished)
     }
 
-    /// Число сетов приходит со стартового экрана (тикет 06) и может оказаться
-    /// бессмысленным; матч, который невозможно закончить, — не тот способ об
-    /// этом сообщить.
-    @Test("Число сетов меньше единицы ведёт себя как один сет", arguments: [0, -2])
+    /// The number of sets comes from the start screen (ticket 06) and may turn
+    /// out to be senseless; a match that can never be finished is not the way
+    /// to report that.
+    @Test("A set count below one behaves like a single set", arguments: [0, -2])
     func setsBelowOneBehaveLikeOne(setsToWin: Int) {
         let state = classicState(gamesWonBy([.us, .us, .us, .us, .us, .us]), setsToWin: setsToWin)
 
         #expect(state.outcome == .finished(winner: .us))
     }
 
-    // MARK: Итоговый счёт
+    // MARK: The final score
 
-    @Test("Закончившийся матч запоминается счётом по геймам, а не по очкам")
+    @Test("A finished match is remembered by its games, not by its points")
     func aFinishedMatchIsRememberedByItsGames() {
         let state = classicState(gamesWonBy([.us, .them, .us, .them, .us, .us, .us, .us]))
 
         #expect(state.finalScore == SideCounts(us: 6, them: 2))
     }
 
-    @Test("Матч из нескольких сетов запоминается счётом по сетам")
+    @Test("A multi-set match is remembered by its sets")
     func aLongerMatchIsRememberedByItsSets() {
         let ourSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
         let theirSet = gamesWonBy([.them, .them, .them, .them, .them, .them])
@@ -205,10 +205,10 @@ struct ClassicScoringTests {
         #expect(state.finalScore == SideCounts(us: 2, them: 1))
     }
 
-    /// Недоигранный матч придёт сюда с одним сыгранным сетом или вовсе
-    /// без них. Выбирать уровень по числу сыгранного значило бы выдать
-    /// счёт текущего сета за счёт всего матча.
-    @Test("Незаконченный матч до двух сетов всё равно запоминается сетами")
+    /// An abandoned match will arrive here with one set played, or with none
+    /// at all. Choosing the level by how much was played would mean passing
+    /// the current set's score off as the score of the whole match.
+    @Test("An unfinished match to two sets is still remembered by sets")
     func anUnfinishedLongMatchIsStillRememberedBySets() {
         let oneSetIn = gamesWonBy([.us, .us, .us, .us, .us, .us]) + gamesWonBy([.them, .them])
 
@@ -219,16 +219,16 @@ struct ClassicScoringTests {
         #expect(state.finalScore == SideCounts(us: 1, them: 0))
     }
 
-    @Test("Матч до одного сета запоминается геймами и до того, как кончился")
+    @Test("A match to one set is remembered by games even before it ends")
     func anUnfinishedShortMatchIsRememberedByGames() {
         let state = classicState(gamesWonBy([.us, .us, .them]))
 
         #expect(state.finalScore == SideCounts(us: 2, them: 1))
     }
 
-    // MARK: Общее с движком
+    // MARK: Shared with the engine
 
-    @Test("Один и тот же журнал даёт одно и то же состояние")
+    @Test("The same journal always yields the same state")
     func theSameJournalAlwaysScoresTheSame() {
         let played = gamesWonBy([.us, .them, .us]) + rallies(.them, 2)
 
@@ -238,7 +238,7 @@ struct ClassicScoringTests {
         #expect(MatchState(ruleset: .defaultClassic, journal: journal(played)) == MatchState(ruleset: .defaultClassic, journal: replayed))
     }
 
-    @Test("До первого розыгрыша счёт нулевой, матч идёт")
+    @Test("Before the first rally the score is nil and the match is on")
     func anEmptyJournalScoresNothing() {
         let state = classicState([])
 
@@ -249,13 +249,13 @@ struct ClassicScoringTests {
     }
 }
 
-// MARK: - Постройка журналов
+// MARK: - Building journals
 
-/// Розыгрыши, доводящие геймы до 6:6. Каждый гейм здесь выигрывается всухую:
-/// путь к 6:6 в этих тестах не важен, важно то, что начинается после.
+/// The rallies that bring the games to 6:6. Every game here is won to love:
+/// the road to 6:6 does not matter in these tests, what starts after it does.
 private let toSixAll = gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
 
-/// Состояние классического матча по перечисленным победителям розыгрышей.
+/// The state of a classic match, given the listed rally winners.
 private func classicState(
     _ winners: [Side], goldenPoint: Bool = true, setsToWin: Int = 1
 ) -> MatchState {
@@ -268,14 +268,14 @@ private func journal(_ winners: [Side]) -> RallyJournal {
     RallyJournal(winners.map(Rally.init(wonBy:)))
 }
 
-/// `count` розыгрышей подряд, выигранных одной стороной.
+/// `count` rallies in a row, won by one side.
 private func rallies(_ side: Side, _ count: Int) -> [Side] {
     Array(repeating: side, count: count)
 }
 
-/// Розыгрыши, которыми перечисленные стороны выигрывают по гейму всухую —
-/// четыре очка подряд. Гейм «под ноль» короче любого другого, поэтому длинные
-/// журналы собираются из него.
+/// The rallies by which the listed sides each win a game to love — four
+/// points in a row. A game to love is shorter than any other, which is why the
+/// long journals are built out of it.
 private func gamesWonBy(_ winners: [Side]) -> [Side] {
     winners.flatMap { rallies($0, 4) }
 }

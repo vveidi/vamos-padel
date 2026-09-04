@@ -1,8 +1,9 @@
 import os
 
-/// Один журнал на весь пакет.
+/// One log for the whole package.
 ///
-/// Подсистема общая для часов и телефона: пакет работает на обоих, и знать, в
-/// каком из приложений он сейчас, ему нечем. Категория «delivery» отличает его
-/// строки от всего остального, что пишут оба приложения.
+/// The subsystem is shared by the watch and the phone: the package runs on
+/// both, and it has no way of knowing which app it is currently in. The
+/// "delivery" category tells its lines apart from everything else the two apps
+/// write.
 let logger = Logger(subsystem: "com.vveidi.padel", category: "delivery")

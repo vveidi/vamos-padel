@@ -1,12 +1,12 @@
-/// Одна из двух пар на корте.
+/// One of the two pairs on court.
 ///
-/// В v1 стороны обезличены: приложение знает «нашу» сторону и «соперников»,
-/// но не знает, кто именно играет.
+/// In v1 the sides are anonymous: the app knows "our" side and "the
+/// opponents", but not who is actually playing.
 public enum Side: String, Sendable, CaseIterable {
     case us
     case them
 
-    /// Сторона напротив сетки.
+    /// The side across the net.
     public var opposite: Side {
         switch self {
         case .us: .them
@@ -14,12 +14,12 @@ public enum Side: String, Sendable, CaseIterable {
         }
     }
 
-    /// Сторона через `changes` переходов подачи.
+    /// The side serving after `changes` service changes.
     ///
-    /// Считается по чётности, а не перекладыванием по одному: подача ходит
-    /// туда-обратно, поэтому важно лишь то, сколько раз она перешла, — и
-    /// вопрос «чья подача на сотом розыгрыше» стоит ровно столько же, сколько
-    /// «чья на первом».
+    /// Computed from parity rather than by stepping through the changes one by
+    /// one: the serve moves back and forth, so all that matters is how many
+    /// times it changed hands — which makes "who serves on the hundredth
+    /// rally" cost exactly as much as "who serves on the first".
     func alternating(_ changes: Int) -> Side {
         changes % 2 == 0 ? self : opposite
     }

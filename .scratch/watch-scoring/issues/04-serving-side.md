@@ -1,66 +1,65 @@
-# 04: Подающая сторона
+# 04: The serving side
 
-**What to build:** Приложение перестаёт молчать о подаче. На экране счёта видно, какая **сторона** подаёт, и подача переходит сама: в **классическом счёте** — после каждого гейма, в **счёте до N очков** — каждые X розыгрышей.
+**What to build:** The app stops being silent about the serve. The score screen shows which **side** is serving, and the serve passes by itself: in **classic scoring** after every game, in **the match to N points** every X rallies.
 
-Это закрывает единственный спор, который регулярно возникает на корте. До этого тикета считается, что первыми подаём мы; выбор первой подачи добавит тикет 06.
+This ends the one argument that comes up on court regularly. Until this ticket it is assumed that we serve first; choosing the first server will be added by ticket 06.
 
-Отслеживается сторона, а не конкретный игрок: **стороны обезличены**, внутрипарную очерёдность приложение знать не может.
+The side is tracked, not the particular player: **the sides are anonymous**, and the app has no way of knowing the order within a pair.
 
 **Blocked by:** 03
 
 **Status:** done
 
-- [x] Индикатор подающей стороны виден на экране счёта
-- [x] В классическом счёте подача переходит к другой стороне после каждого гейма
-- [x] В счёте до N очков подача переходит каждые X розыгрышей, по умолчанию X = 4
-- [x] Подающая сторона вычисляется из журнала, набора правил и первой подачи, а не хранится отдельно
-- [x] Тесты покрывают переход подачи в обоих наборах правил и граничное значение X = 1
+- [x] The serving-side indicator is visible on the score screen
+- [x] In classic scoring the serve passes to the other side after every game
+- [x] In the match to N points the serve passes every X rallies, X = 4 by default
+- [x] The serving side is computed from the journal, the ruleset and the first server rather than stored separately
+- [x] The tests cover the change of serve in both rulesets and the boundary value X = 1
 
 ## Comments
 
-Выполнено. Проверка каждого критерия:
+Done. Every criterion checked:
 
-- **Индикатор виден на экране счёта**: точка у края зоны подающей стороны.
-  Проверено на симуляторе: до первого розыгрыша она в нашей зоне, а на матче
-  с одним сыгранным геймом — в зоне соперников.
-- **В классическом счёте подача переходит после каждого гейма**: тест проходит
-  гейм по розыгрышам (внутри гейма подача стоит) и три гейма подряд, и отдельно
-  проверяет, что граница сета подачу не сбивает — `games` обнуляется вместе
-  с сетом, а счётчик переходов нет.
-- **В счёте до N очков подача переходит каждые X розыгрышей**: тест проверяет
-  все девять положений на двух периодах, причём розыгрыши выигрываются
-  вразнобой — на подачу влияет их число, а не победитель.
-- **Подача вычисляется, а не хранится**: `MatchState.servingSide` собирается той
-  же свёрткой, что и счёт. Хранить её отдельно значило бы обязать отмену (тикет
-  05) откатывать её вручную.
-- **Тесты**: 59 в пакете, из них девять про подачу, `swift test` без симулятора.
-  Граничное X = 1 покрыто, X < 1 — тоже.
+- **The indicator is visible on the score screen**: a dot at the edge of the serving side's
+  zone. Checked in the simulator: before the first rally it is in our zone, and in a match
+  with one game played it is in the opponents'.
+- **In classic scoring the serve passes after every game**: the test walks a game rally by
+  rally (inside a game the serve stays put) and three games in a row, and separately checks
+  that a set boundary does not throw the serve off — `games` is zeroed along with the set, but
+  the counter of changes is not.
+- **In the match to N points the serve passes every X rallies**: the test checks all nine
+  positions across two periods, with the rallies won in a mixed order — what affects the serve
+  is their number, not the winner.
+- **The serve is computed, not stored**: `MatchState.servingSide` is assembled by the same
+  fold as the score. Storing it separately would have obliged undo (ticket 05) to roll it back
+  by hand.
+- **The tests**: 59 in the package, nine of them about the serve, `swift test` without a
+  simulator. The boundary X = 1 is covered, and so is X < 1.
 
-Решения по ходу:
+Decisions taken along the way:
 
-- **Подача переходит и внутри тай-брейка.** Тикет и спека говорят «после
-  каждого гейма», и на границах геймов это верно, но внутри тай-брейка правило
-  падела другое: первый розыгрыш подаёт тот, чья очередь, дальше меняются
-  каждые два. По буквальному прочтению индикатор врал бы все тринадцать
-  розыгрышей тай-брейка — ровно там, где на него смотрят чаще всего, — поэтому
-  ротация реализована. Это отступление от буквы тикета в пользу его цели;
-  закреплено отдельным тестом.
-- **Первая подача — свойство матча, а не набора правил.** Правила помнятся до
-  следующего матча (тикет 06), а очередь подачи разыгрывается заново каждый раз.
-  По умолчанию наша, как и сказано в тикете.
-- **X подпирается снизу**, как N и число сетов до него: при нуле подача не
-  «не менялась бы», а уронила бы приложение делением на ноль.
-- **Сторона считается по чётности переходов**, а не перекладыванием по одному:
-  вопрос «чья подача на сотом розыгрыше» должен стоить столько же, сколько
-  «чья на первом».
-- **Точка стоит у края зоны, а не в строке со счётом.** В строке она сдвигала
-  бы цифру с центра при каждом переходе подачи, и взгляд ловил бы счёт заново.
-  Место под неё занято всегда, меняется только видимость.
+- **The serve also passes inside a tiebreak.** The ticket and the spec say "after every
+  game", and that is true on game boundaries, but inside a tiebreak padel's rule is different:
+  the first rally is served by whoever's turn it is, after that it changes every two. Read
+  literally, the indicator would lie for all thirteen rallies of the tiebreak — exactly where
+  it is looked at most — so the rotation was implemented. This is a departure from the letter
+  of the ticket in favour of its purpose; pinned down by a test of its own.
+- **The first serve is a property of the match, not of the ruleset.** The rules are remembered
+  until the next match (ticket 06), whereas who serves first is decided anew every time. Ours
+  by default, as the ticket says.
+- **X is clamped from below**, as N and the set count were before it: at zero the serve would
+  not "simply never change" — it would crash the app on a division by zero.
+- **The side is computed from the parity of the changes**, not by stepping through them one by
+  one: the question "who serves on the hundredth rally" should cost as much as "who serves on
+  the first".
+- **The dot sits at the edge of the zone, not on the line with the score.** On the line it
+  would push the digit off centre on every change of serve, and the eye would have to find the
+  score again. The room for it is always taken; only the visibility changes.
 
-Замечание по проверке: **касания на симуляторе в этот раз не работали**.
-Симулятор перестал отдавать окно через Accessibility, и синтетические нажатия
-до приложения не доходили, хотя события системой доставлялись. Поэтому переход
-подачи проверен не касаниями, а сборкой с заранее заданным журналом: экран
-получил состояние от настоящего движка, а не от подставленных значений. Сама
-логика переходов покрыта тестами. Если симулятор не починится, следующим
-тикетам стоит завести этот способ как обычный, а не аварийный.
+A note on verification: **taps in the simulator did not work this time.** The simulator
+stopped handing out its window through Accessibility, and synthetic presses were not reaching
+the app, even though the system was delivering the events. So the change of serve was checked
+not by tapping but with a build carrying a pre-set journal: the screen received its state from
+the real engine rather than from substituted values. The change logic itself is covered by
+tests. If the simulator does not recover, the following tickets should adopt this method as
+the ordinary one rather than the emergency one.

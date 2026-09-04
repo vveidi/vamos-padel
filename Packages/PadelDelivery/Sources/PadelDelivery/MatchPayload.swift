@@ -2,21 +2,21 @@ import Foundation
 import PadelScoring
 import PadelStorage
 
-/// Матч, разобранный на то, что умеет переносить транспорт.
+/// A match taken apart into what the transport can carry.
 ///
-/// Словарь из чисел, строк, дат и булевых значений — единственное, что
-/// WatchConnectivity берётся доставить. Формат поэтому написан руками и по
-/// ключам, а не выведен из `Codable` доменных типов: имена ключей — это
-/// договор между двумя приложениями, которые обновляются порознь, и он не
-/// должен меняться от переименования поля в движке.
+/// A dictionary of numbers, strings, dates and booleans is the only thing
+/// WatchConnectivity undertakes to deliver. The format is therefore written by
+/// hand, key by key, rather than derived from `Codable` on the domain types:
+/// the key names are a contract between two apps that are updated separately,
+/// and it must not change because a field in the engine was renamed.
 ///
-/// Разложен так же, как в схеме базы (`MatchDatabase`), и по той же причине:
-/// половина ключей набора правил пуста у каждого варианта, зато прочитать
-/// посылку можно, не зная нашего кода.
+/// Laid out the same way as in the database schema (`MatchDatabase`), and for
+/// the same reason: half the ruleset keys are empty for each case, but the
+/// parcel can be read without knowing our code.
 ///
-/// Матч и расписка о нём — одна и та же посылка с разным ключом `kind`:
-/// телефон возвращает ровно то, что записал, и часы сверяют это с тем, что у
-/// них лежит.
+/// A match and the receipt for it are the same parcel with a different `kind`
+/// key: the phone returns exactly what it wrote, and the watch checks that
+/// against what it holds.
 enum MatchPayload {
     static func encode(_ arrival: Arrival) -> [String: Any] {
         let saved = arrival.match
@@ -47,23 +47,23 @@ enum MatchPayload {
 
     static func decode(_ payload: [String: Any]) throws -> Arrival {
         guard let id = payload[Key.id] as? String, let id = UUID(uuidString: id) else {
-            throw MatchPayloadError.unreadable(reason: "посылка без идентификатора матча")
+            throw MatchPayloadError.unreadable(reason: "a parcel without a match identifier")
         }
 
         guard let startedAt = payload[Key.startedAt] as? Date,
             let lastRallyAt = payload[Key.lastRallyAt] as? Date
         else {
-            throw MatchPayloadError.unreadable(reason: "посылка без времени матча")
+            throw MatchPayloadError.unreadable(reason: "a parcel without the match's times")
         }
 
-        // Журнал и пометка недоигранности спрашиваются так же строго, как
-        // всё остальное, а не подставляются умолчанием: посылка без журнала
-        // разобралась бы в матч 0:0 — ровно тот «счёт, собранный из
-        // умолчаний», от которого этот разбор и защищает.
+        // The journal and the abandoned mark are demanded as strictly as
+        // everything else rather than filled in by default: a parcel without a
+        // journal would decode into a 0:0 match — precisely the "score
+        // assembled out of defaults" this decoding guards against.
         guard let winners = payload[Key.rallies] as? [String],
             let isAbandoned = payload[Key.abandoned] as? Bool
         else {
-            throw MatchPayloadError.unreadable(reason: "посылка без журнала розыгрышей")
+            throw MatchPayloadError.unreadable(reason: "a parcel without a rally journal")
         }
 
         let match = Match(
@@ -78,7 +78,7 @@ enum MatchPayload {
         switch payload[Key.kind] as? String {
         case Kind.match: return .match(saved)
         case Kind.receipt: return .receipt(saved)
-        case let kind: throw MatchPayloadError.unreadable(reason: "посылка вида «\(kind ?? "—")»")
+        case let kind: throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
         }
     }
 
@@ -88,7 +88,7 @@ enum MatchPayload {
             guard let setsToWin = payload[Key.setsToWin] as? Int,
                 let goldenPoint = payload[Key.goldenPoint] as? Bool
             else {
-                throw MatchPayloadError.unreadable(reason: "классический счёт без правил")
+                throw MatchPayloadError.unreadable(reason: "classic scoring without its rules")
             }
 
             return .classic(setsToWin: setsToWin, goldenPoint: goldenPoint)
@@ -96,19 +96,19 @@ enum MatchPayload {
             guard let target = payload[Key.target] as? Int,
                 let every = payload[Key.serveChangesEvery] as? Int
             else {
-                throw MatchPayloadError.unreadable(reason: "счёт до N очков без N")
+                throw MatchPayloadError.unreadable(reason: "a match to N points without an N")
             }
 
             return .pointsTo(target: target, serveChangesEvery: every)
         case let kind:
             throw MatchPayloadError.unreadable(
-                reason: "неизвестный набор правил «\(kind ?? "—")»")
+                reason: "unknown ruleset \"\(kind ?? "—")\"")
         }
     }
 
     private static func side(named name: String?) throws -> Side {
         guard let name, let side = Side(rawValue: name) else {
-            throw MatchPayloadError.unreadable(reason: "неизвестная сторона «\(name ?? "—")»")
+            throw MatchPayloadError.unreadable(reason: "unknown side \"\(name ?? "—")\"")
         }
 
         return side
@@ -138,17 +138,18 @@ enum MatchPayload {
     }
 }
 
-/// Что приехало.
+/// What arrived.
 ///
-/// Посылки ходят в обе стороны, и по одному и тому же каналу: матч уезжает с
-/// часов, расписка возвращается с телефона. Различить их обязана сама посылка
-/// — принимающая сторона знает только то, что ей привезли словарь.
+/// Parcels travel in both directions, and over the same channel: the match
+/// leaves the watch, the receipt comes back from the phone. Telling them apart
+/// is the parcel's own job — the receiving side only knows that it was handed a
+/// dictionary.
 enum Arrival: Equatable {
-    /// Матч с часов — его надо записать.
+    /// A match from the watch — it needs writing down.
     case match(SavedMatch)
 
-    /// Расписка с телефона: вот этот матч записан у меня. Только она и снимает
-    /// матч с очереди на часах (ADR-0002).
+    /// A receipt from the phone: this match is written down at my end. It
+    /// alone takes the match off the queue on the watch (ADR-0002).
     case receipt(SavedMatch)
 
     fileprivate var match: SavedMatch {
@@ -165,12 +166,12 @@ enum Arrival: Equatable {
     }
 }
 
-/// Приехало то, что не складывается в матч.
+/// What arrived does not add up to a match.
 ///
-/// Случай, которого быть не должно: посылку собирает наш же код. Остаётся
-/// разъехавшаяся пара приложений — на часах обновлённое, на телефоне старое, —
-/// и тогда лучше потерять один матч с записью в логе, чем показать в истории
-/// счёт, собранный из умолчаний.
+/// A case that should never happen: the parcel is assembled by our own code.
+/// What is left is a pair of apps that drifted apart — updated on the watch,
+/// old on the phone — and then it is better to lose one match with a line in
+/// the log than to show a score assembled out of defaults in the history.
 enum MatchPayloadError: Error, Equatable {
     case unreadable(reason: String)
 }

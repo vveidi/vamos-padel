@@ -1,102 +1,100 @@
-# 08: Матч как тренировка
+# 08: The match as a workout
 
-**What to build:** Матч регистрируется как тренировка, и приложение начинает переживать полтора часа игры. Система перестаёт выгружать его из памяти между геймами, экран работает в режиме Always-On, а поднятие руки возвращает игрока к счёту, а не к циферблату.
+**What to build:** The match is registered as a workout, and the app starts surviving an hour and a half of play. The system stops unloading it from memory between games, the screen works in Always-On, and raising the wrist brings the player back to the score rather than to the watch face.
 
-Побочные выгоды достаются бесплатно: матч попадает в кольца активности и в Health, пульс и калории пишутся сами.
+The side benefits come for free: the match lands in the activity rings and in Health, and heart rate and calories are written by themselves.
 
-Сессия начинается вместе с матчем и завершается вместе с ним. Разрешение HealthKit запрашивается при первом запуске с честным объяснением, зачем счётчику матча доступ к здоровью.
+The session starts with the match and ends with it. HealthKit permission is requested on first launch, with an honest explanation of why a match counter needs access to health.
 
 **Blocked by:** 02
 
 **Status:** ready-for-human
 
-- [ ] Матч выполняется внутри сессии тренировки от начала до конца
-- [ ] Разрешение HealthKit запрашивается один раз, с понятным объяснением
-- [ ] При отказе в разрешении матч всё равно можно вести, приложение не падает
-- [ ] Экран счёта остаётся видимым в режиме Always-On
-- [ ] Поднятие руки возвращает к экрану счёта
-- [ ] Сессия завершается вместе с матчем, в том числе при досрочном прекращении
-- [ ] После матча тренировка видна в Health
+- [ ] The match runs inside a workout session from beginning to end
+- [ ] HealthKit permission is requested once, with an understandable explanation
+- [ ] If permission is denied the match can still be played and the app does not crash
+- [ ] The score screen stays visible in Always-On
+- [ ] Raising the wrist returns to the score screen
+- [ ] The session ends with the match, including when it is stopped early
+- [ ] After the match the workout is visible in Health
 
 ## Comments
 
-### Что построено
+### What was built
 
-Матч обрастает тренировкой в `MatchView`: она начинается вместе с ним и
-заканчивается вместе с ним. Само правило записано одной строкой —
-`state.outcome == .inProgress`, — и намеренно не через «есть победитель»:
-досрочно прекращённый матч станет третьим исходом в тикете 09, и тренировка
-должна закончиться вместе с ним, не дожидаясь правки этой строки.
+The match acquires a workout in `MatchView`: it starts with the match and ends with it. The
+rule itself is written in one line — `state.outcome == .inProgress` — and deliberately not
+through "there is a winner": a match stopped early will become a third outcome in ticket 09,
+and the workout has to end with it without waiting for that line to be edited.
 
-`HKWorkoutSession` спрятан за протоколом `Workout` по той же причине, по
-которой за протоколами стоят хранилище и транспорт (ADR-0002): экраны не
-должны знать о здоровье. Ближайшая выгода — превью: `NoWorkout` не просит
-доступ к Health и ничего туда не пишет, а иначе канвас требовал бы разрешения
-и заводил тренировку при каждом открытии.
+`HKWorkoutSession` is hidden behind a `Workout` protocol for the same reason the store and the
+transport sit behind protocols (ADR-0002): the screens must know nothing about health. The
+immediate benefit is the previews: `NoWorkout` asks for no Health access and writes nothing
+there, whereas otherwise the canvas would demand permission and create a workout every time it
+was opened.
 
-`HealthKitWorkout` — тонкая обёртка, тестами не покрытая (так решено в спеке).
-От себя она добавляет два обещания. Первое: ни одна неудача HealthKit не
-долетает до матча — недоступное здоровье, невыданное разрешение и упавшая
-посреди игры сессия дают запись в лог и ничего больше. Второе: тренировка либо
-идёт, либо нет; старт и завершение выстроены в очередь, иначе отмена на экране
-итога успевала бы начать новую тренировку раньше, чем закончилась предыдущая.
+`HealthKitWorkout` is a thin wrapper, not covered by tests (as decided in the spec). What it
+adds of its own are two promises. First: no HealthKit failure reaches the match — health being
+unavailable, permission not being granted, and a session dying mid-game all produce a line in
+the log and nothing more. Second: a workout is either running or not; starting and ending are
+lined up in a queue, otherwise an undo on the outcome screen would manage to start a new
+workout before the previous one had ended.
 
-Сборка: `WKBackgroundModes = workout-processing` (без него система выгружала бы
-приложение между геймами и не включила бы Always-On), entitlement HealthKit,
-и `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` — то самое
-объяснение, зачем счётчику матча доступ к здоровью. Ради массива в
-`WKBackgroundModes` у таргета часов впервые появился собственный `Info.plist`:
-`INFOPLIST_KEY_*` массивы генерировать не умеет. Файл исключён из Copy Bundle
-Resources через exception set синхронизированной группы — иначе сборка падает
-на двух командах, производящих один и тот же `Info.plist`.
+The build: `WKBackgroundModes = workout-processing` (without it the system would unload the
+app between games and would not enable Always-On), the HealthKit entitlement, and
+`NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` — the very explanation of
+why a match counter needs access to health. For the sake of the array in `WKBackgroundModes`
+the watch target got an `Info.plist` of its own for the first time: `INFOPLIST_KEY_*` cannot
+generate arrays. The file is excluded from Copy Bundle Resources through the synchronised
+group's exception set — otherwise the build fails on two commands producing the same
+`Info.plist`.
 
-В глоссарий добавлена **тренировка**.
+**Workout** was added to the glossary.
 
-### Решения, отступающие от тикета
+### Decisions departing from the ticket
 
-- **Вид тренировки — теннис.** Падела среди `HKWorkoutActivityType` нет
-  (проверено по заголовкам watchOS 26.5 SDK), и теннис ближе всего: тот же
-  ракеточный парный корт, та же оценка затрат. В Health матч появится под
-  словом «Теннис».
-- **Корт считается закрытым** (`locationType = .indoor`). Дистанцию мы не
-  считаем, а `.outdoor` разбудил бы GPS на полтора часа ради ничего.
-- **Отмена на экране итога начинает новую тренировку.** Тикет 05 разрешает
-  вернуть в игру матч, законченный ошибочным касанием, — а закончившаяся
-  тренировка не перезапускается. В Health от этого остаётся две записи вместо
-  одной. Цена принята сознательно: альтернатива — доигрывать матч без Always-On
-  и без защиты от выгрузки, то есть ровно то, против чего этот тикет. Явного
-  «матч окончен», по которому тренировку можно было бы закрыть один раз,
-  в приложении пока нет; он появится в тикете 09.
-- **Экран счёта не тронут.** Критерий про Always-On выполняется самой
-  тренировкой; подгонять яркость под `isLuminanceReduced` не стал — на экране
-  нет ни анимаций, ни посекундных величин, а самое яркое на нём и есть тот
-  счёт, ради которого критерий написан.
+- **The workout type is tennis.** Padel is not among `HKWorkoutActivityType` (checked against
+  the watchOS 26.5 SDK headers), and tennis is the closest: the same racket doubles court, the
+  same estimate of effort. In Health the match will appear under the word "Теннис".
+- **The court counts as indoor** (`locationType = .indoor`). We do not measure distance, and
+  `.outdoor` would wake the GPS for an hour and a half for nothing.
+- **An undo on the outcome screen starts a new workout.** Ticket 05 allows a match finished by
+  a mistaken tap to be brought back into play — and an ended workout cannot be restarted. What
+  is left in Health is two records instead of one. The price is accepted deliberately: the
+  alternative is playing the match out without Always-On and without protection from being
+  unloaded, that is, exactly what this ticket is against. There is as yet no explicit "the
+  match is over" in the app by which the workout could be closed once; that arrives in ticket
+  09.
+- **The score screen was not touched.** The Always-On criterion is met by the workout itself;
+  tuning the brightness against `isLuminanceReduced` was not done — there are no animations
+  and no per-second values on the screen, and the brightest thing on it is the very score the
+  criterion was written for.
 
-### Что проверено агентом
+### What the agent checked
 
-- Оба таргета собираются, 68 тестов пакета зелёные.
-- В собранном бандле часов: `WKBackgroundModes = [workout-processing]`, оба
-  `NSHealth*UsageDescription` на месте, генерируемые Xcode ключи не потеряны,
-  entitlement `com.apple.developer.healthkit` попал в подпись.
-- На симуляторе 46 mm приложение запускается и просит разрешение ровно на то,
-  что заявлено: писать тренировку и активные калории, читать пульс и активные
-  калории (видно в логе HealthKit).
-- Экран счёта живёт за окном разрешения: приложение не падает и не ждёт ответа,
-  чтобы показать счёт.
+- Both targets build, and the package's 68 tests are green.
+- In the built watch bundle: `WKBackgroundModes = [workout-processing]`, both
+  `NSHealth*UsageDescription` in place, the Xcode-generated keys not lost, and the
+  `com.apple.developer.healthkit` entitlement present in the signature.
+- On a 46 mm simulator the app launches and asks permission for exactly what is declared:
+  writing the workout and active calories, reading heart rate and active calories (visible in
+  the HealthKit log).
+- The score screen lives behind the permission dialog: the app neither crashes nor waits for
+  an answer before showing the score.
 
-### Что остаётся проверить руками
+### What is left to check by hand
 
-Окно разрешения агент нажать не смог — Simulator по-прежнему не отдаёт окно, и
-синтетические касания до приложения не доходят (та же стена, что в тикетах 04
-и 05). Всё, что за этим окном, не проверено:
+The agent could not press the permission dialog — the Simulator still does not hand out its
+window, and synthetic taps do not reach the app (the same wall as in tickets 04 and 05).
+Everything behind that dialog is unchecked:
 
-1. Разрешить доступ — тренировка начинается, матч идёт.
-2. Перезапустить приложение — окно разрешения больше не появляется.
-3. Отказать в доступе (на чистой установке) — матч всё равно ведётся,
-   приложение не падает.
-4. **На устройстве:** опустить руку посреди матча — счёт остаётся на экране.
-5. **На устройстве:** поднять руку — возвращается счёт, а не циферблат.
-6. Доиграть матч до конца — тренировка появляется в Health.
+1. Grant access — the workout starts and the match runs.
+2. Relaunch the app — the permission dialog no longer appears.
+3. Deny access (on a clean install) — the match is played all the same and the app does not
+   crash.
+4. **On a device:** lower your wrist mid-match — the score stays on the screen.
+5. **On a device:** raise your wrist — the score comes back, not the watch face.
+6. Play a match out to the end — the workout appears in Health.
 
-Пункты 4 и 5 симулятор не воспроизводит в принципе: Always-On и поднятие руки
-существуют только на часах.
+Points 4 and 5 cannot be reproduced by the simulator at all: Always-On and raising the wrist
+exist only on the watch.

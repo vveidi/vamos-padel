@@ -2,9 +2,9 @@ import Testing
 
 @testable import PadelScoring
 
-@Suite("Состояние матча: счёт до N очков")
+@Suite("Match state: the match to N points")
 struct MatchStateTests {
-    @Test("До первого розыгрыша счёт нулевой, матч идёт")
+    @Test("Before the first rally the score is nil and the match is on")
     func emptyJournalScoresNothing() {
         let state = MatchState(ruleset: .defaultPointsTo, journal: RallyJournal())
 
@@ -12,7 +12,7 @@ struct MatchStateTests {
         #expect(state.outcome == .inProgress)
     }
 
-    @Test("Каждый розыгрыш добавляет очко выигравшей стороне")
+    @Test("Every rally adds a point to the side that won it")
     func everyRallyScoresForItsWinner() {
         let state = MatchState(ruleset: .defaultPointsTo, journal: journal(.us, .them, .us))
 
@@ -20,7 +20,7 @@ struct MatchStateTests {
         #expect(state.outcome == .inProgress)
     }
 
-    @Test("Матч заканчивается, как только сторона набирает N очков")
+    @Test("The match ends as soon as a side reaches N points")
     func matchFinishesAtTargetPoints() {
         let state = MatchState(
             ruleset: .pointsTo(target: 3, serveChangesEvery: 4),
@@ -30,7 +30,7 @@ struct MatchStateTests {
         #expect(state.outcome == .finished(winner: .us))
     }
 
-    @Test("После окончания матча розыгрыши больше не меняют счёт")
+    @Test("Rallies after the finish no longer change the score")
     func ralliesAfterTheFinishDoNotCount() {
         let state = MatchState(
             ruleset: .pointsTo(target: 2, serveChangesEvery: 4),
@@ -40,7 +40,7 @@ struct MatchStateTests {
         #expect(state.outcome == .finished(winner: .us))
     }
 
-    @Test("При N = 1 матч заканчивается первым же розыгрышем")
+    @Test("With N = 1 the match ends on the very first rally")
     func targetOfOnePointEndsWithTheFirstRally() {
         let ruleset = Ruleset.pointsTo(target: 1, serveChangesEvery: 4)
 
@@ -48,10 +48,10 @@ struct MatchStateTests {
         #expect(MatchState(ruleset: ruleset, journal: journal(.them)).outcome == .finished(winner: .them))
     }
 
-    /// N меньше единицы бессмысленно, но приходит извне (тикет 06), поэтому
-    /// движок обязан вести себя предсказуемо: не ронять приложение и не
-    /// оставлять матч, который невозможно закончить.
-    @Test("N меньше единицы не ломает матч, а ведёт себя как N = 1", arguments: [0, -3])
+    /// An N below one is senseless, but it comes from outside (ticket 06), so
+    /// the engine has to behave predictably: neither crash the app nor leave
+    /// behind a match that can never be finished.
+    @Test("An N below one does not break the match but behaves like N = 1", arguments: [0, -3])
     func targetBelowOneBehavesLikeOne(target: Int) {
         let ruleset = Ruleset.pointsTo(target: target, serveChangesEvery: 4)
 
@@ -59,13 +59,13 @@ struct MatchStateTests {
         #expect(MatchState(ruleset: ruleset, journal: journal(.us, .them)).outcome == .finished(winner: .us))
     }
 
-    @Test("Один и тот же журнал даёт одно и то же состояние")
+    @Test("The same journal always yields the same state")
     func theSameJournalAlwaysScoresTheSame() {
         let ruleset = Ruleset.pointsTo(target: 4, serveChangesEvery: 4)
         let played = journal(.us, .them, .us, .them, .us)
 
-        // Отдельно собранный журнал с той же последовательностью: состояние не
-        // должно зависеть ни от чего, кроме самой последовательности.
+        // A separately built journal with the same sequence: the state must
+        // not depend on anything but the sequence itself.
         var replayed = RallyJournal()
         for rally in played.rallies { replayed.append(wonBy: rally.winner) }
 
@@ -73,7 +73,7 @@ struct MatchStateTests {
     }
 }
 
-/// Журнал, в котором перечисленные стороны выигрывают розыгрыши по порядку.
+/// A journal in which the listed sides win the rallies in order.
 private func journal(_ winners: Side...) -> RallyJournal {
     RallyJournal(winners.map(Rally.init(wonBy:)))
 }

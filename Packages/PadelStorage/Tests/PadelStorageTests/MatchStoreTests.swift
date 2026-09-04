@@ -4,17 +4,18 @@ import Testing
 
 @testable import PadelStorage
 
-@Suite("Хранилище матчей")
+@Suite("Match store")
 struct MatchStoreTests {
-    /// Круговой рейс — главная проверка хранилища: журнал розыгрышей есть
-    /// единственная сохраняемая правда о матче (ADR-0001), и если он вернулся
-    /// из базы другим, всё остальное считается по чужим данным.
+    /// The round trip is the store's central check: the rally journal is the
+    /// single stored truth about a match (ADR-0001), and if it came back from
+    /// the database changed, everything else is computed from somebody else's
+    /// data.
     ///
-    /// Набор правил проверяется вместе с журналом и в обоих вариантах: он
-    /// разложен по колонкам, у каждого варианта своя половина, и перепутать
-    /// их — значит прочитать «16:14» как теннисный счёт.
+    /// The ruleset is checked along with the journal, and in both cases: it is
+    /// spread across columns, each case owning its half, and mixing them up
+    /// means reading "16:14" as a tennis score.
     @Test(
-        "Сохранённый матч читается обратно с тем же журналом и набором правил",
+        "A saved match reads back with the same journal and ruleset",
         arguments: [
             Ruleset.classic(setsToWin: 2, goldenPoint: true),
             .classic(setsToWin: 1, goldenPoint: false),
@@ -30,7 +31,7 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == saved)
     }
 
-    @Test("Первая подача читается обратно", arguments: [Side.us, .them])
+    @Test("The first server reads back", arguments: [Side.us, .them])
     func theFirstServerReadsBack(firstServer: Side) throws {
         let store = try SQLiteMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .them], firstServer: firstServer)
@@ -40,7 +41,7 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress()?.match.firstServer == firstServer)
     }
 
-    @Test("Начало и длительность матча читаются обратно")
+    @Test("The match's start and duration read back")
     func theStartAndDurationReadBack() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us])
@@ -54,10 +55,10 @@ struct MatchStoreTests {
         #expect(restored.duration == 90 * 60)
     }
 
-    /// Тот самый критерий, ради которого хранилище вообще существует: матч,
-    /// прерванный на середине, уже записан — записывать его в конце было бы
-    /// нечем, конца не случилось.
-    @Test("Журнал записывается после каждого розыгрыша, а не в конце матча")
+    /// The very criterion the store exists for: a match interrupted halfway is
+    /// already written — there would be nothing to write it with at the end,
+    /// since no end happened.
+    @Test("The journal is written after every rally, not at the end of the match")
     func theJournalIsWrittenAfterEveryRally() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
@@ -73,11 +74,11 @@ struct MatchStoreTests {
         }
     }
 
-    /// Запись устроена как «отрезать отменённое, дописать недостающее», и
-    /// проверяется она там, где журнал сначала укорачивается, а потом снова
-    /// растёт: отменённый розыгрыш обязан исчезнуть, а не остаться лежать за
-    /// концом журнала, дожидаясь следующего очка.
-    @Test("Отменённые розыгрыши исчезают из базы")
+    /// A write works as "cut off what was undone, append what is missing", and
+    /// it is checked where the journal first shortens and then grows again: an
+    /// undone rally has to disappear rather than lie past the end of the
+    /// journal waiting for the next point.
+    @Test("Undone rallies leave the database")
     func undoneRalliesLeaveTheDatabase() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us, .them, .them])
@@ -95,7 +96,7 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress()?.match == saved.match)
     }
 
-    @Test("Отмена до пустого журнала не оставляет в базе ни одного розыгрыша")
+    @Test("Undoing down to an empty journal leaves no rally in the database")
     func undoingEverythingLeavesNoRallies() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them])
@@ -108,12 +109,12 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress()?.match.journal.isEmpty == true)
     }
 
-    @Test("В пустом хранилище продолжать нечего")
+    @Test("An empty store has nothing to continue")
     func anEmptyStoreHasNothingToContinue() throws {
         #expect(try SQLiteMatchStore.inMemory().matchInProgress() == nil)
     }
 
-    @Test("Законченный матч продолжать не предлагается")
+    @Test("A finished match is not offered for continuation")
     func aFinishedMatchIsNotOfferedForContinuation() throws {
         let store = try SQLiteMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -124,10 +125,10 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == nil)
     }
 
-    /// Незавершённость спрашивается у последнего матча, а не у всех подряд:
-    /// брошенный месяц назад на 3:2 не должен воскресать на корте вместо
-    /// нового матча.
-    @Test("Продолжается последний матч, а не забытый позапрошлый")
+    /// Being unfinished is asked of the last match, not of every match in
+    /// turn: one left at 3:2 a month ago must not rise from the dead on court
+    /// in place of a new one.
+    @Test("The latest match is continued, not a forgotten one from before")
     func onlyTheLatestMatchIsContinued() throws {
         let store = try SQLiteMatchStore.inMemory()
         let abandonedLongAgo = SavedMatch.played([.us, .them])
@@ -142,7 +143,7 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == nil)
     }
 
-    @Test("Новый матч не затирает предыдущий")
+    @Test("A new match does not overwrite the previous one")
     func aNewMatchDoesNotOverwriteTheOldOne() throws {
         let store = try SQLiteMatchStore.inMemory()
         let finishedYesterday = SavedMatch.played(
@@ -156,10 +157,10 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == startedToday)
     }
 
-    /// Перезапуск приложения — это новое соединение к той же базе, и ничего
-    /// больше: хранилище не держит матч в памяти, поэтому второе соединение
-    /// видит ровно то, что записало первое.
-    @Test("Матч продолжается после перезапуска приложения")
+    /// Relaunching the app is a new connection to the same database and
+    /// nothing more: the store keeps no match in memory, so the second
+    /// connection sees exactly what the first one wrote.
+    @Test("The match carries on after the app is relaunched")
     func theMatchSurvivesARelaunch() throws {
         let database = "relaunch-\(UUID().uuidString)"
         let store = try SQLiteMatchStore.inMemory(named: database)
@@ -172,16 +173,17 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.matchInProgress() == saved)
     }
 
-    /// Пометка недоигранности — единственное, что о матче хранится колонкой, и
-    /// проверяется она через то, ради чего существует: до прекращения матч
-    /// предлагается продолжить, после — нет. Проверка ловит обе стороны рейса
-    /// сразу. Не запишись пометка — матч вернулся бы из базы недоигранным
-    /// наполовину и снова попал бы на корт; не прочитайся — то же самое.
+    /// The abandoned mark is the only thing about a match kept in a column,
+    /// and it is checked through what it exists for: before stopping, the match
+    /// is offered for continuation; afterwards it is not. The check catches
+    /// both legs of the trip at once. Had the mark not been written, the match
+    /// would come back from the database half-abandoned and land on court
+    /// again; had it not been read, the same.
     ///
-    /// Прекращение приходит после того, как матч уже записан первым
-    /// розыгрышем, поэтому пометка обязана доезжать обновлением строки, а не
-    /// одной только вставкой.
-    @Test("Прекращённый матч сохраняется недоигранным и продолжать не предлагается")
+    /// The stop arrives after the match has already been written by its first
+    /// rally, so the mark has to travel as a row update and not by an insert
+    /// alone.
+    @Test("A stopped match is saved abandoned and not offered for continuation")
     func anAbandonedMatchIsSavedAndNotOfferedForContinuation() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them, .us])
@@ -197,9 +199,9 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == nil)
     }
 
-    /// Перезапуск здесь не украшение: без него пометку было бы видно и из
-    /// строки, которую никто не перечитывал.
-    @Test("Пометка недоигранности переживает перезапуск приложения")
+    /// The relaunch here is not decoration: without it the mark would be
+    /// visible from a row nobody had re-read.
+    @Test("The abandoned mark survives a relaunch of the app")
     func theAbandonedMarkSurvivesARelaunch() throws {
         let database = "abandoned-\(UUID().uuidString)"
         let store = try SQLiteMatchStore.inMemory(named: database)
@@ -215,17 +217,17 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.matchInProgress() == nil)
     }
 
-    /// Круговой рейс недоигранного матча — то, что спека требует от Шва 2:
-    /// «сохранённый матч читается обратно с тем же журналом, набором правил и
-    /// пометкой недоигранности». Сравнение целиком проверяет все три сразу, а
-    /// журнал здесь главное: час игры не должен пропасть от того, что
-    /// кончилось время корта.
+    /// The round trip of an abandoned match is what the spec demands of
+    /// Seam 2: "a saved match reads back with the same journal, ruleset and
+    /// abandoned mark". Comparing the whole thing checks all three at once,
+    /// and the journal matters most here: an hour of play must not be lost just
+    /// because the court time ran out.
     ///
-    /// Прекращение приходит после того, как матч уже записан первым
-    /// розыгрышем, поэтому пометка обязана доезжать обновлением строки, а не
-    /// одной только вставкой.
+    /// The stop arrives after the match has already been written by its first
+    /// rally, so the mark has to travel as a row update and not by an insert
+    /// alone.
     @Test(
-        "Недоигранный матч читается обратно с журналом, набором правил и пометкой",
+        "An abandoned match reads back with its journal, ruleset and mark",
         arguments: [
             Ruleset.classic(setsToWin: 2, goldenPoint: true),
             .pointsTo(target: 16, serveChangesEvery: 4),
@@ -248,18 +250,18 @@ struct MatchStoreTests {
         #expect(restored.match.ruleset == ruleset)
     }
 
-    @Test("Матча, которого не записывали, в хранилище нет")
+    @Test("A match that was never written is not in the store")
     func anUnknownMatchIsNotFound() throws {
         #expect(try SQLiteMatchStore.inMemory().match(id: UUID()) == nil)
     }
 
-    // MARK: Правила прошлого матча
+    // MARK: The previous match's rules
 
-    /// То, ради чего стартовый экран вообще спрашивает хранилище: компания
-    /// играет по одним и тем же правилам месяцами, и выставлять их каждый раз
-    /// заново — налог на то, что случается раз в полгода.
+    /// Why the start screen asks the store at all: a group plays by the same
+    /// rules for months, and setting them afresh every time is a tax paid for
+    /// something that happens twice a year.
     @Test(
-        "Правила прошлого матча помнятся",
+        "The previous match's rules are remembered",
         arguments: [
             Ruleset.classic(setsToWin: 2, goldenPoint: false),
             .classic(setsToWin: 1, goldenPoint: true),
@@ -273,9 +275,10 @@ struct MatchStoreTests {
         #expect(try store.lastRuleset() == ruleset)
     }
 
-    /// Законченный матч продолжать не предлагается, а правила его — предлагаются:
-    /// обычный случай как раз такой, следующий матч начинают после доигранного.
-    @Test("Правила помнятся и от законченного матча")
+    /// A finished match is not offered for continuation, but its rules are:
+    /// that is the ordinary case — the next match is started after the last one
+    /// was played out.
+    @Test("The rules are remembered from a finished match too")
     func theRulesetOfAFinishedMatchIsRemembered() throws {
         let store = try SQLiteMatchStore.inMemory()
         let ruleset = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
@@ -286,7 +289,7 @@ struct MatchStoreTests {
         #expect(try store.lastRuleset() == ruleset)
     }
 
-    @Test("Помнятся правила прошлого матча, а не позапрошлого")
+    @Test("The rules remembered are the previous match's, not the one before")
     func theRulesetComesFromTheLatestMatch() throws {
         let store = try SQLiteMatchStore.inMemory()
         let today = Ruleset.classic(setsToWin: 3, goldenPoint: false)
@@ -299,9 +302,9 @@ struct MatchStoreTests {
         #expect(try store.lastRuleset() == today)
     }
 
-    /// Тот самый критерий: настройки переживают перезапуск приложения. Второе
-    /// соединение к той же базе — это и есть перезапуск.
-    @Test("Правила прошлого матча переживают перезапуск приложения")
+    /// The very criterion: the settings survive a relaunch of the app. A
+    /// second connection to the same database is that relaunch.
+    @Test("The previous match's rules survive a relaunch of the app")
     func theLastRulesetSurvivesARelaunch() throws {
         let database = "ruleset-\(UUID().uuidString)"
         let ruleset = Ruleset.pointsTo(target: 24, serveChangesEvery: 6)
@@ -314,16 +317,16 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.lastRuleset() == ruleset)
     }
 
-    /// Первый матч на новых часах: подставлять нечего, и стартовый экран
-    /// показывает умолчания.
-    @Test("В пустом хранилище правил прошлого матча нет")
+    /// The first match on a new watch: there is nothing to fill in, and the
+    /// start screen shows the defaults.
+    @Test("An empty store remembers no previous ruleset")
     func anEmptyStoreRemembersNoRuleset() throws {
         #expect(try SQLiteMatchStore.inMemory().lastRuleset() == nil)
     }
 
-    // MARK: История
+    // MARK: History
 
-    @Test("История отдаётся от свежих матчей к старым")
+    @Test("History is handed back from the freshest match to the oldest")
     func historyStartsWithTheFreshestMatch() throws {
         let store = try SQLiteMatchStore.inMemory()
         let earlier = SavedMatch.played([.us, .them])
@@ -335,16 +338,17 @@ struct MatchStoreTests {
         #expect(try store.matches() == [later, earlier])
     }
 
-    @Test("В пустом хранилище истории нет")
+    @Test("An empty store has no history")
     func anEmptyStoreHasNoHistory() throws {
         #expect(try SQLiteMatchStore.inMemory().matches().isEmpty)
     }
 
-    /// Матч, доигранный заново после отмены очка, — не продолжение прошлой
-    /// версии, а другой журнал той же длины. Дописать его хвостом значило бы
-    /// собрать журнал, которого никто не играл, и молча: длина сходится.
-    /// Случается это на телефоне, куда матч приезжает второй раз (тикет 10).
-    @Test("Разошедшийся журнал перезаписывается, а не дописывается")
+    /// A match replayed after a point was undone is no continuation of the
+    /// previous version but a different journal of the same length. Appending
+    /// it as a tail would mean assembling a journal nobody played, and doing so
+    /// silently: the length adds up. This happens on the phone, where the match
+    /// arrives a second time (ticket 10).
+    @Test("A diverged journal is rewritten, not appended to")
     func aDivergedJournalIsRewritten() throws {
         let store = try SQLiteMatchStore.inMemory()
 
@@ -361,12 +365,12 @@ struct MatchStoreTests {
         #expect(try store.match(id: saved.id) == saved)
     }
 
-    // MARK: Очередь на доставку
+    // MARK: The delivery queue
 
-    /// Очередь на доставку — само хранилище, а не список рядом с ним: то, что
-    /// уже записано после каждого розыгрыша, незачем переписывать во вторую
-    /// очередь, которая с первой разойдётся.
-    @Test("Законченный матч ждёт доставки")
+    /// The delivery queue is the store itself, not a list beside it: what is
+    /// already written after every rally need not be copied into a second
+    /// queue, which would diverge from the first.
+    @Test("A finished match awaits delivery")
     func aFinishedMatchAwaitsDelivery() throws {
         let store = try SQLiteMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -376,7 +380,7 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
-    @Test("Идущий матч доставки не ждёт")
+    @Test("A match in progress awaits nothing")
     func aMatchInProgressAwaitsNothing() throws {
         let store = try SQLiteMatchStore.inMemory()
 
@@ -385,9 +389,9 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// Недоигранный матч — тоже законченный: игра в нём кончилась, и в истории
-    /// на телефоне ему место наравне с остальными.
-    @Test("Недоигранный матч ждёт доставки")
+    /// An abandoned match is over too: play in it has ended, and its place in
+    /// the history on the phone is alongside the rest.
+    @Test("An abandoned match awaits delivery")
     func anAbandonedMatchAwaitsDelivery() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them])
@@ -398,7 +402,7 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
-    @Test("Отмеченный доставленным матч из очереди уходит")
+    @Test("A match marked delivered leaves the queue")
     func aDeliveredMatchLeavesTheQueue() throws {
         let store = try SQLiteMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -409,9 +413,10 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// Отметка о доставке гаснет с любой записью матча: доставленной осталась
-    /// версия, которая с этого момента расходится с той, что на часах.
-    @Test("Изменившийся после доставки матч возвращается в очередь")
+    /// The delivery mark is cleared by any write of the match: what stayed
+    /// delivered is a version that from this moment diverges from the one on
+    /// the watch.
+    @Test("A match changed after delivery returns to the queue")
     func aChangedMatchReturnsToTheQueue() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -425,10 +430,10 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
-    /// Матч начинается первым розыгрышем — так его определяет глоссарий.
-    /// Прекращённый раньше сохраняется честно, но в истории на телефоне ему
-    /// делать нечего.
-    @Test("Матч без единого розыгрыша доставки не ждёт")
+    /// A match begins with its first rally — that is how the glossary defines
+    /// it. One stopped earlier is saved honestly, but it has no business in the
+    /// history on the phone.
+    @Test("A match without a single rally awaits nothing")
     func aMatchWithoutRalliesAwaitsNothing() throws {
         let store = try SQLiteMatchStore.inMemory()
         var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
@@ -440,9 +445,10 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// Доставленной бывает версия, а не матч: расписка о прошлой версии не
-    /// вправе гасить очередь, в которую матч вернулся после отмены очка.
-    @Test("Отметка о доставке прошлой версии матча не ставится")
+    /// What gets delivered is a version, not a match: a receipt for a previous
+    /// version has no right to clear the queue the match returned to after a
+    /// point was undone.
+    @Test("A stale delivery of a previous version is not marked")
     func aStaleDeliveryIsNotMarked() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -460,7 +466,7 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
-    @Test("Доставка отмечается тому матчу, которому обещали")
+    @Test("Delivery is marked on the match it was promised to")
     func onlyTheNamedMatchIsMarkedDelivered() throws {
         let store = try SQLiteMatchStore.inMemory()
         let delivered = SavedMatch.played([.us, .us], ruleset: toTwo)

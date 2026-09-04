@@ -1,108 +1,105 @@
-# 10: Передача матча на телефон
+# 10: Handing a match to the phone
 
-**What to build:** Законченный матч сам уезжает на iPhone. Игрок ничего не нажимает: часы ставят матч в очередь, и он доезжает, когда телефон окажется доступен — хоть через час, хоть вечером дома. Во время игры телефон не нужен.
+**What to build:** A finished match travels to the iPhone by itself. The player presses nothing: the watch puts the match in a queue, and it arrives once the phone is reachable — in an hour, or at home that evening. During play the phone is not needed.
 
-Часы остаются источником правды до подтверждённой доставки и не удаляют матч раньше. Очередь переживает перезапуск приложения.
+The watch stays the source of truth until delivery is confirmed and does not delete the match before that. The queue survives a relaunch of the app.
 
-Транспорт спрятан за протоколом (ADR-0002): именно этот шов позже подменяется на облако или сервер без переезда данных. Тестами покрывается логика постановки в очередь против заглушки; настоящая доставка проверяется руками на двух устройствах.
+The transport is hidden behind a protocol (ADR-0002): this is precisely the seam that is later swapped for a cloud or a server without moving the data. The tests cover the enqueuing logic against a stub; real delivery is checked by hand on two devices.
 
 **Blocked by:** 07
 
 **Status:** done
 
-- [x] Законченный матч ставится в очередь на передачу автоматически
-- [x] Очередь переживает перезапуск приложения на часах
-- [x] Матч доставляется, когда телефон становится доступен, без действий игрока
-- [x] Телефон сохраняет полученный матч в своё хранилище
-- [x] Повторная доставка одного матча не создаёт дубликат
-- [x] Часы не удаляют матч до подтверждения доставки
-- [x] Доступ к транспорту идёт через протокол, а не напрямую к системному API
+- [x] A finished match is put in the hand-off queue automatically
+- [x] The queue survives a relaunch of the app on the watch
+- [x] The match is delivered once the phone becomes reachable, with no action from the player
+- [x] The phone saves the received match into its own store
+- [x] Delivering the same match again does not create a duplicate
+- [x] The watch does not delete the match before delivery is confirmed
+- [x] The transport is reached through a protocol, not directly through the system API
 
 ## Comments
 
-**Что построено.**
+**What was built.**
 
-Пакет `PadelDelivery` — третий рядом с `PadelScoring` и `PadelStorage`, подключён
-к обоим таргетам. В нём шов из ADR-0002 (`MatchSender` и `MatchReceiver`),
-формат посылки (`MatchPayload`), две половины доставки — `MatchDelivery` на
-часах и `MatchReception` на телефоне — и единственная реализация транспорта
-`WatchConnectivityTransport`, спрятанная за `#if canImport(WatchConnectivity)`.
-Тесты пакета гоняются на macOS: заглушка транспорта возможна ровно потому, что
-транспорт за протоколом, а не за `WCSession`.
+The `PadelDelivery` package — a third one alongside `PadelScoring` and `PadelStorage`, linked
+into both targets. It holds the seam from ADR-0002 (`MatchSender` and `MatchReceiver`), the
+parcel format (`MatchPayload`), the two halves of delivery — `MatchDelivery` on the watch and
+`MatchReception` on the phone — and the only implementation of the transport,
+`WatchConnectivityTransport`, hidden behind `#if canImport(WatchConnectivity)`. The package's
+tests run on macOS: a transport stub is possible precisely because the transport sits behind a
+protocol rather than behind `WCSession`.
 
-**Очередь на доставку — само хранилище.** Отдельного списка «что отправить»
-нет: матч уже записан после каждого розыгрыша, и вторая очередь рядом с первой
-однажды с ней разошлась бы — тот же довод, по которому рядом с журналом не
-хранится счёт (ADR-0001). В таблице `match` появилась колонка `delivered`;
-`matchesAwaitingDelivery()` отдаёт строки с непогашенной отметкой, отсеивая
-идущие матчи движком, а не колонкой. Перезапуск очередь переживает даром —
-вместе с матчами.
+**The delivery queue is the store itself.** There is no separate "what to send" list: the
+match is already written after every rally, and a second queue beside the first would diverge
+from it sooner or later — the same argument by which the score is not stored beside the
+journal (ADR-0001). The `match` table gained a `delivered` column;
+`matchesAwaitingDelivery()` hands back the rows with an uncleared mark, filtering out matches
+in progress by the engine rather than by a column. The queue survives a relaunch for free —
+along with the matches.
 
-**С очереди матч снимает расписка с телефона, а не отправка.**
-`transferUserInfo` ставит посылку в системную очередь, которая переживает
-выгрузку приложения и перезагрузку часов. Того, что она доехала (`didFinish`),
-мало: система знает лишь, что довезла словарь до приложения, а часам нужно
-знать, что матч попал в историю. Поэтому телефон, записав матч, отправляет
-обратно расписку — ту же посылку с другим ключом, — и только она гасит очередь.
-Не открылась база на телефоне — расписки нет, и матч приедет снова.
+**What takes a match off the queue is the receipt from the phone, not the sending.**
+`transferUserInfo` puts the parcel into the system queue, which survives the app being
+unloaded and the watch being restarted. That it arrived (`didFinish`) is not enough: the
+system only knows that it carried a dictionary to the app, whereas the watch needs to know
+that the match reached the history. So the phone, having written the match down, sends a
+receipt back — the same parcel with a different key — and only that clears the queue. If the
+database did not open on the phone there is no receipt, and the match will arrive again.
 
-**Отправка ждёт готовности транспорта.** Сессия к телефону поднимается
-асинхронно, и матч, отданный ей до этого, не уехал бы никуда, а второй попытки
-в этот запуск не случилось бы. Накопившееся поэтому уезжает из обработчика
-готовности, а не из экрана при запуске.
+**Sending waits for the transport to be ready.** The session to the phone comes up
+asynchronously, and a match handed to it before that would go nowhere, with no second attempt
+in that launch. So what has piled up leaves from the readiness handler rather than from a
+screen at launch.
 
-**Доставленной бывает версия, а не матч.** Отменённое очко в законченном матче
-(тикет 05) возвращает его в игру, и доигранный заново он расходится с тем, что
-уже уехало. Поэтому `save()` гасит `delivered`, и матч уезжает второй раз; а
-расписка приезжает с матчем целиком и ставит отметку, только если на часах всё
-ещё та же версия, — иначе поздняя расписка о прошлой версии погасила бы
-очередь, в которую матч только что вернулся.
+**What gets delivered is a version, not a match.** A point undone in a finished match
+(ticket 05) brings it back into play, and once played out again it diverges from what has
+already left. So `save()` clears `delivered`, and the match leaves a second time; and the
+receipt arrives with the whole match and sets the mark only if the watch still holds the same
+version — otherwise a late receipt for a previous version would clear the queue the match had
+just returned to.
 
-**Матч без единого розыгрыша не уезжает.** Матч начинается первым розыгрышем
-(глоссарий), а прекращённый раньше — след от промаха: «0:0, 0 минут» это не
-история. Тикету 11 фильтровать такие в списке уже не придётся — до телефона
-они не доезжают.
+**A match without a single rally does not leave.** A match begins with its first rally (the
+glossary), and one stopped earlier is the trace of a mis-tap: "0:0, 0 minutes" is not history.
+Ticket 11 will not have to filter such matches out of the list — they never reach the phone.
 
-**Тест на этом нашёл ошибку в хранилище.** Запись журнала была инкрементной —
-«отрезать отменённое, дописать недостающее», — и это верно только пока журнал
-меняется с хвоста. На телефон же матч приезжает любой версией, и доигранный
-после отмены очка предыдущей не продолжение: дописывание хвоста к чужой
-середине собирало журнал, которого никто не играл, причём молча — длина
-сходилась. Журнал теперь переписывается целиком; матч из двухсот розыгрышей это
-одна короткая транзакция.
+**A test found a bug in the store along the way.** Writing the journal used to be
+incremental — "cut off what was undone, append what is missing" — and that is only right while
+the journal changes at the tail. A match arrives on the phone as any version, though, and one
+played out after a point was undone is no continuation of the previous one: appending a tail
+to somebody else's middle assembled a journal nobody played, and did so silently — the length
+added up. The journal is now rewritten in full; a match of two hundred rallies is one short
+transaction.
 
-**Часы ничего не удаляют.** Ни здесь, ни где-либо ещё в v1: матч остаётся на
-часах и после подтверждения. Критерий выполнен с запасом, и это осознанно —
-бэкапа нет (ADR-0002), а место, которое занимает журнал из двухсот строк,
-считать рано.
+**The watch deletes nothing.** Not here and nowhere else in v1: the match stays on the watch
+after the confirmation too. The criterion is met with room to spare, and deliberately so —
+there is no backup (ADR-0002), and it is too early to count the space a journal of two hundred
+rows takes.
 
-**Как проверялось.** 21 тест в `PadelDelivery` и 11 новых в `PadelStorage`:
-законченный матч попадает в очередь, идущий — нет; недоигранный попадает
-(игра в нём кончилась); очередь переживает перезапуск (второе соединение к той
-же базе); подтверждённый матч больше не уезжает, неподтверждённый уезжает
-снова; изменившийся после доставки возвращается в очередь; приехавший матч
-попадает в хранилище телефона; приехавший дважды не заводит второго, а второй
-приезд обновляет первый; посылка переживает круговой рейс со всеми наборами
-правил, пометкой недоигранности и журналом; непонятная посылка не превращается
-в матч, а бросает; до готовности транспорта не уезжает ничего; расписка о
-прошлой версии очередь не гасит; матч без розыгрышей не уезжает; за
-несохранённый матч телефон не расписывается. Настоящая доставка на паре
-устройств — за человеком, как тикет и предполагал.
+**How it was checked.** 21 tests in `PadelDelivery` and 11 new ones in `PadelStorage`: a
+finished match lands in the queue, one in progress does not; an abandoned one lands (play in
+it has ended); the queue survives a relaunch (a second connection to the same database); a
+confirmed match is not sent again, an unconfirmed one is; one changed after delivery returns
+to the queue; a match that arrives lands in the phone's store; one that arrives twice does not
+create a second, and the second arrival updates the first; a parcel survives the round trip
+with every ruleset, the abandoned mark and the journal; an unreadable parcel does not turn
+into a match but throws; nothing leaves before the transport is ready; a receipt for a
+previous version does not clear the queue; a match without rallies does not leave; the phone
+does not sign for a match it failed to store. Real delivery on a pair of devices is for a
+human, as the ticket assumed.
 
-**Departure от тикета: `matches()` и экран на телефоне.** Хранилище получило
-список матчей, а телефон — `HistoryView`: счёт, дата, пометка недоигранности,
-осмысленный пустой экран, порядок от свежих. Без этого критерий «телефон
-сохраняет полученный матч» нечем проверить ни тестом (дубликат виден только в
-списке), ни руками (человеку некуда посмотреть). Это закрывает четыре из шести
-критериев тикета 11 — не два и не «заглушку»: непокрытыми там остаются
-длительность и набор правил, а живое обновление списка и оформление он
-переделает целиком.
+**A departure from the ticket: `matches()` and a screen on the phone.** The store gained a
+list of matches, and the phone a `HistoryView`: the score, the date, the abandoned mark, a
+sensible empty screen, freshest first. Without it there is no way to check the criterion "the
+phone saves the received match" either by test (a duplicate is only visible in a list) or by
+hand (a human has nowhere to look). This closes four of ticket 11's six criteria — not two,
+and not with a "stub": what stays uncovered there is the duration and the ruleset, while the
+live updating of the list and the presentation it will redo entirely.
 
-**Изменено поведение закрытого тикета 07.** `SQLiteMatchStore.save` больше не
-дописывает журнал хвостом, а переписывает целиком (см. выше), и гасит отметку о
-доставке. Первое — исправление ошибки, второе — новое поведение; и то и другое
-меняет метод, который тикет 07 считал законченным.
+**The behaviour of the closed ticket 07 was changed.** `SQLiteMatchStore.save` no longer
+appends to the journal at the tail but rewrites it in full (see above), and clears the
+delivery mark. The first is a bug fix, the second is new behaviour; both change a method
+ticket 07 considered finished.
 
-**Появился ADR-0004** — «Очередь на доставку живёт в хранилище»: решение
-завести вторую невычислимую колонку рядом с журналом спорит с формулировкой
-ADR-0001 («единственное исключение»), и жить такому в комментарии нельзя.
+**ADR-0004 appeared** — "The delivery queue lives in the store": the decision to create a
+second non-computable column beside the journal argues with ADR-0001's wording ("the only
+exception"), and something like that cannot live in a comment.

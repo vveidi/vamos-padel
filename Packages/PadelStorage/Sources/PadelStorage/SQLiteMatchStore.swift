@@ -2,23 +2,25 @@ import Foundation
 import GRDB
 import PadelScoring
 
-/// Хранилище матчей на SQLite через GRDB (ADR-0003).
+/// The match store on SQLite through GRDB (ADR-0003).
 ///
-/// Пишет синхронно и в том же потоке, откуда позвали: запись одного розыгрыша
-/// — это одна короткая транзакция, и ждать её экрану дешевле, чем разбираться,
-/// в каком порядке доехали до базы два касания подряд.
+/// Writes synchronously, on the thread it was called from: writing one rally
+/// is a single short transaction, and waiting for it costs the screen less
+/// than working out in which order two consecutive taps reached the database.
 public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     private let dbQueue: DatabaseQueue
 
-    /// База в контейнере приложения — та, которой пользуются часы и телефон.
+    /// The database in the app container — the one the watch and the phone
+    /// use.
     ///
-    /// Путь считается здесь, а не в приложениях: у каждого из них свой
-    /// контейнер, поэтому одно правило даёт две разные базы, и договариваться
-    /// им не о чем.
+    /// The path is worked out here rather than in the apps: each of them has
+    /// its own container, so one rule yields two different databases, and they
+    /// have nothing to agree about.
     public static func inApplicationSupport() throws -> SQLiteMatchStore {
         let directory = URL.applicationSupportDirectory
 
-        // На свежей установке каталога ещё нет, и SQLite его не создаёт.
+        // On a fresh install the directory does not exist yet, and SQLite
+        // does not create it.
         try FileManager.default.createDirectory(
             at: directory, withIntermediateDirectories: true)
 
@@ -27,14 +29,16 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         return try SQLiteMatchStore(DatabaseQueue(path: file.path(percentEncoded: false)))
     }
 
-    /// База в памяти: тесты и превью. Имя нужно, только если к одной и той же
-    /// базе открывают несколько соединений; без него база своя у каждого.
+    /// An in-memory database: tests and previews. The name is only needed when
+    /// several connections are opened to the same database; without it each
+    /// one gets a database of its own.
     public static func inMemory(named name: String? = nil) throws -> SQLiteMatchStore {
         try SQLiteMatchStore(DatabaseQueue(named: name))
     }
 
-    /// Миграции применяются при открытии, и другого места у них нет: база,
-    /// открытая мимо этого инициализатора, была бы базой неизвестной версии.
+    /// The migrations are applied on opening, and there is nowhere else for
+    /// them: a database opened around this initialiser would be a database of
+    /// unknown version.
     init(_ dbQueue: DatabaseQueue) throws {
         self.dbQueue = dbQueue
 
@@ -46,17 +50,17 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         let ruleset = Self.columns(of: saved.match.ruleset)
 
         try dbQueue.write { db in
-            // Обновляются только время последнего розыгрыша и пометка
-            // недоигранности — ровно то, что меняется по ходу матча. Всё
-            // остальное в строке — набор правил, первая подача, начало —
-            // задаётся при первом розыгрыше и потом неизменно: матч, у
-            // которого посреди игры поменялись правила, — это другой матч.
+            // Only the time of the last rally and the abandoned mark are
+            // updated — exactly what changes over the course of a match.
+            // Everything else in the row — the ruleset, the first server, the
+            // start — is set on the first rally and immutable after that: a
+            // match whose rules changed mid-play is a different match.
             //
-            // Отметка о доставке при этом гасится: запись — это и есть «матч
-            // изменился», а доставленной остаётся версия, которая с этого
-            // момента расходится с той, что на часах. Отменённое очко в
-            // законченном матче уезжает на телефон второй раз, и там второй
-            // приезд затирает первый.
+            // The delivery mark is cleared along the way: a write is precisely
+            // "the match changed", and what stays delivered is a version that
+            // from this moment diverges from the one on the watch. A point
+            // undone in a finished match travels to the phone a second time,
+            // and there the second arrival overwrites the first.
             try db.execute(
                 sql: """
                     INSERT INTO match
@@ -77,17 +81,19 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
 
             let rallies = saved.match.journal.rallies
 
-            // Журнал переписывается целиком, а не досылается хвостом.
+            // The journal is rewritten in full rather than appended to at the
+            // tail.
             //
-            // На часах хватило бы хвоста: там журнал растёт с конца да
-            // укорачивается отменой. Но тот же метод записывает матч,
-            // приехавший на телефон (тикет 10), а приезжает он любой версией —
-            // и доигранная заново после отмены очка предыдущей не продолжение.
-            // Дописать хвост к чужой середине значит собрать журнал, которого
-            // никто не играл, и молча: длина сойдётся.
+            // On the watch a tail would be enough: there the journal grows at
+            // the end and shortens by undo. But the same method writes a match
+            // that arrived on the phone (ticket 10), and it can arrive as any
+            // version — one replayed after a point was undone is no
+            // continuation of the previous one. Appending a tail to somebody
+            // else's middle means assembling a journal nobody played, and
+            // doing so silently: the length will add up.
             //
-            // Цена — переписанный журнал на каждом очке; матч из двухсот
-            // розыгрышей это одна короткая транзакция.
+            // The price is a rewritten journal on every point; a match of two
+            // hundred rallies is one short transaction.
             try db.execute(sql: "DELETE FROM rally WHERE matchId = ?", arguments: [id])
 
             for (ordinal, rally) in rallies.enumerated() {
@@ -100,14 +106,16 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
 
     public func matchInProgress() throws -> SavedMatch? {
         try dbQueue.read { db in
-            // Спрашивается последний матч, а не первый попавшийся незакончен-
-            // ный: если последний доигран, продолжать нечего, а оставленный
-            // месяц назад на 3:2 не должен воскресать посреди корта.
+            // The last match is asked for, not the first unfinished one that
+            // turns up: if the last one was played out there is nothing to
+            // continue, and one left at 3:2 a month ago must not rise from the
+            // dead in the middle of a court.
             //
-            // Идёт матч или нет, спрашивается у движка, а не у колонки:
-            // счёт рядом с журналом — то самое состояние, которое однажды
-            // с ним разойдётся (ADR-0001). Колонка есть только у пометки
-            // недоигранности, и ровно потому, что её неоткуда посчитать.
+            // Whether the match is running is asked of the engine, not of a
+            // column: a score next to the journal is exactly the kind of state
+            // that one day diverges from it (ADR-0001). Only the abandoned
+            // mark has a column, and precisely because there is nowhere to
+            // compute it from.
             guard let row = try Row.fetchOne(db, sql: Self.lastMatch) else { return nil }
 
             let saved = try Self.savedMatch(row: row, db: db)
@@ -124,12 +132,13 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         }
     }
 
-    /// Какой матч считается прошлым. Запрос один на оба вопроса о нём — «его
-    /// доигрывать?» и «по каким правилам он шёл?»: разъехавшись, они начали бы
-    /// отвечать про разные матчи.
+    /// Which match counts as the previous one. One query for both questions
+    /// about it — "should it be played out?" and "under which rules did it
+    /// run?": were they to drift apart, they would start answering about
+    /// different matches.
     ///
-    /// Порядок по времени последнего розыгрыша, а не по времени начала: матч,
-    /// начатый раньше, а доигранный позже, — всё-таки более поздний.
+    /// Ordered by the time of the last rally, not by the time of the start: a
+    /// match begun earlier but played out later is the later one after all.
     private static let lastMatch =
         "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
 
@@ -158,10 +167,11 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
             let rows = try Row.fetchAll(
                 db, sql: "SELECT * FROM match WHERE delivered = 0 ORDER BY lastRallyAt, rowid")
 
-            // Законченность спрашивается у движка, а не у колонки, по той же
-            // причине, что и в `matchInProgress` (ADR-0001). Отбирать в SQL
-            // тут нечего: строк с непогашенной отметкой ровно столько, сколько
-            // матчей ещё не доехало, — обычно ноль или один.
+            // Whether a match is over is asked of the engine, not of a column,
+            // for the same reason as in `matchInProgress` (ADR-0001). There is
+            // nothing to filter in SQL here: there are exactly as many rows
+            // with an uncleared mark as there are matches yet to arrive —
+            // usually zero or one.
             return try rows
                 .map { try Self.savedMatch(row: $0, db: db) }
                 .filter { !$0.match.journal.isEmpty && $0.match.state.outcome.isOver }
@@ -174,9 +184,10 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
                 db, sql: "SELECT * FROM match WHERE id = ?",
                 arguments: [delivered.id.uuidString])
 
-            // Расписка пришла на версию матча, а не на его идентификатор.
-            // Разошлись — значит, матч успели изменить после отправки, и в
-            // очереди он стоит уже другим; гасить её этой распиской нельзя.
+            // The receipt came for a version of the match, not for its
+            // identifier. If they differ, the match was changed after it was
+            // sent and stands in the queue as a different one; the queue must
+            // not be cleared by this receipt.
             guard let row, try Self.savedMatch(row: row, db: db) == delivered else { return }
 
             try db.execute(
@@ -185,8 +196,8 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         }
     }
 
-    /// Набор правил по колонкам. Половина колонок пуста у каждого варианта —
-    /// какая именно, сторожит проверка в схеме.
+    /// The ruleset spread across columns. Half the columns are empty for each
+    /// case — which half is guarded by the check in the schema.
     private static func columns(
         of ruleset: Ruleset
     ) -> (kind: String, setsToWin: Int?, goldenPoint: Bool?, target: Int?, serveChangesEvery: Int?) {
@@ -202,7 +213,7 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         let id: String = row["id"]
 
         guard let uuid = UUID(uuidString: id) else {
-            throw MatchStoreError.unreadableMatch(reason: "идентификатор «\(id)» не UUID")
+            throw MatchStoreError.unreadableMatch(reason: "the identifier \"\(id)\" is not a UUID")
         }
 
         let winners = try String.fetchAll(
@@ -234,36 +245,37 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
         case "classic":
             guard let setsToWin: Int = row["setsToWin"], let goldenPoint: Bool = row["goldenPoint"]
             else {
-                throw MatchStoreError.unreadableMatch(reason: "классический счёт без правил")
+                throw MatchStoreError.unreadableMatch(reason: "classic scoring without its rules")
             }
 
             return .classic(setsToWin: setsToWin, goldenPoint: goldenPoint)
         case "pointsTo":
             guard let target: Int = row["target"], let every: Int = row["serveChangesEvery"] else {
-                throw MatchStoreError.unreadableMatch(reason: "счёт до N очков без N")
+                throw MatchStoreError.unreadableMatch(reason: "a match to N points without an N")
             }
 
             return .pointsTo(target: target, serveChangesEvery: every)
         default:
-            throw MatchStoreError.unreadableMatch(reason: "неизвестный набор правил «\(kind)»")
+            throw MatchStoreError.unreadableMatch(reason: "unknown ruleset \"\(kind)\"")
         }
     }
 
     private static func side(named name: String) throws -> Side {
         guard let side = Side(rawValue: name) else {
-            throw MatchStoreError.unreadableMatch(reason: "неизвестная сторона «\(name)»")
+            throw MatchStoreError.unreadableMatch(reason: "unknown side \"\(name)\"")
         }
 
         return side
     }
 }
 
-/// База отдала строку, которая не складывается в матч.
+/// The database handed back a row that does not add up to a match.
 ///
-/// Случай, которого быть не должно: схема сторожит и набор правил, и
-/// обязательные колонки. Остаётся то, чего схема не знает, — написание
-/// стороны и формат идентификатора, — и молча подставлять вместо них
-/// умолчание значило бы вернуть на корт чужой счёт.
+/// A case that should never happen: the schema guards both the ruleset and the
+/// mandatory columns. What is left is what the schema does not know — the
+/// spelling of a side and the format of an identifier — and silently
+/// substituting a default for them would mean bringing somebody else's score
+/// back onto the court.
 public enum MatchStoreError: Error, Equatable {
     case unreadableMatch(reason: String)
 }

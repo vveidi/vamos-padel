@@ -1,64 +1,62 @@
-# 02: Счёт до N очков от начала до конца
+# 02: The match to N points from end to end
 
-**What to build:** Первый работающий счётчик. Игрок открывает приложение на часах и видит экран, поделённый на две равные половины. Касание половины отдаёт очко этой стороне, счёт на экране растёт. Как только сторона первой набирает N очков, матч заканчивается и показывается итог.
+**What to build:** The first working counter. The player opens the app on the watch and sees a screen split into two equal halves. A tap on a half awards a point to that side, and the score on the screen grows. As soon as a side is first to reach N points, the match ends and the outcome is shown.
 
-Самый простой **набор правил** — ни геймов, ни сетов, ни «ровно», ни подачи. После этого тикета приложением уже можно вести реальную игру.
+The simplest **ruleset** — no games, no sets, no deuce, no serve. After this ticket the app can already be used for a real game.
 
-Геометрия зон: две равные половины. Уточнение геометрии отложено до прототипа и этот тикет не блокирует.
+The geometry of the zones: two equal halves. Refining the geometry is deferred to the prototype and does not block this ticket.
 
 **Blocked by:** 01
 
 **Status:** done
 
-- [x] Касание половины экрана добавляет розыгрыш в **журнал** и увеличивает счёт этой **стороны**
-- [x] Текущие очки показаны крупно и читаются мельком
-- [x] Матч заканчивается, как только сторона набирает N очков; дальнейшие касания счёт не меняют
-- [x] После окончания показывается итог матча
-- [x] N задаётся при создании матча, значение по умолчанию 16
-- [x] Состояние матча вычисляется из журнала и набора правил, а не хранится рядом с ним
-- [x] Один и тот же журнал, прочитанный дважды, даёт одно и то же состояние
-- [x] Тесты движка покрывают счёт до N, окончание матча и граничное значение N = 1
+- [x] A tap on a half of the screen adds a rally to the **journal** and raises that **side**'s score
+- [x] The current points are shown in large type and read at a glance
+- [x] The match ends as soon as a side reaches N points; further taps do not change the score
+- [x] The match outcome is shown once it is over
+- [x] N is set when the match is created, with a default of 16
+- [x] The match state is computed from the journal and the ruleset rather than stored beside them
+- [x] The same journal read twice yields the same state
+- [x] The engine's tests cover the match to N, the end of the match, and the boundary value N = 1
 
 ## Comments
 
-Выполнено. Проверка каждого критерия:
+Done. Every criterion checked:
 
-- **Касание половины добавляет розыгрыш**: `ScoreView` — две зоны во весь экран,
-  каждая вызывает `Match.record(rallyWonBy:)`, то есть дописывает розыгрыш
-  в журнал; счёт пересчитывается из журнала. Проверено настоящими касаниями
-  в симуляторе: три касания верхней зоны и два нижней дали 3:2.
-- **Очки крупно**: 64-й кегль, по цифре на половину. Проверено на симуляторе
-  на 46 mm и 42 mm, со счётом 15:14 цифры не сжимаются и не сталкиваются
-  с системными часами.
-- **Матч заканчивается на N очках, дальнейшие касания счёт не меняют**: движок
-  прекращает свёртку на розыгрыше, который дал N-е очко, а `Match.record`
-  в законченном матче не пишет ничего — чтобы отмена (тикет 05) не упиралась
-  в лишние нажатия. Проверено касаниями: матч довели до 16:3, после чего
-  восемь касаний по обеим зонам ничего не изменили.
-- **Итог после окончания**: `OutcomeView` — кто выиграл и финальный счёт.
-  Счёт печатается победителем вперёд, иначе он читается задом наперёд
-  относительно экрана счёта, где соперники сверху.
-- **N по умолчанию 16**: `Ruleset.defaultPointsTo`. Выбор N появится вместе
-  со стартовым экраном (тикет 06).
-- **Состояние вычисляется, а не хранится**: `MatchState` собирается из набора
-  правил и журнала при каждом чтении; собрать его мимо журнала снаружи нельзя —
-  memberwise-инициализатор внутренний.
-- **Одинаковый журнал даёт одинаковое состояние**: тест сравнивает состояния
-  журнала-оригинала и журнала, собранного заново той же последовательностью.
-- **Тесты движка**: 27 тестов, `swift test` без симулятора.
+- **A tap on a half adds a rally**: `ScoreView` is two zones filling the display, each
+  calling `Match.record(rallyWonBy:)`, that is, appending a rally to the journal; the score
+  is recomputed from the journal. Checked with real taps in the simulator: three taps on the
+  upper zone and two on the lower gave 3:2.
+- **The points in large type**: 64pt, one digit per half. Checked in the simulator on 46 mm
+  and 42 mm; at 15:14 the digits neither shrink nor collide with the system clock.
+- **The match ends at N points, and further taps do not change the score**: the engine stops
+  the fold at the rally that gave the Nth point, and `Match.record` writes nothing in a
+  finished match — so that undo (ticket 05) does not run into extra presses. Checked by
+  tapping: the match was taken to 16:3, after which eight taps across both zones changed
+  nothing.
+- **The outcome once it is over**: `OutcomeView` — who won and the final score. The score is
+  printed winner-first, otherwise it reads backwards relative to the score screen, where the
+  opponents are on top.
+- **N defaults to 16**: `Ruleset.defaultPointsTo`. Choosing N will arrive with the start
+  screen (ticket 06).
+- **The state is computed, not stored**: `MatchState` is assembled from the ruleset and the
+  journal on every read; it cannot be assembled from outside behind the journal's back — the
+  memberwise initialiser is internal.
+- **The same journal yields the same state**: the test compares the states of the original
+  journal and of a journal rebuilt from the same sequence.
+- **The engine's tests**: 27 tests, `swift test` without a simulator.
 
-Решения по ходу:
+Decisions taken along the way:
 
-- **Геометрия зон**: соперники сверху, мы снизу — как на корте, соперники за
-  сеткой перед нами. Наша половина узнаётся по цвету, а не по подписи: подпись
-  отняла бы место у цифры.
-- **`Ruleset.classic` роняет движок** с указанием на тикет 03. Альтернатива —
-  считать классический матч как счёт до бесконечности — молча врала бы про
-  правила.
-- **N меньше единицы** не запрещено типом, поэтому движок ведёт себя как при
-  N = 1: выигрывает взявший первый розыгрыш. Осмысленную границу задаст
-  стартовый экран (тикет 06).
-- **Второй матч — перезапуском приложения.** Кнопка «Новый матч» была написана
-  и убрана: возврат к новому матчу — это стартовый экран (тикет 06).
-- **В глоссарий добавлено «Состояние матча»** — центральный термин тикета,
-  которого в `CONTEXT.md` не было.
+- **The geometry of the zones**: the opponents on top, us at the bottom — as on court, with
+  the opponents across the net in front of us. Our half is recognised by colour rather than
+  by a label: a label would take room from the digit.
+- **`Ruleset.classic` crashes the engine** with a pointer to ticket 03. The alternative —
+  counting a classic match as a match to infinity — would have lied silently about the rules.
+- **An N below one** is not forbidden by the type, so the engine behaves as it does at
+  N = 1: whoever takes the first rally wins. A sensible bound will be set by the start screen
+  (ticket 06).
+- **A second match means relaunching the app.** A "New match" button was written and removed:
+  the way back to a new match is the start screen (ticket 06).
+- **"Match state" was added to the glossary** — the ticket's central term, which was missing
+  from `CONTEXT.md`.

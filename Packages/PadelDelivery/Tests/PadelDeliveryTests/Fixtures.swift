@@ -4,17 +4,17 @@ import PadelStorage
 
 @testable import PadelDelivery
 
-/// Момент, с которого начинаются матчи в тестах. Круглая секунда намеренно:
-/// хранилище держит время с точностью до миллисекунды, и круговой рейс через
-/// базу и посылку должен возвращать ровно то же значение.
+/// The moment the matches in these tests start from. A round second on
+/// purpose: the store keeps time to millisecond precision, and the round trip
+/// through the database and the parcel has to return exactly the same value.
 let aMoment = Date(timeIntervalSince1970: 1_800_000_000)
 
-/// Матч кончается на втором очке: тестам про доставку важно, что он кончился,
-/// а не то, каким счётом.
+/// The match ends on the second point: the delivery tests care that it ended,
+/// not about the score it ended on.
 let toTwo = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
 
 extension SavedMatch {
-    /// Матч, в котором сыграны перечисленные розыгрыши, по одному в секунду.
+    /// A match in which the listed rallies were played, one per second.
     static func played(
         _ winners: [Side],
         ruleset: Ruleset = .defaultPointsTo,
@@ -32,12 +32,12 @@ extension SavedMatch {
     }
 }
 
-/// Транспорт, который никуда не везёт, но помнит, что ему отдали, и умеет
-/// подтвердить доставку по требованию теста.
+/// A transport that carries nothing anywhere but remembers what it was handed,
+/// and can confirm delivery on the test's demand.
 ///
-/// Заглушка возможна ровно потому, что транспорт спрятан за протоколом
-/// (ADR-0002): будь на его месте `WCSession`, очередь на доставку проверялась
-/// бы только парой устройств на столе.
+/// The stub is possible precisely because the transport is hidden behind a
+/// protocol (ADR-0002): were `WCSession` in its place, the delivery queue could
+/// only be checked by a pair of devices on the desk.
 final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     private let lock = NSLock()
     private var queued: [SavedMatch] = []
@@ -46,10 +46,10 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     private var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
     private var receiveMatch: (@Sendable (SavedMatch) -> Void)?
 
-    /// Что часы отдали транспорту с последнего `forget()`.
+    /// What the watch handed to the transport since the last `forget()`.
     var sent: [SavedMatch] { lock.withLock { queued } }
 
-    /// В чём телефон расписался с последнего `forget()`.
+    /// What the phone signed for since the last `forget()`.
     var receipts: [SavedMatch] { lock.withLock { written } }
 
     func send(_ match: SavedMatch) {
@@ -72,29 +72,30 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
         lock.withLock { receiveMatch = receive }
     }
 
-    /// Сессия поднялась.
+    /// The session came up.
     func becomeReady() {
         lock.withLock { transportReady }?()
     }
 
-    /// Телефон расписался за всё, что ему отдали, и расписки доехали.
+    /// The phone signed for everything it was handed, and the receipts got
+    /// through.
     func confirmDelivered() {
         deliverReceipts(for: sent)
     }
 
-    /// Доезжают расписки ровно за перечисленные версии матчей.
+    /// Receipts get through for exactly the listed versions of the matches.
     func deliverReceipts(for matches: [SavedMatch]) {
         let confirm = lock.withLock { confirmDelivery }
 
         for match in matches { confirm?(match) }
     }
 
-    /// Матч приехал на телефон.
+    /// A match arrived on the phone.
     func deliver(_ match: SavedMatch) {
         lock.withLock { receiveMatch }?(match)
     }
 
-    /// Забывает отправленное, чтобы следующая проверка говорила о новом.
+    /// Forgets what was sent, so that the next check speaks about what is new.
     func forget() {
         lock.withLock {
             queued = []
@@ -103,8 +104,8 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     }
 }
 
-/// Хранилище, которое не может записать. Существует ради одного вопроса: что
-/// телефон делает с матчем, который не удалось сохранить.
+/// A store that cannot write. It exists for a single question: what the phone
+/// does with a match it failed to save.
 struct FailingMatchStore: MatchStore {
     struct Failure: Error {}
 

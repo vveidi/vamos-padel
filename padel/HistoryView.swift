@@ -3,24 +3,24 @@ import PadelStorage
 import SwiftUI
 import os
 
-/// История матчей на телефоне — пока в самом грубом виде.
+/// The match history on the phone — in its crudest form so far.
 ///
-/// Настоящий список с длительностью и набором правил делает тикет 11; здесь
-/// ровно столько, чтобы приехавший с часов матч было видно глазами, а не
-/// только в базе.
+/// The real list, with durations and rulesets, is ticket 11's job; there is
+/// just enough here for a match that arrived from the watch to be visible to
+/// the eye and not only in the database.
 ///
-/// Матч приезжает в приложение, разбуженное системой ради него одного, и экран
-/// об этом никак не узнаёт. Пока он не наблюдает за базой — это тоже тикет 11 —
-/// история перечитывается на возвращении в активное состояние и по жесту
-/// обновления: матч, приехавший под открытым экраном, иначе не появился бы
-/// вовсе.
+/// A match arrives into an app woken by the system for its sake alone, and the
+/// screen learns nothing about it. Until it observes the database — that is
+/// ticket 11 as well — the history is re-read on returning to the active state
+/// and on a pull to refresh: otherwise a match that arrived while the screen
+/// was open would never show up at all.
 struct HistoryView: View {
     private let store: any MatchStore
 
     @State private var matches: [SavedMatch] = []
 
-    /// Матч приезжает в приложение, свёрнутое в фон, — экран узнаёт об этом,
-    /// когда его снова открыли.
+    /// A match arrives into an app that is in the background — the screen
+    /// learns about it when it is opened again.
     @Environment(\.scenePhase) private var scenePhase
 
     init(store: any MatchStore) {
@@ -73,7 +73,7 @@ struct HistoryView: View {
         do {
             matches = try store.matches()
         } catch {
-            logger.error("История не прочитана: \(error.localizedDescription)")
+            logger.error("the history was not read: \(error.localizedDescription)")
         }
     }
 }

@@ -4,33 +4,34 @@ import PadelDelivery
 import SwiftUI
 import os
 
-/// Корень приложения: старт → счёт → итог и снова старт.
+/// The root of the app: start → score → outcome and start again.
 ///
-/// Здесь живёт единственный вопрос, на который приложение отвечает при запуске:
-/// матч уже идёт или его ещё нет. Идёт — часы возвращаются прямо к счёту, минуя
-/// старт: игрок, у которого приложение выгрузилось между геймами, стартовый
-/// экран не заказывал.
+/// Here lives the single question the app answers at launch: is a match already
+/// running or is there none yet. If one is, the watch returns straight to the
+/// score, skipping the start: a player whose app was unloaded between games did
+/// not order a start screen.
 struct RootView: View {
-    /// Матч, который сейчас играют, — каким он начался. `nil` — матча нет, и
-    /// на экране старт.
+    /// The match currently being played, as it began. `nil` means there is no
+    /// match and the start screen is up.
     ///
-    /// Дальше матч живёт в экране матча и сюда не возвращается: корню довольно
-    /// знать, что матч есть. Отдать экрану `Binding` на этот опционал было бы
-    /// на вид честнее — одно значение вместо двух, — но SwiftUI разворачивает
-    /// такую связку силой при каждом чтении. Кнопка «Новый матч» обнуляет матч,
-    /// живой ещё экран матча читает свой `Binding`, и приложение падает на
-    /// ровном месте — с этого началась правка после тикета.
+    /// From then on the match lives in the match screen and never comes back
+    /// here: it is enough for the root to know that a match exists. Handing the
+    /// screen a `Binding` to this optional would look more honest — one value
+    /// instead of two — but SwiftUI force-unwraps such a binding on every read.
+    /// The "New match" button clears the match, the still-alive match screen
+    /// reads its `Binding`, and the app crashes out of nowhere — that is how
+    /// the fix after the ticket started.
     @State private var match: SavedMatch?
 
-    /// Набор правил, с которым начнётся следующий матч. Первым делом сюда
-    /// приезжают правила прошлого матча из хранилища, дальше их меняет экран
-    /// правил.
+    /// The ruleset the next match will start with. The previous match's rules
+    /// arrive here from the store first; after that the rules screen changes
+    /// them.
     @State private var ruleset = Ruleset.defaultClassic
 
-    /// Хранилище отвечает не мгновенно, а до его ответа неизвестно даже, какой
-    /// из экранов показывать. Мигнуть стартовым экраном под рукой игрока,
-    /// который вернулся к идущему матчу, — верный способ начать вместо него
-    /// новый.
+    /// The store does not answer instantly, and until it does it is not even
+    /// known which screen to show. Flashing the start screen under the hand of
+    /// a player who came back to a running match is a sure way to start a new
+    /// one instead.
     @State private var isRestored = false
 
     private let store: any MatchStore
@@ -39,9 +40,9 @@ struct RootView: View {
 
     private let delivery: MatchDelivery
 
-    /// Хранилище, тренировка и доставка приходят снаружи, а не создаются
-    /// здесь: превью не должно ни просить доступ к здоровью, ни заводить базу,
-    /// ни поднимать сессию к телефону.
+    /// The store, the workout and the delivery come from outside rather than
+    /// being created here: a preview must neither ask for health access, nor
+    /// create a database, nor bring up a session to the phone.
     init(store: any MatchStore, workout: any Workout, delivery: MatchDelivery) {
         self.store = store
         _workout = State(initialValue: workout)
@@ -59,9 +60,10 @@ struct RootView: View {
                     workout: workout,
                     delivery: delivery,
                     onFinish: startOver)
-                    // Другой матч — другой экран, с чистого листа. Без этого
-                    // матч, начатый сразу после предыдущего, достался бы экрану
-                    // с состоянием прошлого.
+                    // A different match means a different screen, from a clean
+                    // slate. Without this, a match started right after the
+                    // previous one would land on a screen holding the last
+                    // one's state.
                     .id(match.id)
             } else {
                 StartView(ruleset: $ruleset, onStart: start(servedBy:))
@@ -70,34 +72,34 @@ struct RootView: View {
         .task { restore() }
     }
 
-    /// Матч начинается здесь и первым же розыгрышем попадёт в хранилище.
-    /// Набор правил при этом уже неизменен: матч, у которого посреди игры
-    /// поменялись правила, — это другой матч.
+    /// The match begins here and will reach the store with its very first
+    /// rally. The ruleset is already immutable by then: a match whose rules
+    /// changed mid-play is a different match.
     private func start(servedBy firstServer: Side) {
         match = SavedMatch(
             match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
     }
 
-    /// Возвращает на стартовый экран. Сыгранный матч уже записан, и терять
-    /// здесь нечего; набор правил остаётся тот же — следующий матч почти
-    /// наверняка играют по тем же правилам, что и предыдущий.
+    /// Returns to the start screen. The match just played is already written
+    /// down and there is nothing to lose here; the ruleset stays the same — the
+    /// next match is almost certainly played by the same rules as the last.
     private func startOver() {
         match = nil
     }
 
-    /// Восстанавливает то, что приложение помнит: матч, начатый до выгрузки, и
-    /// правила прошлого матча.
+    /// Restores what the app remembers: the match begun before it was
+    /// unloaded, and the previous match's rules.
     ///
-    /// Неудача чтения сюда не долетает — по той же причине, по которой до
-    /// матча не долетают неудачи записи и тренировки: начать новый матч по
-    /// умолчаниям хуже, чем продолжить старый, и всё же лучше, чем не начать
-    /// ничего.
+    /// A read failure never reaches here — for the same reason write and
+    /// workout failures never reach the match: starting a new match from the
+    /// defaults is worse than continuing the old one, and still better than
+    /// starting nothing at all.
     private func restore() {
         do {
             match = try store.matchInProgress()
             ruleset = try store.lastRuleset() ?? .defaultClassic
         } catch {
-            logger.error("Прошлый матч не восстановлен: \(error.localizedDescription)")
+            logger.error("the previous match was not restored: \(error.localizedDescription)")
         }
 
         isRestored = true

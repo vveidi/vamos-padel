@@ -3,10 +3,11 @@ import PackageDescription
 
 let package = Package(
     name: "PadelDelivery",
-    // macOS присутствует по той же причине, что и в соседних пакетах: очередь
-    // на доставку и формат посылки гоняются нативно, без симулятора и без
-    // пары «часы — телефон». Заодно WatchConnectivity перестаёт компилиро-
-    // ваться везде, кроме своей реализации, — она одна и спрятана за `#if`.
+    // macOS is here for the same reason as in the neighbouring packages: the
+    // delivery queue and the parcel format run natively, without a simulator
+    // and without a watch-and-phone pair. It also stops WatchConnectivity from
+    // compiling anywhere except its own implementation — the single one, hidden
+    // behind an `#if`.
     platforms: [
         .iOS(.v18),
         .watchOS(.v11),

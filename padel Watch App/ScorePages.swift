@@ -15,6 +15,7 @@ import SwiftUI
 struct ScorePages: View {
     let points: Points
     let games: SideCounts?
+    let sets: SideCounts?
     let servingSide: Side
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
@@ -38,6 +39,7 @@ struct ScorePages: View {
             ScoreView(
                 points: points,
                 games: games,
+                sets: sets,
                 servingSide: servingSide,
                 onRallyWon: onRallyWon,
                 onUndo: onUndo)
@@ -81,6 +83,7 @@ private struct MatchControls: View {
     ScorePages(
         points: .game(SideCounts(us: 3, them: 2)),
         games: SideCounts(us: 4, them: 5),
+        sets: nil,
         servingSide: .us,
         onRallyWon: { _ in },
         onUndo: {},

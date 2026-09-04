@@ -3,31 +3,41 @@ import PadelStorage
 import SwiftUI
 import os
 
-/// Корневой экран часов: пока матч идёт — счёт, как только он кончился — итог.
+/// Идущий матч: пока он не кончился — счёт, как только кончился — итог.
 ///
-/// Матч живёт здесь целиком: набор правил, журнал розыгрышей и время, когда
-/// он игрался. Стартовый экран (тикет 06) появится позже, поэтому набор правил
-/// пока берётся по умолчанию — классический счёт, — а второй матч начинается
-/// перезапуском приложения. До стартового экрана выбирать не из чего, а
-/// классический счёт — то, чем падел является по умолчанию.
+/// Матч приходит снаружи уже начатым: набор правил и первую подачу спросил
+/// стартовый экран, а продолжить прерванный решил корень приложения. Дальше
+/// матч живёт здесь и наружу не возвращается — корню довольно знать, что он
+/// есть.
 ///
-/// Здесь же матч обрастает тем, ради чего он переживает полтора часа на корте:
+/// Здесь же он обрастает тем, ради чего переживает полтора часа на корте:
 /// тренировкой, которая идёт ровно столько же, сколько матч, и записью в
 /// хранилище после каждого розыгрыша.
 struct MatchView: View {
-    /// Матч, с которого начинают, если продолжать нечего. Он же стоит здесь
-    /// первые доли секунды, пока хранилище не ответило.
-    @State private var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now)
+    /// Матч и время, когда он игрался.
+    @State private var saved: SavedMatch
 
     private let store: any MatchStore
 
     @State private var workout: any Workout
 
+    /// Уводит с матча на стартовый экран. Зовётся только с экрана итога:
+    /// начать новый матч посреди идущего — это его прекратить, а для этого
+    /// есть страница управления.
+    private let onFinish: () -> Void
+
     /// Хранилище и тренировка приходят снаружи, а не создаются здесь: превью
     /// не должно ни просить доступ к здоровью, ни заводить базу.
-    init(store: any MatchStore, workout: any Workout) {
+    init(
+        match: SavedMatch,
+        store: any MatchStore,
+        workout: any Workout,
+        onFinish: @escaping () -> Void
+    ) {
+        _saved = State(initialValue: match)
         self.store = store
         _workout = State(initialValue: workout)
+        self.onFinish = onFinish
     }
 
     var body: some View {
@@ -36,11 +46,15 @@ struct MatchView: View {
         Group {
             if state.outcome.isOver {
                 OutcomeView(
-                    winner: state.outcome.winner, score: state.finalScore, onUndo: undo)
+                    winner: state.outcome.winner,
+                    score: state.finalScore,
+                    onUndo: undo,
+                    onFinish: onFinish)
             } else {
                 ScorePages(
                     points: state.points,
                     games: state.games,
+                    sets: setsWorthShowing(state),
                     servingSide: state.servingSide,
                     onRallyWon: record(rallyWonBy:),
                     onUndo: undo,
@@ -67,7 +81,16 @@ struct MatchView: View {
                 workout.end()
             }
         }
-        .task { continueMatchInProgress() }
+    }
+
+    /// Счёт по сетам показывается только там, где он что-то говорит: в матче
+    /// до одного сета он равен 0:0 до последнего розыгрыша, а в матче до двух
+    /// без него геймы врут — они обнуляются с каждым сетом. Спрашивается это
+    /// у набора правил, а не у сыгранного: недоигранный матч до двух сетов
+    /// может не досчитать ни одного, и это не повод выдать счёт текущего сета
+    /// за счёт матча.
+    private func setsWorthShowing(_ state: MatchState) -> SideCounts? {
+        saved.match.ruleset.isMultiSet ? state.sets : nil
     }
 
     private func record(rallyWonBy side: Side) {
@@ -94,23 +117,6 @@ struct MatchView: View {
         persist()
     }
 
-    /// Продолжает матч, начатый до того, как приложение выгрузили.
-    ///
-    /// Спрашивается только пока не сыграно ни одного розыгрыша: подменить
-    /// журнал под руками игрока, который уже считает очки, хуже, чем не
-    /// восстановить ничего.
-    private func continueMatchInProgress() {
-        guard saved.match.journal.isEmpty else { return }
-
-        do {
-            guard let inProgress = try store.matchInProgress() else { return }
-
-            saved = inProgress
-        } catch {
-            logger.error("Матч не восстановлен: \(error.localizedDescription)")
-        }
-    }
-
     /// Запись после каждого розыгрыша, а не в конце матча: матч, прерванный на
     /// середине, восстанавливается ровно потому, что уже записан.
     ///
@@ -127,7 +133,11 @@ struct MatchView: View {
 }
 
 #Preview {
-    MatchView(store: NoMatchStore(), workout: NoWorkout())
+    MatchView(
+        match: SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now),
+        store: NoMatchStore(),
+        workout: NoWorkout(),
+        onFinish: {})
 }
 
 private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")

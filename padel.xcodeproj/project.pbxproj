@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		AA01A000000000000000000D /* padel Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA01A0000000000000000001 /* padel Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DDE9576530478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001C /* PadelStorage */; };
+		DDE9576630478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001B /* PadelStorage */; };
 		DDFEE3113046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000B /* PadelScoring */; };
 		DDFEE3123046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000C /* PadelScoring */; };
 /* End PBXBuildFile section */
@@ -72,6 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDE9576530478A830054DB3F /* PadelStorage in Frameworks */,
 				DDFEE3123046086400C7278D /* PadelScoring in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,6 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDE9576630478A830054DB3F /* PadelStorage in Frameworks */,
 				DDFEE3113046086400C7278D /* PadelScoring in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -256,8 +260,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "padel Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Padel;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "\U0421\U0447\U0451\U0442\U0447\U0438\U043a \U0447\U0438\U0442\U0430\U0435\U0442 \U043f\U0443\U043b\U044c\U0441 \U0438 \U043a\U0430\U043b\U043e\U0440\U0438\U0438 \U0432\U043e \U0432\U0440\U0435\U043c\U044f \U043c\U0430\U0442\U0447\U0430, \U0447\U0442\U043e\U0431\U044b \U0437\U0430\U043f\U0438\U0441\U0430\U0442\U044c \U0435\U0433\U043e \U043a\U0430\U043a \U0442\U0440\U0435\U043d\U0438\U0440\U043e\U0432\U043a\U0443.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "\U041c\U0430\U0442\U0447 \U0437\U0430\U043f\U0438\U0441\U044b\U0432\U0430\U0435\U0442\U0441\U044f \U0432 Health \U043a\U0430\U043a \U0442\U0440\U0435\U043d\U0438\U0440\U043e\U0432\U043a\U0430. \U0411\U0435\U0437 \U044d\U0442\U043e\U0433\U043e \U0447\U0430\U0441\U044b \U043d\U0435 \U0434\U0435\U0440\U0436\U0430\U0442 \U044d\U043a\U0440\U0430\U043d \U0441\U0447\U0451\U0442\U0430 \U0432\U043a\U043b\U044e\U0447\U0451\U043d\U043d\U044b\U043c \U0432\U0441\U044e \U0438\U0433\U0440\U0443, \U0430 \U043f\U0430\U0434\U0435\U043b \U043d\U0435 \U043f\U043e\U043f\U0430\U0434\U0430\U0435\U0442 \U0432 \U043a\U043e\U043b\U044c\U0446\U0430 \U0430\U043a\U0442\U0438\U0432\U043d\U043e\U0441\U0442\U0438.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Счётчик читает пульс и калории во время матча, чтобы записать его как тренировку.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Матч записывается в Health как тренировка. Без этого часы не держат экран счёта включённым всю игру, а падел не попадает в кольца активности.";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.vveidi.padel;
 				MARKETING_VERSION = 1.0;
@@ -289,8 +293,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "padel Watch App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Padel;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "\U0421\U0447\U0451\U0442\U0447\U0438\U043a \U0447\U0438\U0442\U0430\U0435\U0442 \U043f\U0443\U043b\U044c\U0441 \U0438 \U043a\U0430\U043b\U043e\U0440\U0438\U0438 \U0432\U043e \U0432\U0440\U0435\U043c\U044f \U043c\U0430\U0442\U0447\U0430, \U0447\U0442\U043e\U0431\U044b \U0437\U0430\U043f\U0438\U0441\U0430\U0442\U044c \U0435\U0433\U043e \U043a\U0430\U043a \U0442\U0440\U0435\U043d\U0438\U0440\U043e\U0432\U043a\U0443.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "\U041c\U0430\U0442\U0447 \U0437\U0430\U043f\U0438\U0441\U044b\U0432\U0430\U0435\U0442\U0441\U044f \U0432 Health \U043a\U0430\U043a \U0442\U0440\U0435\U043d\U0438\U0440\U043e\U0432\U043a\U0430. \U0411\U0435\U0437 \U044d\U0442\U043e\U0433\U043e \U0447\U0430\U0441\U044b \U043d\U0435 \U0434\U0435\U0440\U0436\U0430\U0442 \U044d\U043a\U0440\U0430\U043d \U0441\U0447\U0451\U0442\U0430 \U0432\U043a\U043b\U044e\U0447\U0451\U043d\U043d\U044b\U043c \U0432\U0441\U044e \U0438\U0433\U0440\U0443, \U0430 \U043f\U0430\U0434\U0435\U043b \U043d\U0435 \U043f\U043e\U043f\U0430\U0434\U0430\U0435\U0442 \U0432 \U043a\U043e\U043b\U044c\U0446\U0430 \U0430\U043a\U0442\U0438\U0432\U043d\U043e\U0441\U0442\U0438.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Счётчик читает пульс и калории во время матча, чтобы записать его как тренировку.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Матч записывается в Health как тренировка. Без этого часы не держат экран счёта включённым всю игру, а падел не попадает в кольца активности.";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.vveidi.padel;
 				MARKETING_VERSION = 1.0;

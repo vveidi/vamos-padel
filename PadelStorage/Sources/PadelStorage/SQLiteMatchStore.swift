@@ -100,17 +100,30 @@ public final class SQLiteMatchStore: MatchStore {
             // счёт рядом с журналом — то самое состояние, которое однажды
             // с ним разойдётся (ADR-0001). Колонка есть только у пометки
             // недоигранности, и ровно потому, что её неоткуда посчитать.
-            let row = try Row.fetchOne(
-                db,
-                sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1")
-
-            guard let row else { return nil }
+            guard let row = try Row.fetchOne(db, sql: Self.lastMatch) else { return nil }
 
             let saved = try Self.savedMatch(row: row, db: db)
 
             return saved.match.state.outcome.isOver ? nil : saved
         }
     }
+
+    public func lastRuleset() throws -> Ruleset? {
+        try dbQueue.read { db in
+            guard let row = try Row.fetchOne(db, sql: Self.lastMatch) else { return nil }
+
+            return try Self.ruleset(from: row)
+        }
+    }
+
+    /// Какой матч считается прошлым. Запрос один на оба вопроса о нём — «его
+    /// доигрывать?» и «по каким правилам он шёл?»: разъехавшись, они начали бы
+    /// отвечать про разные матчи.
+    ///
+    /// Порядок по времени последнего розыгрыша, а не по времени начала: матч,
+    /// начатый раньше, а доигранный позже, — всё-таки более поздний.
+    private static let lastMatch =
+        "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
 
     public func match(id: UUID) throws -> SavedMatch? {
         try dbQueue.read { db in

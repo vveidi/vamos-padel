@@ -23,7 +23,7 @@ struct PadelWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MatchView(store: store, workout: HealthKitWorkout())
+            RootView(store: store, workout: HealthKitWorkout())
         }
     }
 }

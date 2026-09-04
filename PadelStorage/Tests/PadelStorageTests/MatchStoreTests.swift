@@ -252,4 +252,72 @@ struct MatchStoreTests {
     func anUnknownMatchIsNotFound() throws {
         #expect(try SQLiteMatchStore.inMemory().match(id: UUID()) == nil)
     }
+
+    // MARK: Правила прошлого матча
+
+    /// То, ради чего стартовый экран вообще спрашивает хранилище: компания
+    /// играет по одним и тем же правилам месяцами, и выставлять их каждый раз
+    /// заново — налог на то, что случается раз в полгода.
+    @Test(
+        "Правила прошлого матча помнятся",
+        arguments: [
+            Ruleset.classic(setsToWin: 2, goldenPoint: false),
+            .classic(setsToWin: 1, goldenPoint: true),
+            .pointsTo(target: 21, serveChangesEvery: 2),
+        ])
+    func theLastRulesetIsRemembered(ruleset: Ruleset) throws {
+        let store = try SQLiteMatchStore.inMemory()
+
+        try store.save(SavedMatch.played([.us, .them], ruleset: ruleset))
+
+        #expect(try store.lastRuleset() == ruleset)
+    }
+
+    /// Законченный матч продолжать не предлагается, а правила его — предлагаются:
+    /// обычный случай как раз такой, следующий матч начинают после доигранного.
+    @Test("Правила помнятся и от законченного матча")
+    func theRulesetOfAFinishedMatchIsRemembered() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let ruleset = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
+
+        try store.save(SavedMatch.played([.us, .us], ruleset: ruleset))
+
+        #expect(try store.matchInProgress() == nil)
+        #expect(try store.lastRuleset() == ruleset)
+    }
+
+    @Test("Помнятся правила прошлого матча, а не позапрошлого")
+    func theRulesetComesFromTheLatestMatch() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let today = Ruleset.classic(setsToWin: 3, goldenPoint: false)
+
+        try store.save(SavedMatch.played([.us], ruleset: .defaultPointsTo))
+        try store.save(
+            SavedMatch.played(
+                [.them], ruleset: today, from: aMoment.addingTimeInterval(24 * 3600)))
+
+        #expect(try store.lastRuleset() == today)
+    }
+
+    /// Тот самый критерий: настройки переживают перезапуск приложения. Второе
+    /// соединение к той же базе — это и есть перезапуск.
+    @Test("Правила прошлого матча переживают перезапуск приложения")
+    func theLastRulesetSurvivesARelaunch() throws {
+        let database = "ruleset-\(UUID().uuidString)"
+        let ruleset = Ruleset.pointsTo(target: 24, serveChangesEvery: 6)
+
+        let store = try SQLiteMatchStore.inMemory(named: database)
+        try store.save(SavedMatch.played([.us, .them], ruleset: ruleset))
+
+        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+
+        #expect(try afterRelaunch.lastRuleset() == ruleset)
+    }
+
+    /// Первый матч на новых часах: подставлять нечего, и стартовый экран
+    /// показывает умолчания.
+    @Test("В пустом хранилище правил прошлого матча нет")
+    func anEmptyStoreRemembersNoRuleset() throws {
+        #expect(try SQLiteMatchStore.inMemory().lastRuleset() == nil)
+    }
 }

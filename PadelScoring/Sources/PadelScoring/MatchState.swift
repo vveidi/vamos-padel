@@ -74,9 +74,8 @@ extension MatchState {
     /// Движок: чистая функция от набора правил, журнала и первой подачи
     /// к состоянию.
     ///
-    /// Первая подача по умолчанию наша: до стартового экрана (тикет 06)
-    /// спросить её негде, а молчать о подаче на корте хуже, чем предположить
-    /// самое частое.
+    /// Первая подача по умолчанию наша: спрашивает её стартовый экран, а
+    /// тестам и превью нужнее короткая запись, чем лишний аргумент.
     public init(ruleset: Ruleset, journal: RallyJournal, firstServer: Side = .us) {
         switch ruleset {
         case .pointsTo(let target, let serveChangesEvery):
@@ -99,10 +98,10 @@ extension MatchState {
     /// Проверка стоит после розыгрыша, поэтому пустой журнал — всегда
     /// незаконченный матч, а любое `target` меньше двух ведёт себя как
     /// «до одного очка»: выигрывает тот, кто взял первый розыгрыш. Осмысленную
-    /// нижнюю границу N задаёт стартовый экран (тикет 06), но и бессмысленное
+    /// нижнюю границу N задаёт стартовый экран, но и бессмысленное
     /// значение не должно ни ронять приложение, ни делать матч бесконечным.
-    /// Подача здесь переходит каждые X розыгрышей. X приходит извне (тикет 06)
-    /// и потому подпирается снизу: при нуле подача не «не менялась бы», а
+    /// Подача здесь переходит каждые X розыгрышей. X приходит извне и потому
+    /// подпирается снизу: при нуле подача не «не менялась бы», а
     /// уронила бы приложение делением на ноль.
     private static func pointsTo(
         target: Int, serveChangesEvery: Int, firstServer: Side, journal: RallyJournal
@@ -137,12 +136,17 @@ extension MatchState {
     /// тем же розыгрышем, который закрыл уровень ниже: очко, выигравшее гейм,
     /// может тем же движением выиграть сет, а вместе с ним и матч.
     ///
-    /// Число сетов приходит извне (тикет 06) и потому подпирается снизу: матч
-    /// до нуля сетов невозможно ни начать, ни закончить.
+    /// Число сетов приходит извне и потому подпирается снизу: матч до нуля
+    /// сетов невозможно ни начать, ни закончить.
     private static func classic(
         setsToWin: Int, goldenPoint: Bool, firstServer: Side, journal: RallyJournal
     ) -> MatchState {
         let setsToWin = max(setsToWin, 1)
+
+        // Тот же вопрос, что `Ruleset.isMultiSet`, и тот же ответ: матч
+        // длиннее одного сета запоминается сетами, иначе счёт последнего сета
+        // выдавал бы себя за счёт всего матча.
+        let isMultiSet = setsToWin > 1
 
         var sets = SideCounts()
         var games = SideCounts()
@@ -161,7 +165,7 @@ extension MatchState {
                 points: isTieBreak ? .count(points) : .game(points),
                 games: games,
                 sets: sets,
-                finalScore: setsToWin > 1 ? sets : games,
+                finalScore: isMultiSet ? sets : games,
                 servingSide: firstServer.alternating(gamesPlayed + tieBreakServeChanges),
                 outcome: outcome)
         }

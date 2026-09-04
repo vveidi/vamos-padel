@@ -14,6 +14,17 @@ struct RulesetTests {
         #expect(Ruleset.defaultClassic == .classic(setsToWin: 1, goldenPoint: true))
     }
 
+    /// От этого ответа зависит и то, каким счётом матч запомнится, и то,
+    /// показывает ли экран счёт по сетам: в матче до одного сета показывать
+    /// нечего, в матче до двух геймы без сетов не говорят, кто ведёт.
+    @Test("Матч длиннее одного сета отличается от короткого")
+    func onlyAMatchLongerThanOneSetHasSetsWorthShowing() {
+        #expect(Ruleset.classic(setsToWin: 2, goldenPoint: true).isMultiSet)
+        #expect(Ruleset.classic(setsToWin: 3, goldenPoint: false).isMultiSet)
+        #expect(!Ruleset.classic(setsToWin: 1, goldenPoint: true).isMultiSet)
+        #expect(!Ruleset.defaultPointsTo.isMultiSet)
+    }
+
     @Test("Наборы правил с разными параметрами различаются")
     func rulesetsWithDifferentParametersDiffer() {
         #expect(Ruleset.pointsTo(target: 16, serveChangesEvery: 4) != .pointsTo(target: 21, serveChangesEvery: 4))

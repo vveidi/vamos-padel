@@ -18,6 +18,10 @@ struct ScoreView: View {
     /// одними очками.
     let games: SideCounts?
 
+    /// Выигранные сеты; `nil` везде, кроме матча длиннее одного сета. Решает
+    /// это набор правил, а не экран.
+    let sets: SideCounts?
+
     let servingSide: Side
 
     let onRallyWon: (Side) -> Void
@@ -37,6 +41,7 @@ struct ScoreView: View {
             side: side,
             pointsLabel: points.label(for: side),
             games: games?[side],
+            sets: sets?[side],
             isServing: side == servingSide,
             onRallyWon: onRallyWon,
             onUndo: onUndo)
@@ -51,6 +56,7 @@ private struct ScoreZone: View {
     let pointsLabel: String
 
     let games: Int?
+    let sets: Int?
     let isServing: Bool
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
@@ -111,6 +117,18 @@ private struct ScoreZone: View {
                 .foregroundStyle(.white)
                 .opacity(isServing ? 0.9 : 0)
         }
+        // Сеты стоят у противоположного края, а не третьим числом в строке
+        // счёта: рядом с геймами вторая мелкая цифра читалась бы как часть
+        // счёта по геймам, и «4 1» пришлось бы разбирать. Место — единственное,
+        // что их различает, и оно же не даёт им сдвинуть очки с центра зоны.
+        .overlay(alignment: .trailing) {
+            if let sets {
+                Text("\(sets)")
+                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .padding(.trailing, 12)
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+        }
         .background(background)
     // Иначе жест ловит только сам счёт, а не вся половина.
     .contentShape(Rectangle())
@@ -134,6 +152,7 @@ private struct ScoreZone: View {
         var value = pointsLabel
 
         if let games { value += ", геймов \(games)" }
+        if let sets { value += ", сетов \(sets)" }
         if isServing { value += ", подача" }
 
         return value
@@ -144,7 +163,18 @@ private struct ScoreZone: View {
     ScoreView(
         points: .game(SideCounts(us: 3, them: 2)),
         games: SideCounts(us: 4, them: 5),
+        sets: nil,
         servingSide: .us,
+        onRallyWon: { _ in },
+        onUndo: {})
+}
+
+#Preview("Матч до двух сетов") {
+    ScoreView(
+        points: .game(SideCounts(us: 4, them: 3)),
+        games: SideCounts(us: 2, them: 4),
+        sets: SideCounts(us: 1, them: 0),
+        servingSide: .them,
         onRallyWon: { _ in },
         onUndo: {})
 }
@@ -153,6 +183,7 @@ private struct ScoreZone: View {
     ScoreView(
         points: .count(SideCounts(us: 12, them: 9)),
         games: nil,
+        sets: nil,
         servingSide: .them,
         onRallyWon: { _ in },
         onUndo: {})

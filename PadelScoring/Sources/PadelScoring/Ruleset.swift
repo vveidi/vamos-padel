@@ -15,8 +15,25 @@ public enum Ruleset: Equatable, Sendable {
     /// `serveChangesEvery` розыгрышей.
     case pointsTo(target: Int, serveChangesEvery: Int)
 
+    /// Матч длиннее одного сета.
+    ///
+    /// Вопрос набора правил, а не экрана. В матче до одного сета счёт по сетам
+    /// показывать нечего: он равен 0:0 до самого последнего розыгрыша. В матче
+    /// до двух его не показывать нельзя: геймы обнуляются с каждым сетом, и
+    /// «4 : 1» без сетов не говорит, кто ведёт в матче.
+    ///
+    /// Тот же вопрос решает `MatchState.finalScore`, выбирая, каким счётом
+    /// матч запомнится, — и ответ обязан совпадать.
+    public var isMultiSet: Bool {
+        switch self {
+        case .classic(let setsToWin, _): setsToWin > 1
+        case .pointsTo: false
+        }
+    }
+
     /// Стартовые значения подобраны под любительскую игру на оплаченный
-    /// час корта; дальше приложение помнит настройки прошлого матча.
+    /// час корта; дальше приложение помнит правила прошлого матча — их
+    /// подставляет стартовый экран, спрашивая хранилище.
     public static let defaultClassic = Ruleset.classic(setsToWin: 1, goldenPoint: true)
 
     public static let defaultPointsTo = Ruleset.pointsTo(target: 16, serveChangesEvery: 4)

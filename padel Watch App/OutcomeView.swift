@@ -17,6 +17,10 @@ struct OutcomeView: View {
 
     let onUndo: () -> Void
 
+    /// Уводит на стартовый экран за следующим матчем. Тем же касанием игрок
+    /// выбирает первую подачу — на корте её как раз разыгрывают заново.
+    let onFinish: () -> Void
+
     var body: some View {
         Group {
             if let winner { finished(winner) } else { unfinished }
@@ -71,14 +75,23 @@ struct OutcomeView: View {
                 .font(.system(size: 44, weight: .semibold, design: .rounded))
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+
+            // Кнопка, а не жест: на этом экране игрок уже не на подаче и
+            // никуда не спешит, а промахнуться мимо неё в новый матч посреди
+            // разбора последнего розыгрыша не хочется. Матч к этому моменту
+            // записан целиком, поэтому уйти отсюда нечем не рискуя.
+            Button("Новый матч", action: onFinish)
+                .buttonStyle(.bordered)
+                .font(.footnote)
+                .padding(.top, 4)
         }
     }
 }
 
 #Preview("Победа") {
-    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4), onUndo: {})
+    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4), onUndo: {}, onFinish: {})
 }
 
 #Preview("Недоигранный матч") {
-    OutcomeView(winner: nil, score: SideCounts(us: 3, them: 5), onUndo: {})
+    OutcomeView(winner: nil, score: SideCounts(us: 3, them: 5), onUndo: {}, onFinish: {})
 }

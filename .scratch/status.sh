@@ -16,9 +16,9 @@ scratch="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -t 1 ]; then
   dim=$'\033[2m'; bold=$'\033[1m'; reset=$'\033[0m'
-  green=$'\033[32m'; yellow=$'\033[33m'; grey=$'\033[90m'
+  green=$'\033[32m'; yellow=$'\033[33m'; gray=$'\033[90m'
 else
-  dim=''; bold=''; reset=''; green=''; yellow=''; grey=''
+  dim=''; bold=''; reset=''; green=''; yellow=''; gray=''
 fi
 
 TITLE_WIDTH=44
@@ -83,10 +83,10 @@ report_feature() {
 
     case "${statuses[$i]}" in
       done)    state="${green}✅ done${reset}" ;;
-      wontfix) state="${grey}🚫 wontfix${reset}" ;;
+      wontfix) state="${gray}🚫 wontfix${reset}" ;;
       *)
         if [ -n "$waiting" ]; then
-          state="${grey}⛔ waiting on ${waiting// /, }${reset}"
+          state="${gray}⛔ waiting on ${waiting// /, }${reset}"
         elif [ "${statuses[$i]}" = ready-for-agent ]; then
           state="${green}🟢 up for grabs${reset}"
           ready+=("${nums[$i]}")

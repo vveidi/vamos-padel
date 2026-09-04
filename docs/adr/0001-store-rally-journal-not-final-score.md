@@ -2,7 +2,7 @@
 
 A match is saved as an ordered sequence of rallies ("the point was won by side A/B"); the score is computed from the journal and is nowhere stored beside it. The alternative — writing down a result such as "6:4" — is cheaper today but irreversibly loses everything else: the course of the match cannot be recovered from a score line, whereas anything at all can be recomputed from the journal.
 
-The decision is made for the sake of v2: once players and statistics appear, the whole history accumulated by then stays usable — break points, streaks, behaviour on the golden point can all be computed from the journal after the fact. Had the result been stored, the entire history up to that moment would have been dead weight.
+The decision is made for the sake of v2: once players and statistics appear, the whole history accumulated by then stays usable — break points, streaks, behavior on the golden point can all be computed from the journal after the fact. Had the result been stored, the entire history up to that moment would have been dead weight.
 
 ## Consequences
 

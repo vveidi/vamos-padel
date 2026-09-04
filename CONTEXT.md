@@ -6,10 +6,18 @@ was played. The phone serves as the shop window for the history.
 ## Written language
 
 The code and every document around it — doc comments, test names, ADRs,
-tickets, this glossary — are written in English. The app's own strings are
-Russian: screen titles, button labels, VoiceOver labels. Do not translate the
-strings: Russian is the language of the app, English is the language of the
-work around it.
+tickets, this glossary — are written in English, and so is every string the app
+says: a screen title, a button label, a VoiceOver label stands in the source in
+English, and that English sentence is at once the key its Russian translation is
+found by (ADR-0005).
+
+That English is American, without exception and on both sides of the line — the
+prose and the strings. One spelling everywhere, so that a doc comment is never a
+bad example for the sentence written underneath it.
+
+The app itself speaks two languages, and the reader's phone chooses between
+them; a phone set to neither gets English. On screen the two are equal. In the
+source they are not: a sentence is written once, and it is written in English.
 
 ## Language
 
@@ -72,7 +80,7 @@ _Avoid_: server, the serve (as an entity)
 A match stopped before the ruleset declared it over. Saved in the history
 alongside the rest, but marked explicitly, and counted as neither a win nor a
 loss.
-_Avoid_: dropped, cancelled, interrupted
+_Avoid_: dropped, canceled, interrupted
 
 **Match duration**:
 The time from the first rally to the last. Counted neither from the app
@@ -116,6 +124,6 @@ history. It happens by itself, without the player, and at whatever moment the
 phone becomes reachable — during play it is not needed. A match counts as
 delivered when the phone has signed for having written it down, not when the
 watch sent it: until the receipt, the watch is the only place the match exists
-(ADR-0002). The same match may arrive twice — the phone recognises it by its
+(ADR-0002). The same match may arrive twice — the phone recognizes it by its
 identifier and does not create a second one.
-_Avoid_: synchronisation, sync (this is not a two-way exchange)
+_Avoid_: synchronization, sync (this is not a two-way exchange)

@@ -82,7 +82,7 @@ struct PackageIsolationTests {
         }
     }
 
-    @Test("Imports are recognised, mentions in comments are not")
+    @Test("Imports are recognized, mentions in comments are not")
     func importsAreRecognisedButCommentsAreNot() {
         let source = """
             // import SwiftUI in a comment does not count

@@ -52,7 +52,7 @@ public protocol MatchReceiver: Sendable {
 
     /// Signs for the match having been written.
     ///
-    /// A step of its own rather than the transport's own acknowledgement: the
+    /// A step of its own rather than the transport's own acknowledgment: the
     /// transport only knows that the parcel reached the app, whereas the watch
     /// has to learn that it reached the history. The difference shows on
     /// exactly the day the database failed to open on the phone.

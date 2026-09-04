@@ -47,7 +47,7 @@ struct MatchRow: View {
     ///
     /// An abandoned match counts as neither a win nor a loss, and in a column
     /// of results its score must not pass for one — so it is dimmed and
-    /// labelled at once. Grey rather than red: the same colour the watch marks
+    /// labeled at once. Gray rather than red: the same color the watch marks
     /// it with on the outcome screen, and being stopped early is not an error
     /// to warn about.
     ///

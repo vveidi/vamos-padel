@@ -41,7 +41,7 @@ Done. Every criterion checked:
   screen (ticket 06).
 - **The state is computed, not stored**: `MatchState` is assembled from the ruleset and the
   journal on every read; it cannot be assembled from outside behind the journal's back — the
-  memberwise initialiser is internal.
+  memberwise initializer is internal.
 - **The same journal yields the same state**: the test compares the states of the original
   journal and of a journal rebuilt from the same sequence.
 - **The engine's tests**: 27 tests, `swift test` without a simulator.
@@ -49,7 +49,7 @@ Done. Every criterion checked:
 Decisions taken along the way:
 
 - **The geometry of the zones**: the opponents on top, us at the bottom — as on court, with
-  the opponents across the net in front of us. Our half is recognised by colour rather than
+  the opponents across the net in front of us. Our half is recognized by color rather than
   by a label: a label would take room from the digit.
 - **`Ruleset.classic` crashes the engine** with a pointer to ticket 03. The alternative —
   counting a classic match as a match to infinity — would have lied silently about the rules.

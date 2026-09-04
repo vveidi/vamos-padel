@@ -137,7 +137,7 @@ available without availability checks.
 
 ## Testing Decisions
 
-A good test here checks **external behaviour**: you feed in a ruleset and a sequence of won rallies, and assert about the observable match state. The test knows nothing about how the computation is arranged inside, does not reach for private types, and does not break when internal functions are renamed.
+A good test here checks **external behavior**: you feed in a ruleset and a sequence of won rallies, and assert about the observable match state. The test knows nothing about how the computation is arranged inside, does not reach for private types, and does not break when internal functions are renamed.
 
 There is no prior code in the repository, so no prototype tests exist — these tests will become the pattern for the ones that follow.
 
@@ -172,7 +172,7 @@ The round trip through a store on an in-memory SQLite database: a saved match re
 
 - **Players and names.** The sides are anonymous: "us" and "them". The journal is saved in a form that players can be attached to later, but in v1 there are none.
 - **Statistics.** Without players it comes down to "62% of matches won" — a figure with no use.
-- **Americano.** A tournament format for 8–16 players with rotating partners and individual scoring. A separate product for the organiser's phone, not this one. The term is reserved for the tournament and does not denote the match to N points.
+- **Americano.** A tournament format for 8–16 players with rotating partners and individual scoring. A separate product for the organizer's phone, not this one. The term is reserved for the tournament and does not denote the match to N points.
 - **Cloud sync, accounts, a server.** Deferred behind the transport seam.
 - **Android.** Accounted for only in the choice of storage format: an SQLite file is portable.
 - **Booking courts, finding partners, ratings.**

@@ -21,7 +21,7 @@ struct MatchReceptionTests {
 
     /// The watch sends the match again until it gets a confirmation, and the
     /// transport has a queue of its own — the same match arriving twice is by
-    /// design. It is recognised by the identifier created on the first rally.
+    /// design. It is recognized by the identifier created on the first rally.
     @Test("Arriving twice does not create a second match")
     func arrivingTwiceDoesNotDuplicateTheMatch() throws {
         let store = try SQLiteMatchStore.inMemory()

@@ -13,7 +13,7 @@ import PadelStorage
 /// sake alone, and there may be no screen at all at that moment.
 ///
 /// The same match arrives twice if the receipt did not get through. The second
-/// arrival does not create a second match: the store recognises it by its
+/// arrival does not create a second match: the store recognizes it by its
 /// identifier and updates the record — with the same journal if it did not
 /// change, and with a continued one if a point was undone after delivery and
 /// the match played on.

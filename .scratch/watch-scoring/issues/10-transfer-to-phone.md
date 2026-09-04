@@ -95,9 +95,9 @@ hand (a human has nowhere to look). This closes four of ticket 11's six criteria
 and not with a "stub": what stays uncovered there is the duration and the ruleset, while the
 live updating of the list and the presentation it will redo entirely.
 
-**The behaviour of the closed ticket 07 was changed.** `SQLiteMatchStore.save` no longer
+**The behavior of the closed ticket 07 was changed.** `SQLiteMatchStore.save` no longer
 appends to the journal at the tail but rewrites it in full (see above), and clears the
-delivery mark. The first is a bug fix, the second is new behaviour; both change a method
+delivery mark. The first is a bug fix, the second is new behavior; both change a method
 ticket 07 considered finished.
 
 **ADR-0004 appeared** — "The delivery queue lives in the store": the decision to create a

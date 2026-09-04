@@ -45,13 +45,13 @@ and "Подаём мы" — and each of them starts the match. A separate "Start
 serve choice would be a second tap that says nothing new: the serve has to be asked for every
 time anyway (the glossary: the rules are remembered until the next match, who serves first is
 decided anew). This way the ticket's "one tap" holds literally, not on average. The opponents
-on top, us at the bottom, the same colours as on the score screen — the half the player will
-be tapping for their own points all match is recognisable before the first rally.
+on top, us at the bottom, the same colors as on the score screen — the half the player will
+be tapping for their own points all match is recognizable before the first rally.
 
 The third row shows the rules ("Классический счёт / 1 сет · золотое очко") and leads to the
 rules screen, `RulesetView`: the ruleset, the sets and the golden point, or N and X. The
 bounds on the values are set there (sets 1–3, N 5–40, X 1–6) — exactly what the engine
-deliberately left to the start screen: it passes no judgement on what it was handed but clamps
+deliberately left to the start screen: it passes no judgment on what it was handed but clamps
 from below, so as not to crash the app on court.
 
 **The rules are remembered by the store, not by a separate setting.**
@@ -69,7 +69,7 @@ remembered by (`MatchState.finalScore`). The sets digit stands at the right edge
 opposite the serve dot, rather than as a third number on the score line: next to the games, a
 second small digit would read as part of the game score, and "4 1" would have to be puzzled
 out. Position is the only thing that tells them apart, and it is also what keeps them from
-pushing the points off the centre of the zone.
+pushing the points off the center of the zone.
 
 **How each criterion was checked.**
 

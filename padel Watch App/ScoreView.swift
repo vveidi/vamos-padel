@@ -8,9 +8,9 @@ import SwiftUI
 /// looking and with a wet hand, so the zones split the screen in half and hold
 /// nothing but the score.
 struct ScoreView: View {
-    /// Our side is recognised by colour rather than by a label: a label would
-    /// take room from the digit the watch is being looked at for. The colour
-    /// lives here and not in the app's accent colour, because it is a decision
+    /// Our side is recognized by color rather than by a label: a label would
+    /// take room from the digit the watch is being looked at for. The color
+    /// lives here and not in the app's accent color, because it is a decision
     /// of the score screen.
     static let ourColor = Color(red: 0.188, green: 0.820, blue: 0.345)
 
@@ -111,7 +111,7 @@ private struct ScoreZone: View {
         .lineLimit(1)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // The dot sits at the edge and not on the line with the score:
-        // otherwise the digit would slide off the centre of the zone on every
+        // otherwise the digit would slide off the center of the zone on every
         // change of serve, and the eye would have to find it again. The room
         // for the dot is always taken — the visibility changes, the layout does
         // not.
@@ -126,7 +126,7 @@ private struct ScoreZone: View {
         // the score line: next to the games, a second small digit would read as
         // part of the game score, and "4 1" would have to be puzzled out.
         // Position is the only thing that tells them apart, and it is also what
-        // keeps them from pushing the points off the centre of the zone.
+        // keeps them from pushing the points off the center of the zone.
         .overlay(alignment: .trailing) {
             if let sets {
                 Text("\(sets)")

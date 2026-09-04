@@ -77,7 +77,7 @@ That is worth settling where the choice appears.
 ### Following /code-review
 
 The review ran along two axes. The standards axis found no hard violations: the package
-stayed clean, `MatchState`'s initialiser stayed internal, the glossary was not broken. The
+stayed clean, `MatchState`'s initializer stayed internal, the glossary was not broken. The
 rest was fixed.
 
 - **The final score no longer guesses.** `finalScore` chose the level by the number of sets
@@ -105,8 +105,8 @@ rest was fixed.
 
 Deliberately not fixed:
 
-- **The `points` + `games` pair travelling through three calls** is the shape of `MatchState`,
-  and by rights it should be passed whole. It cannot be: `MatchState`'s initialiser is
+- **The `points` + `games` pair traveling through three calls** is the shape of `MatchState`,
+  and by rights it should be passed whole. It cannot be: `MatchState`'s initializer is
   internal on purpose (ADR-0001), so previews in the watch target cannot assemble such a
   state. The tuple here is the price of the very ban it exists for.
 - **The ladder `["0", "15", "30", "40"]` repeated in the test** is not a duplicate: a test has

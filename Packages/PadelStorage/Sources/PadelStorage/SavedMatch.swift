@@ -11,7 +11,7 @@ import PadelScoring
 /// match stays what it was.
 public struct SavedMatch: Equatable, Sendable, Identifiable {
     /// Which match this is. Created once on the first rally and never changed:
-    /// by it the store recognises that this is the same match and not a new
+    /// by it the store recognizes that this is the same match and not a new
     /// one — and by it the phone tells apart a match delivered twice
     /// (ticket 10).
     public let id: UUID

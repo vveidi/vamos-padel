@@ -45,7 +45,7 @@ app between games and would not enable Always-On), the HealthKit entitlement, an
 `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` — the very explanation of
 why a match counter needs access to health. For the sake of the array in `WKBackgroundModes`
 the watch target got an `Info.plist` of its own for the first time: `INFOPLIST_KEY_*` cannot
-generate arrays. The file is excluded from Copy Bundle Resources through the synchronised
+generate arrays. The file is excluded from Copy Bundle Resources through the synchronized
 group's exception set — otherwise the build fails on two commands producing the same
 `Info.plist`.
 

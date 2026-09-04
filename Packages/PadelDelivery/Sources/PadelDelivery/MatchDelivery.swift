@@ -47,7 +47,7 @@ public final class MatchDelivery: Sendable {
     ///
     /// Sending again is not a bug but the design. The transport has a queue of
     /// its own, and together they will sometimes deliver one match twice; the
-    /// phone recognises it by its identifier, and the second arrival creates
+    /// phone recognizes it by its identifier, and the second arrival creates
     /// nothing. A lost match cannot be recovered from anywhere; a redundant one
     /// costs nothing.
     public func deliverPending() {

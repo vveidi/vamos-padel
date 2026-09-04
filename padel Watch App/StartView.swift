@@ -25,9 +25,9 @@ struct StartView: View {
             List {
                 // The opponents on top, us at the bottom — the same as on the
                 // score screen and the same as on court: they are across the
-                // net, in front of us. The colours are the same, so the half
+                // net, in front of us. The colors are the same, so the half
                 // the player will be tapping for their own points all match is
-                // recognisable before the first rally.
+                // recognizable before the first rally.
                 serve(.them)
                 serve(.us)
 

@@ -37,7 +37,7 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     }
 
     /// The migrations are applied on opening, and there is nowhere else for
-    /// them: a database opened around this initialiser would be a database of
+    /// them: a database opened around this initializer would be a database of
     /// unknown version.
     init(_ dbQueue: DatabaseQueue) throws {
         self.dbQueue = dbQueue

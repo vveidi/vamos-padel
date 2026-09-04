@@ -98,7 +98,7 @@ public struct Match: Equatable, Sendable {
     /// The hour of play is not lost by it — the match stays exactly what it
     /// was and is saved alongside the rest, only marked. Does nothing in a
     /// finished match: it already has a winner, and declaring it abandoned
-    /// would mean cancelling its outcome.
+    /// would mean canceling its outcome.
     public mutating func abandon() {
         guard !state.outcome.isOver else { return }
 

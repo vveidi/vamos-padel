@@ -36,7 +36,7 @@ public protocol MatchStore: Sendable {
     /// abandoned mark lives in exactly those.
     ///
     /// Asked for by identifier, because that is what the identifier is for: by
-    /// it the store recognises that this is the same match. There is no listing
+    /// it the store recognizes that this is the same match. There is no listing
     /// here — that arrives with the history on the phone (tickets 10, 11),
     /// which needs a list rather than a single match.
     func match(id: UUID) throws -> SavedMatch?

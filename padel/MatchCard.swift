@@ -188,14 +188,14 @@ struct MatchCard: View {
 
 }
 
-/// Our side's colour — the one the watch marks our half of the score screen
+/// Our side's color — the one the watch marks our half of the score screen
 /// with. The score screen owns that decision on the watch and this file owns it
-/// here: two targets with no shared home for a colour, and the same meaning on
+/// here: two targets with no shared home for a color, and the same meaning on
 /// both.
 private let ourSideColor = Color(red: 0.188, green: 0.820, blue: 0.345)
 
-/// The fills of a step that was won. Our side is named by the colour it is
-/// named by everywhere else; the opponents get no colour of their own — being
+/// The fills of a step that was won. Our side is named by the color it is
+/// named by everywhere else; the opponents get no color of their own — being
 /// filled at all is what says they took the step.
 private let ourSideFill = ourSideColor.opacity(0.3)
 

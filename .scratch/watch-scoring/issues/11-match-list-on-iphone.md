@@ -56,7 +56,7 @@ its first rally, as the glossary defines it.
   purpose, so the two are different sentences rather than one copied twice; the phone pays for
   its number with two grammatical cases ("до 21 очка", "до 16 очков").
 - **Abandoned matches**: the score is dimmed and a "не доигран" capsule stands at the end of
-  the row. Grey rather than red, the colour the watch marks it with on the outcome screen:
+  the row. Gray rather than red, the color the watch marks it with on the outcome screen:
   being stopped early is not an error to warn about, it is a result that is not one. Checked
   in both appearances.
 - **A relaunch**: the four matches were written into the database with the app terminated, and

@@ -8,7 +8,7 @@ import SwiftUI
 /// single tap.
 ///
 /// The bounds on the values are set here, and that is not belt-and-braces: the
-/// engine deliberately passes no judgement on what it was handed
+/// engine deliberately passes no judgment on what it was handed
 /// (`MatchState`) — it will play a match to zero sets out as a match to one
 /// rather than crash the app on court. Whether the numbers make sense is a
 /// question for the screen they are chosen on.

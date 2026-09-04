@@ -1,6 +1,6 @@
 # 01: Scaffolding — the watchOS target and the PadelScoring package
 
-**What to build:** An Apple Watch app that installs and launches, and a local Swift package `PadelScoring` holding the rules engine, which the app references. The ticket adds no user-facing behaviour — it is a prefactor that makes all the others possible.
+**What to build:** An Apple Watch app that installs and launches, and a local Swift package `PadelScoring` holding the rules engine, which the app references. The ticket adds no user-facing behavior — it is a prefactor that makes all the others possible.
 
 The package holds the domain types from the glossary: **ruleset**, **rally**, **rally journal**, **match state**. There is no scoring logic in it yet, only the shapes ticket 02 will rest on.
 
@@ -53,7 +53,7 @@ violation of the standards. What was fixed:
   The match state will be defined in full by ticket 02.
 - **`Completion` → `MatchOutcome`**, and the term "Match outcome" was added to the glossary.
   The old name read like a completion handler.
-- **`Codable` removed from every domain type.** The serialisation format is ticket 07's
+- **`Codable` removed from every domain type.** The serialization format is ticket 07's
   decision, and fixing it here would have prejudged the migrations.
 - **The guard strengthened.** Checking imports is not enough: a dependency can be declared
   in the manifest and never imported. A structural check was added that the package declares

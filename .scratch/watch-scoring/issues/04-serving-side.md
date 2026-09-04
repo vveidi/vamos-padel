@@ -43,7 +43,7 @@ Decisions taken along the way:
   the first rally is served by whoever's turn it is, after that it changes every two. Read
   literally, the indicator would lie for all thirteen rallies of the tiebreak — exactly where
   it is looked at most — so the rotation was implemented. This is a departure from the letter
-  of the ticket in favour of its purpose; pinned down by a test of its own.
+  of the ticket in favor of its purpose; pinned down by a test of its own.
 - **The first serve is a property of the match, not of the ruleset.** The rules are remembered
   until the next match (ticket 06), whereas who serves first is decided anew every time. Ours
   by default, as the ticket says.
@@ -53,7 +53,7 @@ Decisions taken along the way:
   one: the question "who serves on the hundredth rally" should cost as much as "who serves on
   the first".
 - **The dot sits at the edge of the zone, not on the line with the score.** On the line it
-  would push the digit off centre on every change of serve, and the eye would have to find the
+  would push the digit off center on every change of serve, and the eye would have to find the
   score again. The room for it is always taken; only the visibility changes.
 
 A note on verification: **taps in the simulator did not work this time.** The simulator

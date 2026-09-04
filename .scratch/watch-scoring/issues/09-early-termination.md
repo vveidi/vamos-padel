@@ -74,7 +74,7 @@ same green as our half of the score screen. There is no undo gesture on it — s
   the score of an already stopped match is worse than none. An accidental tap is guarded
   against by the confirmation — which is what the ticket asked for.
 - **A won match cannot be stopped**: it already has a winner, and declaring it abandoned would
-  mean cancelling the outcome.
+  mean canceling the outcome.
 - **A match stopped before its first rally** is abandoned with an empty journal. There is
   deliberately no special rule: that is the exact description of what happened, and the
   database already allows empty match rows anyway (an undo down to zero).

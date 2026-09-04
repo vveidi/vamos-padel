@@ -57,7 +57,7 @@ struct OutcomeView: View {
 
     private var unfinished: some View {
         outcome(headline: "Матч не доигран", isOurs: false) {
-            // Who is who is said by the colour — the same one that marks our
+            // Who is who is said by the color — the same one that marks our
             // half of the score screen. There is no winner here to set the
             // order, and a "us" label would take room away from the score.
             (Text("\(score[.us])").foregroundStyle(ScoreView.ourColor)

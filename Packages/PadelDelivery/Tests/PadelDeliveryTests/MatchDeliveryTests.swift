@@ -176,7 +176,7 @@ struct MatchDeliveryTests {
 
         let delivered = saved
 
-        // While the receipt was travelling, the last point was undone and the
+        // While the receipt was traveling, the last point was undone and the
         // match played out again.
         saved.match.undo()
         try store.save(saved)

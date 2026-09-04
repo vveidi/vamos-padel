@@ -88,6 +88,14 @@ out of sync with it (ADR-0001); of the whole state, one abandoned mark is
 stored — there is nowhere to compute it from.
 _Avoid_: status, score (as a separately stored value)
 
+**Course of the score**:
+How the match came about, and not only how it ended: the score at every step it
+moved by — a game in classic scoring, a rally in the match to N points.
+Computed from the rally journal by the same engine that computes the state and
+stored nowhere (ADR-0001); this is what keeping the journal instead of the
+result was for. Shown on the match card on the phone.
+_Avoid_: history (that is the phone's list of matches), timeline, chart
+
 **Match outcome**:
 How the match ended: still in progress, won by one of the sides, or left
 abandoned.

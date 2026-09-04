@@ -23,6 +23,13 @@ public enum Points: Equatable, Sendable {
         }
     }
 
+    /// Whether not a single rally has been played in this game.
+    ///
+    /// A question, not arithmetic — which is why it is here and the counters
+    /// are not. The match card asks it of a match stopped early: was it
+    /// stopped in the middle of a game, or exactly on the boundary of one.
+    public var isEmpty: Bool { counts == SideCounts() }
+
     /// What a side's score is called.
     ///
     /// 15/30/40 is padel's own notation, not a translation: the digits and

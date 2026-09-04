@@ -47,6 +47,17 @@ public struct Match: Equatable, Sendable {
         return isAbandoned ? state.abandoned : state
     }
 
+    /// The course of the score — how the match came about, and not only how
+    /// it ended.
+    ///
+    /// Computed from the ruleset and the journal by the same walk the state is
+    /// read off, and stored nowhere (ADR-0001). The abandoned mark does not
+    /// enter into it: being stopped early is a fact about the outcome, and
+    /// what was played was played.
+    public var course: MatchCourse {
+        MatchCourse(ruleset: ruleset, journal: journal)
+    }
+
     /// Records a rally won by the given side.
     ///
     /// Does nothing in a finished match: a tap on the screen after the last

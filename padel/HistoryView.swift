@@ -51,8 +51,16 @@ struct HistoryView: View {
         case unreadable
     }
 
+    /// Every row opens the match card: the list answers "how did it end", and
+    /// the card behind it "how did it come about" (ticket 12).
     private func list(_ matches: [SavedMatch]) -> some View {
-        List(matches) { MatchRow(match: $0) }
+        List(matches) { match in
+            NavigationLink {
+                MatchCard(match: match)
+            } label: {
+                MatchRow(match: match)
+            }
+        }
     }
 
     /// The first launch, and every launch until the first match is played out

@@ -8,14 +8,14 @@ An iPhone-only app; the iPad is out of the target.
 
 **Blocked by:** 10, 09
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The list shows the matches, freshest first
-- [ ] For every match the date, the final score and the duration are visible
-- [ ] It is visible which ruleset the match was played by
-- [ ] Abandoned matches are visually distinct
-- [ ] The history survives a relaunch of the app
-- [ ] An empty history looks sensible rather than like an error
+- [x] The list shows the matches, freshest first
+- [x] For every match the date, the final score and the duration are visible
+- [x] It is visible which ruleset the match was played by
+- [x] Abandoned matches are visually distinct
+- [x] The history survives a relaunch of the app
+- [x] An empty history looks sensible rather than like an error
 
 ## Comments
 
@@ -39,3 +39,66 @@ its first rally, as the glossary defines it.
   ticket's work.
 - A match without a single rally will not need filtering: ticket 10 does not send such matches
   to the phone.
+
+**Done.** The history is watched rather than read, and the row says what a match was.
+
+- **Freshest first**: `MatchStore.matches()` already ordered by the time of the last rally,
+  and the observation asks the same query — the two share one `matches(in:)` so they cannot
+  start answering about different histories. Checked in the simulator on four matches seeded
+  into the app's own database: 4 сент., 3 сент., 2 сент., 1 сент., top to bottom.
+- **The date, the final score and the duration**: the score is `MatchState.finalScore` — the
+  one the ruleset chooses, games for a single set and sets for a longer match — and our side
+  always stands first, including in a match we lost, so that a column of results can be
+  scanned down. The duration is `SavedMatch.duration`, the first rally to the last. On screen:
+  "6 : 4 · Классический счёт · 1 сет · 1 сент. 2026 г., 20:11 · 41 мин".
+- **The ruleset**: named with the number filled in — "Счёт до 16 очков" under a "16 : 14",
+  which is what the ticket asked the line for. The watch keeps the N out of the same name on
+  purpose, so the two are different sentences rather than one copied twice; the phone pays for
+  its number with two grammatical cases ("до 21 очка", "до 16 очков").
+- **Abandoned matches**: the score is dimmed and a "не доигран" capsule stands at the end of
+  the row. Grey rather than red, the colour the watch marks it with on the outcome screen:
+  being stopped early is not an error to warn about, it is a result that is not one. Checked
+  in both appearances.
+- **A relaunch**: the four matches were written into the database with the app terminated, and
+  the list came back with them on launch — the screen reads SQLite and nothing else.
+- **An empty history**: `ContentUnavailableView` with "Матчей пока нет / Сыгранный на часах
+  матч появится здесь сам" — kept from the draft, it was already right.
+
+## What was decided along the way
+
+**The observation is a method on the store, not GRDB in the screen.**
+`matchesObserved()` hands back an `AsyncThrowingStream` of the same list `matches()` reads;
+inside `SQLiteMatchStore` it is a `ValueObservation`, and the screen still knows nothing about
+the database (ADR-0002, ADR-0003). It throws for the same reason the other methods do — the
+store is not the place to decide what to do about a read that did not happen — and the screen
+does with the failure exactly what the watch does: keeps what it has and writes a line in the
+log.
+
+**"Not known yet" is not "empty".** The list is `nil` until the first value arrives. Telling an
+owner with a hundred matches that they have none, even for one frame, is a lie the screen can
+avoid — the same reason `RootView` on the watch waits before choosing a screen.
+
+**A match without a rally is not filtered** — the question ticket 09 left here. The phone never
+receives one: `matchesAwaitingDelivery` drops it on the watch (ticket 10). Filtering it again
+here would guard against a case delivery already forbids, and would quietly swallow the
+evidence if one ever did arrive.
+
+**The row names only the parameter that shapes the score** — the sets, the N. The golden point
+and the interval between service changes decide how the match was played, not how the number
+in front of the reader is to be read; they belong on the match card (ticket 12), which shows
+one match instead of a column of them.
+
+**Dates and durations are formatted in Russian, not in the reader's locale.** The app writes
+Russian and has no second language to switch to, so on an English phone the row read
+"1 hr, 35 min" between "Классический счёт · 2 сета" and the rest — caught in the simulator,
+which is set to English. The calendar and the time zone stay the reader's own: what is fixed
+here is the language, not where in the world the owner is.
+
+## What is not verified
+
+A match arriving from the watch into an open history — that needs the watch, and the pair was
+not run together. What is checked is the mechanism underneath it: a test writes a match into
+the store and the observation hands out the new history, and `PadelApp` gives the reception
+and the screen one and the same store, so the write the phone performs is a write the screen
+is watching.
+

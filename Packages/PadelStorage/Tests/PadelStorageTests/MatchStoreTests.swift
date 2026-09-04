@@ -343,6 +343,45 @@ struct MatchStoreTests {
         #expect(try SQLiteMatchStore.inMemory().matches().isEmpty)
     }
 
+    /// The reason the history is watched rather than read: on the phone a
+    /// match is written by the reception, into an app woken by the system
+    /// (ticket 10). Nobody tells the screen, and a list read once would go on
+    /// showing yesterday's matches with today's lying beside it in the
+    /// database.
+    ///
+    /// The first value is waited for before the second match is written, and
+    /// not out of politeness: by the time it arrives the observation is
+    /// watching, so the write that follows is one it cannot miss.
+    @Test("A match written into the store arrives into the observed history")
+    func aWrittenMatchArrivesIntoTheObservedHistory() async throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let earlier = SavedMatch.played([.us, .them])
+
+        try store.save(earlier)
+
+        var history = store.matchesObserved().makeAsyncIterator()
+
+        #expect(try await history.next() == [earlier])
+
+        let later = SavedMatch.played([.them], from: aMoment.addingTimeInterval(3600))
+
+        try store.save(later)
+
+        #expect(try await history.next() == [later, earlier])
+    }
+
+    /// The empty history is a value like any other: without it the screen
+    /// would have nothing to tell "there are no matches yet" from "the store
+    /// has not answered yet", and it shows different things for the two.
+    @Test("The observed history of an empty store starts empty")
+    func theObservedHistoryOfAnEmptyStoreStartsEmpty() async throws {
+        let store = try SQLiteMatchStore.inMemory()
+
+        var history = store.matchesObserved().makeAsyncIterator()
+
+        #expect(try await history.next() == [])
+    }
+
     /// A match replayed after a point was undone is no continuation of the
     /// previous version but a different journal of the same length. Appending
     /// it as a tail would mean assembling a journal nobody played, and doing so

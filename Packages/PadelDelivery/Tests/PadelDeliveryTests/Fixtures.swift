@@ -118,4 +118,8 @@ struct FailingMatchStore: MatchStore {
     func lastRuleset() throws -> Ruleset? { nil }
 
     func matches() throws -> [SavedMatch] { [] }
+
+    func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
 }

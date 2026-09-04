@@ -154,12 +154,47 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     }
 
     public func matches() throws -> [SavedMatch] {
-        try dbQueue.read { db in
-            let rows = try Row.fetchAll(
-                db, sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC")
+        try dbQueue.read { db in try Self.matches(in: db) }
+    }
 
-            return try rows.map { try Self.savedMatch(row: $0, db: db) }
+    public func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
+        AsyncThrowingStream { continuation in
+            // GRDB reads the history itself when the observation starts, and
+            // again after every transaction that touched the matches or their
+            // rallies — the second half of the ticket's work: a match written
+            // by the reception into an app nobody is looking at still reaches
+            // the screen if somebody is.
+            //
+            // The values are scheduled on the cooperative pool rather than on
+            // the main queue: the screen reads them from an async loop of its
+            // own, and it is that loop's business which actor it comes back on.
+            let cancellable = ValueObservation
+                .tracking { db in try Self.matches(in: db) }
+                .start(
+                    in: dbQueue,
+                    scheduling: .task,
+                    onError: { continuation.finish(throwing: $0) },
+                    onChange: { continuation.yield($0) })
+
+            // The observation lives exactly as long as somebody is reading the
+            // stream: the screen goes away, the loop ends, the database stops
+            // being watched.
+            continuation.onTermination = { _ in cancellable.cancel() }
         }
+    }
+
+    /// The history in a single query, for both the one-off reading and the
+    /// observation: were the two to drift apart, the screen would start
+    /// showing something other than what the tests read back.
+    ///
+    /// Ordered by the time of the last rally rather than by the start, for the
+    /// same reason as `lastMatch`: a match begun earlier but played out later
+    /// is the later one after all.
+    private static func matches(in db: Database) throws -> [SavedMatch] {
+        let rows = try Row.fetchAll(
+            db, sql: "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC")
+
+        return try rows.map { try savedMatch(row: $0, db: db) }
     }
 
     public func matchesAwaitingDelivery() throws -> [SavedMatch] {

@@ -196,9 +196,9 @@
 			mainGroup = DDFEE2D83045B80C00C7278D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AA01A000000000000000000A /* XCLocalSwiftPackageReference "PadelScoring" */,
-				AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */,
-				AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelDelivery" */,
+				AA01A000000000000000000A /* XCLocalSwiftPackageReference "Packages/PadelScoring" */,
+				AA01A000000000000000001A /* XCLocalSwiftPackageReference "Packages/PadelStorage" */,
+				AA01A000000000000000002A /* XCLocalSwiftPackageReference "Packages/PadelDelivery" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DDFEE2E23045B80C00C7278D /* Products */;
@@ -538,15 +538,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AA01A000000000000000000A /* XCLocalSwiftPackageReference "PadelScoring" */ = {
+		AA01A000000000000000000A /* XCLocalSwiftPackageReference "Packages/PadelScoring" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/PadelScoring;
 		};
-		AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */ = {
+		AA01A000000000000000001A /* XCLocalSwiftPackageReference "Packages/PadelStorage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/PadelStorage;
 		};
-		AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelDelivery" */ = {
+		AA01A000000000000000002A /* XCLocalSwiftPackageReference "Packages/PadelDelivery" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/PadelDelivery;
 		};

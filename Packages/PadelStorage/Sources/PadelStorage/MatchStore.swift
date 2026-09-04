@@ -55,8 +55,32 @@ public protocol MatchStore: Sendable {
     /// `nil` — there are no matches yet, and nothing to fill in.
     func lastRuleset() throws -> Ruleset?
 
-    /// Every recorded match, freshest first — the history the phone shows.
+    /// Every recorded match, freshest first.
+    ///
+    /// A single reading of the history: what a test reads back, and what the
+    /// observation below hands out. The screen asks for `matchesObserved()`
+    /// instead — a list read once goes stale the moment the next match
+    /// arrives.
     func matches() throws -> [SavedMatch]
+
+    /// The same history, handed out afresh after every change to the store.
+    ///
+    /// The phone learns about a match without anybody asking: it arrives into
+    /// an app woken by the system for its sake alone (ticket 10), and there
+    /// may be no screen at all at that moment. Re-reading the list when the
+    /// app comes back to the foreground covers every case but the one that
+    /// matters — the match that arrives while the history is open in front of
+    /// its owner.
+    ///
+    /// The first value is the history as it stands: nobody has to read it once
+    /// and subscribe afterwards, and between those two there is exactly the
+    /// room for a match to slip through unnoticed.
+    ///
+    /// The stream throws for the same reason the other methods do: the store
+    /// is not the place to decide what to do about a read that did not happen.
+    /// It ends on the first failure — a database that stopped answering will
+    /// not start again by itself.
+    func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error>
 }
 
 /// No store at all: the match is played, the score is counted, nothing is
@@ -77,6 +101,16 @@ public struct NoMatchStore: MatchStore, MatchDeliveryQueue {
     public func lastRuleset() throws -> Ruleset? { nil }
 
     public func matches() throws -> [SavedMatch] { [] }
+
+    /// An empty history that will never change: the stream hands out the one
+    /// value it has and ends, rather than staying open for a match that has
+    /// nowhere to come from.
+    public func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
+        AsyncThrowingStream { continuation in
+            continuation.yield([])
+            continuation.finish()
+        }
+    }
 
     public func matchesAwaitingDelivery() throws -> [SavedMatch] { [] }
 

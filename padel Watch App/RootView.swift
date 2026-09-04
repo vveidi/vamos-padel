@@ -101,12 +101,6 @@ struct RootView: View {
         }
 
         isRestored = true
-
-        // Матч, не доехавший до телефона в прошлый раз, уезжает снова — в этом
-        // и состоит «очередь переживает перезапуск». Спрашивается это при
-        // каждом запуске, а не только после законченного матча: телефона могло
-        // не быть рядом весь вечер.
-        delivery.deliverPending()
     }
 }
 
@@ -114,7 +108,7 @@ struct RootView: View {
     RootView(
         store: NoMatchStore(),
         workout: NoWorkout(),
-        delivery: MatchDelivery(store: NoMatchStore(), sender: NoMatchTransport()))
+        delivery: MatchDelivery(queue: NoMatchStore(), sender: NoMatchTransport()))
 }
 
 private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")

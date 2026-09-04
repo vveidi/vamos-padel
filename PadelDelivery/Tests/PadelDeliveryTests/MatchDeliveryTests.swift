@@ -13,10 +13,10 @@ struct MatchDeliveryTests {
     func aFinishedMatchIsQueued() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
-        let saved = SavedMatch.played([.us, .us])
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
-        MatchDelivery(store: store, sender: transport).deliverPending()
+        MatchDelivery(queue: store, sender: transport).deliverPending()
 
         #expect(transport.sent.map(\.id) == [saved.id])
     }
@@ -36,7 +36,7 @@ struct MatchDeliveryTests {
         abandoned.match.abandon()
 
         try store.save(abandoned)
-        MatchDelivery(store: store, sender: transport).deliverPending()
+        MatchDelivery(queue: store, sender: transport).deliverPending()
 
         #expect(transport.sent == [abandoned])
     }
@@ -46,8 +46,8 @@ struct MatchDeliveryTests {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
 
-        try store.save(SavedMatch.played([.us]))
-        MatchDelivery(store: store, sender: transport).deliverPending()
+        try store.save(SavedMatch.played([.us], ruleset: toTwo))
+        MatchDelivery(queue: store, sender: transport).deliverPending()
 
         #expect(transport.sent.isEmpty)
     }
@@ -57,7 +57,7 @@ struct MatchDeliveryTests {
     @Test("Очередь переживает перезапуск приложения")
     func theQueueSurvivesARelaunch() throws {
         let database = "delivery-\(UUID().uuidString)"
-        let saved = SavedMatch.played([.us, .us])
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         let store = try SQLiteMatchStore.inMemory(named: database)
         try store.save(saved)
@@ -65,9 +65,30 @@ struct MatchDeliveryTests {
         let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
         let transport = FakeTransport()
 
-        MatchDelivery(store: afterRelaunch, sender: transport).deliverPending()
+        // Никто не зовёт доставку руками: приложение запустилось, транспорт
+        // поднялся — этого довольно.
+        _ = MatchDelivery(queue: afterRelaunch, sender: transport)
+        transport.becomeReady()
 
         #expect(transport.sent.map(\.id) == [saved.id])
+    }
+
+    /// Сессия к телефону поднимается асинхронно. Матч, отданный ей до этого,
+    /// не уехал бы никуда, а второй попытки в этот запуск не случилось бы —
+    /// поэтому очередь ждёт готовности, а не наоборот.
+    @Test("До готовности транспорта не уезжает ничего")
+    func nothingIsSentBeforeTheTransportIsReady() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let transport = FakeTransport()
+
+        try store.save(SavedMatch.played([.us, .us], ruleset: toTwo))
+        _ = MatchDelivery(queue: store, sender: transport)
+
+        #expect(transport.sent.isEmpty)
+
+        transport.becomeReady()
+
+        #expect(transport.sent.count == 1)
     }
 
     /// Часы — источник правды до подтверждённой доставки (ADR-0002), поэтому
@@ -76,9 +97,9 @@ struct MatchDeliveryTests {
     func aConfirmedMatchIsNotSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
-        let delivery = MatchDelivery(store: store, sender: transport)
+        let delivery = MatchDelivery(queue: store, sender: transport)
 
-        try store.save(SavedMatch.played([.us, .us]))
+        try store.save(SavedMatch.played([.us, .us], ruleset: toTwo))
         delivery.deliverPending()
         transport.confirmDelivered()
 
@@ -94,8 +115,8 @@ struct MatchDeliveryTests {
     func anUnconfirmedMatchIsSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
-        let delivery = MatchDelivery(store: store, sender: transport)
-        let saved = SavedMatch.played([.us, .us])
+        let delivery = MatchDelivery(queue: store, sender: transport)
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
         delivery.deliverPending()
@@ -114,9 +135,9 @@ struct MatchDeliveryTests {
     func aMatchChangedAfterDeliveryIsSentAgain() throws {
         let store = try SQLiteMatchStore.inMemory()
         let transport = FakeTransport()
-        let delivery = MatchDelivery(store: store, sender: transport)
+        let delivery = MatchDelivery(queue: store, sender: transport)
 
-        var saved = SavedMatch.played([.us, .us])
+        var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
         try store.save(saved)
         delivery.deliverPending()
         transport.confirmDelivered()
@@ -134,11 +155,58 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [saved])
     }
 
+    /// Расписка приходит когда угодно, в том числе через час после отправки.
+    /// За это время матч мог измениться — и расписка о прошлой версии не
+    /// вправе гасить очередь, в которую он из-за этой правки вернулся.
+    @Test("Расписка о прошлой версии матча очередь не гасит")
+    func aReceiptForAnOlderVersionDoesNotClearTheQueue() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let transport = FakeTransport()
+        let delivery = MatchDelivery(queue: store, sender: transport)
+
+        var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
+        try store.save(saved)
+        delivery.deliverPending()
+
+        let delivered = saved
+
+        // Пока расписка ехала, последнее очко отменили и матч доиграли заново.
+        saved.match.undo()
+        try store.save(saved)
+        saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
+        saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
+        try store.save(saved)
+
+        transport.deliverReceipts(for: [delivered])
+        transport.forget()
+        delivery.deliverPending()
+
+        #expect(transport.sent == [saved])
+    }
+
+    /// Матч начинается первым розыгрышем — так его определяет глоссарий.
+    /// Прекращённый раньше сохраняется честно, но в истории на телефоне ему
+    /// делать нечего: «0:0, 0 минут» это не история, а след от промаха.
+    @Test("Матч без единого розыгрыша не уезжает")
+    func aMatchWithoutRalliesIsNotSent() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        let transport = FakeTransport()
+
+        var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
+        empty.match.abandon()
+
+        try store.save(empty)
+        MatchDelivery(queue: store, sender: transport).deliverPending()
+
+        #expect(empty.match.state.outcome.isOver)
+        #expect(transport.sent.isEmpty)
+    }
+
     @Test("В пустом хранилище доставлять нечего")
     func anEmptyStoreQueuesNothing() throws {
         let transport = FakeTransport()
 
-        MatchDelivery(store: try SQLiteMatchStore.inMemory(), sender: transport).deliverPending()
+        MatchDelivery(queue: try SQLiteMatchStore.inMemory(), sender: transport).deliverPending()
 
         #expect(transport.sent.isEmpty)
     }

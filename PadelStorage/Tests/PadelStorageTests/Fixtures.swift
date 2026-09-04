@@ -10,6 +10,10 @@ import PadelScoring
 /// Матчу этой точности хватает с запасом, а тесту круговой рейс важнее.
 let aMoment = Date(timeIntervalSince1970: 1_800_000_000)
 
+/// Матч кончается на втором очке: тестам, которым важно, что матч кончился, а
+/// не каким счётом, двух розыгрышей довольно.
+let toTwo = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
+
 extension SavedMatch {
     /// Матч, в котором сыграны перечисленные розыгрыши, по одному в секунду.
     static func played(

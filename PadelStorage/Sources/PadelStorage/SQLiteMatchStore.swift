@@ -7,7 +7,7 @@ import PadelScoring
 /// Пишет синхронно и в том же потоке, откуда позвали: запись одного розыгрыша
 /// — это одна короткая транзакция, и ждать её экрану дешевле, чем разбираться,
 /// в каком порядке доехали до базы два касания подряд.
-public final class SQLiteMatchStore: MatchStore {
+public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     private let dbQueue: DatabaseQueue
 
     /// База в контейнере приложения — та, которой пользуются часы и телефон.
@@ -133,25 +133,14 @@ public final class SQLiteMatchStore: MatchStore {
     private static let lastMatch =
         "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
 
-    public func matchesAwaitingDelivery() throws -> [SavedMatch] {
+    public func match(id: UUID) throws -> SavedMatch? {
         try dbQueue.read { db in
-            let rows = try Row.fetchAll(
-                db, sql: "SELECT * FROM match WHERE delivered = 0 ORDER BY lastRallyAt, rowid")
+            let row = try Row.fetchOne(
+                db, sql: "SELECT * FROM match WHERE id = ?", arguments: [id.uuidString])
 
-            // Законченность спрашивается у движка, а не у колонки, по той же
-            // причине, что и в `matchInProgress` (ADR-0001). Отбирать в SQL
-            // тут нечего: строк с непогашенной отметкой ровно столько, сколько
-            // матчей ещё не доехало, — обычно ноль или один.
-            return try rows
-                .map { try Self.savedMatch(row: $0, db: db) }
-                .filter { $0.match.state.outcome.isOver }
-        }
-    }
+            guard let row else { return nil }
 
-    public func markDelivered(id: UUID) throws {
-        try dbQueue.write { db in
-            try db.execute(
-                sql: "UPDATE match SET delivered = 1 WHERE id = ?", arguments: [id.uuidString])
+            return try Self.savedMatch(row: row, db: db)
         }
     }
 
@@ -164,14 +153,35 @@ public final class SQLiteMatchStore: MatchStore {
         }
     }
 
-    public func match(id: UUID) throws -> SavedMatch? {
+    public func matchesAwaitingDelivery() throws -> [SavedMatch] {
         try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db, sql: "SELECT * FROM match WHERE delivered = 0 ORDER BY lastRallyAt, rowid")
+
+            // Законченность спрашивается у движка, а не у колонки, по той же
+            // причине, что и в `matchInProgress` (ADR-0001). Отбирать в SQL
+            // тут нечего: строк с непогашенной отметкой ровно столько, сколько
+            // матчей ещё не доехало, — обычно ноль или один.
+            return try rows
+                .map { try Self.savedMatch(row: $0, db: db) }
+                .filter { !$0.match.journal.isEmpty && $0.match.state.outcome.isOver }
+        }
+    }
+
+    public func markDelivered(_ delivered: SavedMatch) throws {
+        try dbQueue.write { db in
             let row = try Row.fetchOne(
-                db, sql: "SELECT * FROM match WHERE id = ?", arguments: [id.uuidString])
+                db, sql: "SELECT * FROM match WHERE id = ?",
+                arguments: [delivered.id.uuidString])
 
-            guard let row else { return nil }
+            // Расписка пришла на версию матча, а не на его идентификатор.
+            // Разошлись — значит, матч успели изменить после отправки, и в
+            // очереди он стоит уже другим; гасить её этой распиской нельзя.
+            guard let row, try Self.savedMatch(row: row, db: db) == delivered else { return }
 
-            return try Self.savedMatch(row: row, db: db)
+            try db.execute(
+                sql: "UPDATE match SET delivered = 1 WHERE id = ?",
+                arguments: [delivered.id.uuidString])
         }
     }
 

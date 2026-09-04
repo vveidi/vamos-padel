@@ -155,7 +155,7 @@ struct MatchView: View {
         match: SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now),
         store: NoMatchStore(),
         workout: NoWorkout(),
-        delivery: MatchDelivery(store: NoMatchStore(), sender: NoMatchTransport()),
+        delivery: MatchDelivery(queue: NoMatchStore(), sender: NoMatchTransport()),
         onFinish: {})
 }
 

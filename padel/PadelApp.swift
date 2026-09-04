@@ -35,7 +35,7 @@ struct PadelApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(store: store)
+            HistoryView(store: store)
         }
     }
 }

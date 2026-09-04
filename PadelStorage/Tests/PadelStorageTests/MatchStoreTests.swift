@@ -116,7 +116,7 @@ struct MatchStoreTests {
     @Test("Законченный матч продолжать не предлагается")
     func aFinishedMatchIsNotOfferedForContinuation() throws {
         let store = try SQLiteMatchStore.inMemory()
-        let saved = SavedMatch.played([.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
 
@@ -345,7 +345,7 @@ struct MatchStoreTests {
     /// собрать журнал, которого никто не играл, и молча: длина сходится.
     /// Случается это на телефоне, куда матч приезжает второй раз (тикет 10).
     @Test("Разошедшийся журнал перезаписывается, а не дописывается")
-    func adivergedJournalIsRewritten() throws {
+    func aDivergedJournalIsRewritten() throws {
         let store = try SQLiteMatchStore.inMemory()
 
         var saved = SavedMatch.played([.us, .us, .us])
@@ -369,7 +369,7 @@ struct MatchStoreTests {
     @Test("Законченный матч ждёт доставки")
     func aFinishedMatchAwaitsDelivery() throws {
         let store = try SQLiteMatchStore.inMemory()
-        let saved = SavedMatch.played([.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
 
@@ -401,10 +401,10 @@ struct MatchStoreTests {
     @Test("Отмеченный доставленным матч из очереди уходит")
     func aDeliveredMatchLeavesTheQueue() throws {
         let store = try SQLiteMatchStore.inMemory()
-        let saved = SavedMatch.played([.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
-        try store.markDelivered(id: saved.id)
+        try store.markDelivered(saved)
 
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
@@ -414,10 +414,10 @@ struct MatchStoreTests {
     @Test("Изменившийся после доставки матч возвращается в очередь")
     func aChangedMatchReturnsToTheQueue() throws {
         let store = try SQLiteMatchStore.inMemory()
-        var saved = SavedMatch.played([.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
+        var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
-        try store.markDelivered(id: saved.id)
+        try store.markDelivered(saved)
 
         saved.match.abandon()
         try store.save(saved)
@@ -425,17 +425,51 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
+    /// Матч начинается первым розыгрышем — так его определяет глоссарий.
+    /// Прекращённый раньше сохраняется честно, но в истории на телефоне ему
+    /// делать нечего.
+    @Test("Матч без единого розыгрыша доставки не ждёт")
+    func aMatchWithoutRalliesAwaitsNothing() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
+        empty.match.abandon()
+
+        try store.save(empty)
+
+        #expect(empty.match.state.outcome.isOver)
+        #expect(try store.matchesAwaitingDelivery().isEmpty)
+    }
+
+    /// Доставленной бывает версия, а не матч: расписка о прошлой версии не
+    /// вправе гасить очередь, в которую матч вернулся после отмены очка.
+    @Test("Отметка о доставке прошлой версии матча не ставится")
+    func aStaleDeliveryIsNotMarked() throws {
+        let store = try SQLiteMatchStore.inMemory()
+        var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
+
+        try store.save(saved)
+
+        let delivered = saved
+        saved.match.undo()
+        saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
+        saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
+        try store.save(saved)
+
+        try store.markDelivered(delivered)
+
+        #expect(try store.matchesAwaitingDelivery() == [saved])
+    }
+
     @Test("Доставка отмечается тому матчу, которому обещали")
     func onlyTheNamedMatchIsMarkedDelivered() throws {
         let store = try SQLiteMatchStore.inMemory()
-        let toTwo = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
         let delivered = SavedMatch.played([.us, .us], ruleset: toTwo)
         let waiting = SavedMatch.played(
             [.them, .them], ruleset: toTwo, from: aMoment.addingTimeInterval(3600))
 
         try store.save(delivered)
         try store.save(waiting)
-        try store.markDelivered(id: delivered.id)
+        try store.markDelivered(delivered)
 
         #expect(try store.matchesAwaitingDelivery() == [waiting])
     }

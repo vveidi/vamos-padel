@@ -18,7 +18,20 @@ struct MatchPayloadTests {
             SavedMatch.played([], ruleset: .defaultClassic, firstServer: .them),
         ])
     func aMatchSurvivesTheRoundTrip(saved: SavedMatch) throws {
-        #expect(try MatchPayload.decode(MatchPayload.encode(saved)) == saved)
+        #expect(try MatchPayload.decode(MatchPayload.encode(.match(saved))) == .match(saved))
+    }
+
+    /// Расписка ходит тем же каналом и тем же форматом, что и матч, поэтому
+    /// различить их обязана сама посылка: принимающая сторона знает только то,
+    /// что ей привезли словарь.
+    @Test("Расписка не путается с матчем")
+    func aReceiptIsNotMistakenForAMatch() throws {
+        let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
+
+        #expect(try MatchPayload.decode(MatchPayload.encode(.receipt(saved))) == .receipt(saved))
+        #expect(
+            try MatchPayload.decode(MatchPayload.encode(.match(saved)))
+                != .receipt(saved))
     }
 
     @Test("Недоигранный матч приезжает недоигранным")
@@ -26,19 +39,14 @@ struct MatchPayloadTests {
         var saved = SavedMatch.played([.us, .them])
         saved.match.abandon()
 
-        let arrived = try MatchPayload.decode(MatchPayload.encode(saved))
+        guard case .match(let arrived) = try MatchPayload.decode(MatchPayload.encode(.match(saved)))
+        else {
+            Issue.record("матч приехал не матчем")
+            return
+        }
 
         #expect(arrived == saved)
         #expect(arrived.match.isAbandoned)
-    }
-
-    /// Подтверждение доставки приходит вместе с посылкой, и разбирать её ради
-    /// одного идентификатора незачем.
-    @Test("Идентификатор матча читается из посылки отдельно")
-    func theMatchIdIsReadableOnItsOwn() {
-        let saved = SavedMatch.played([.us, .us])
-
-        #expect(MatchPayload.matchId(in: MatchPayload.encode(saved)) == saved.id)
     }
 
     /// Приложения на часах и на телефоне обновляются порознь, поэтому старое
@@ -50,7 +58,10 @@ struct MatchPayloadTests {
     @Test("Непонятная посылка не превращается в матч")
     func anUnreadablePayloadIsRefused() {
         let id = UUID().uuidString
-        let times: [String: Any] = ["startedAt": aMoment, "lastRallyAt": aMoment]
+        let times: [String: Any] = [
+            "kind": "match", "startedAt": aMoment, "lastRallyAt": aMoment,
+        ]
+        let journal: [String: Any] = ["rallies": ["us"], "abandoned": false]
 
         let payloads: [(what: String, payload: [String: Any])] = [
             ("пустая посылка", [:]),
@@ -72,14 +83,29 @@ struct MatchPayloadTests {
                 [
                     "id": id, "ruleset": "classic", "setsToWin": 1, "goldenPoint": true,
                     "firstServer": "судья",
-                ].merging(times) { a, _ in a }
+                ].merging(times) { a, _ in a }.merging(journal) { a, _ in a }
             ),
             (
                 "неизвестная сторона в журнале",
                 [
                     "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
-                    "firstServer": "us", "rallies": ["us", "никто"],
+                    "firstServer": "us", "rallies": ["us", "никто"], "abandoned": false,
                 ].merging(times) { a, _ in a }
+            ),
+            (
+                "матч без журнала розыгрышей",
+                [
+                    "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
+                    "firstServer": "us",
+                ].merging(times) { a, _ in a }
+            ),
+            (
+                "посылка неизвестного вида",
+                [
+                    "id": id, "kind": "письмо", "ruleset": "pointsTo", "target": 16,
+                    "serveChangesEvery": 4, "firstServer": "us", "startedAt": aMoment,
+                    "lastRallyAt": aMoment,
+                ].merging(journal) { a, _ in a }
             ),
         ]
 

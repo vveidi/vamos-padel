@@ -13,9 +13,16 @@ import PadelStorage
 /// Разложен так же, как в схеме базы (`MatchDatabase`), и по той же причине:
 /// половина ключей набора правил пуста у каждого варианта, зато прочитать
 /// посылку можно, не зная нашего кода.
+///
+/// Матч и расписка о нём — одна и та же посылка с разным ключом `kind`:
+/// телефон возвращает ровно то, что записал, и часы сверяют это с тем, что у
+/// них лежит.
 enum MatchPayload {
-    static func encode(_ saved: SavedMatch) -> [String: Any] {
+    static func encode(_ arrival: Arrival) -> [String: Any] {
+        let saved = arrival.match
+
         var payload: [String: Any] = [
+            Key.kind: arrival.kind,
             Key.id: saved.id.uuidString,
             Key.firstServer: saved.match.firstServer.rawValue,
             Key.startedAt: saved.startedAt,
@@ -38,8 +45,8 @@ enum MatchPayload {
         return payload
     }
 
-    static func decode(_ payload: [String: Any]) throws -> SavedMatch {
-        guard let id = matchId(in: payload) else {
+    static func decode(_ payload: [String: Any]) throws -> Arrival {
+        guard let id = payload[Key.id] as? String, let id = UUID(uuidString: id) else {
             throw MatchPayloadError.unreadable(reason: "посылка без идентификатора матча")
         }
 
@@ -49,25 +56,30 @@ enum MatchPayload {
             throw MatchPayloadError.unreadable(reason: "посылка без времени матча")
         }
 
-        let winners = payload[Key.rallies] as? [String] ?? []
+        // Журнал и пометка недоигранности спрашиваются так же строго, как
+        // всё остальное, а не подставляются умолчанием: посылка без журнала
+        // разобралась бы в матч 0:0 — ровно тот «счёт, собранный из
+        // умолчаний», от которого этот разбор и защищает.
+        guard let winners = payload[Key.rallies] as? [String],
+            let isAbandoned = payload[Key.abandoned] as? Bool
+        else {
+            throw MatchPayloadError.unreadable(reason: "посылка без журнала розыгрышей")
+        }
 
         let match = Match(
             ruleset: try ruleset(from: payload),
             firstServer: try side(named: payload[Key.firstServer] as? String),
             journal: RallyJournal(try winners.map { Rally(wonBy: try side(named: $0)) }),
-            isAbandoned: payload[Key.abandoned] as? Bool ?? false)
+            isAbandoned: isAbandoned)
 
-        return SavedMatch(
+        let saved = SavedMatch(
             id: id, match: match, startedAt: startedAt, lastRallyAt: lastRallyAt)
-    }
 
-    /// Чей это матч — вопрос, на который приходится отвечать, не разбирая
-    /// посылку целиком: подтверждение доставки приходит вместе с ней, и всё,
-    /// что нужно знать о доехавшем матче, — его идентификатор.
-    static func matchId(in payload: [String: Any]) -> UUID? {
-        guard let id = payload[Key.id] as? String else { return nil }
-
-        return UUID(uuidString: id)
+        switch payload[Key.kind] as? String {
+        case Kind.match: return .match(saved)
+        case Kind.receipt: return .receipt(saved)
+        case let kind: throw MatchPayloadError.unreadable(reason: "посылка вида «\(kind ?? "—")»")
+        }
     }
 
     private static func ruleset(from payload: [String: Any]) throws -> Ruleset {
@@ -103,6 +115,7 @@ enum MatchPayload {
     }
 
     private enum Key {
+        static let kind = "kind"
         static let id = "id"
         static let ruleset = "ruleset"
         static let setsToWin = "setsToWin"
@@ -116,9 +129,39 @@ enum MatchPayload {
         static let rallies = "rallies"
     }
 
-    private enum Kind {
+    fileprivate enum Kind {
         static let classic = "classic"
         static let pointsTo = "pointsTo"
+
+        static let match = "match"
+        static let receipt = "receipt"
+    }
+}
+
+/// Что приехало.
+///
+/// Посылки ходят в обе стороны, и по одному и тому же каналу: матч уезжает с
+/// часов, расписка возвращается с телефона. Различить их обязана сама посылка
+/// — принимающая сторона знает только то, что ей привезли словарь.
+enum Arrival: Equatable {
+    /// Матч с часов — его надо записать.
+    case match(SavedMatch)
+
+    /// Расписка с телефона: вот этот матч записан у меня. Только она и снимает
+    /// матч с очереди на часах (ADR-0002).
+    case receipt(SavedMatch)
+
+    fileprivate var match: SavedMatch {
+        switch self {
+        case .match(let match), .receipt(let match): match
+        }
+    }
+
+    fileprivate var kind: String {
+        switch self {
+        case .match: MatchPayload.Kind.match
+        case .receipt: MatchPayload.Kind.receipt
+        }
     }
 }
 

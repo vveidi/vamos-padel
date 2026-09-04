@@ -1,27 +1,34 @@
 import Foundation
 import PadelStorage
-import os
 
 /// Доставка матчей на телефон — сторона часов.
 ///
-/// Связывает две вещи, которые друг о друге не знают: хранилище, где лежит
-/// очередь, и транспорт, который умеет только «поставить в очередь» и
-/// «подтвердить». Игрок при этом не нажимает ничего — ни во время игры, ни
-/// после.
+/// Связывает две вещи, которые друг о друге не знают: очередь, где лежат
+/// недоехавшие матчи, и транспорт, который умеет только «поставить в очередь»,
+/// «сказать, что готов» и «привезти расписку». Игрок при этом не нажимает
+/// ничего — ни во время игры, ни после.
 ///
 /// Часы остаются источником правды до подтверждённой доставки (ADR-0002),
-/// поэтому матч снимается с очереди подтверждением, а не отправкой.
+/// поэтому матч снимает с очереди расписка с телефона, а не отправка.
 public final class MatchDelivery: Sendable {
-    private let store: any MatchStore
+    private let queue: any MatchDeliveryQueue
     private let sender: any MatchSender
 
-    public init(store: any MatchStore, sender: any MatchSender) {
-        self.store = store
+    public init(queue: any MatchDeliveryQueue, sender: any MatchSender) {
+        self.queue = queue
         self.sender = sender
 
-        sender.onDelivery { id in
+        // Накопившееся уезжает, как только транспорт готов, — в этом и состоит
+        // «очередь переживает перезапуск». Не при запуске экрана: сессия к
+        // телефону поднимается асинхронно, и матч, отданный до готовности, не
+        // уехал бы никуда, а следующей попытки в этот запуск не случилось бы.
+        sender.onReady { [queue, sender] in
+            Self.deliverPending(from: queue, to: sender)
+        }
+
+        sender.onDelivery { [queue] match in
             do {
-                try store.markDelivered(id: id)
+                try queue.markDelivered(match)
             } catch {
                 // Матч останется в очереди и уедет ещё раз — это дешевле, чем
                 // считать доставленным то, о чём мы не смогли записать.
@@ -32,17 +39,22 @@ public final class MatchDelivery: Sendable {
 
     /// Отправляет всё, что ещё не доехало.
     ///
-    /// Зовётся дважды: когда матч закончился и когда приложение запустилось.
-    /// Второе и есть «очередь переживает перезапуск»: матч, не доехавший в
-    /// прошлый раз, уезжает снова.
+    /// Зовётся, когда матч закончился; при запуске то же самое делает
+    /// готовность транспорта.
     ///
     /// Повторная отправка — не ошибка, а замысел. Своя очередь есть и у
     /// транспорта, и вместе они иногда доставят один матч дважды; телефон
     /// узнаёт его по идентификатору, и второй приезд ничего не создаёт.
     /// Потерянный матч восстановить неоткуда, лишний — не стоит ничего.
     public func deliverPending() {
+        Self.deliverPending(from: queue, to: sender)
+    }
+
+    private static func deliverPending(
+        from queue: any MatchDeliveryQueue, to sender: any MatchSender
+    ) {
         do {
-            for match in try store.matchesAwaitingDelivery() {
+            for match in try queue.matchesAwaitingDelivery() {
                 sender.send(match)
             }
         } catch {
@@ -52,5 +64,3 @@ public final class MatchDelivery: Sendable {
         }
     }
 }
-
-private let logger = Logger(subsystem: "com.vveidi.padel", category: "delivery")

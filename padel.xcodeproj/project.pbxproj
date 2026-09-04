@@ -540,15 +540,15 @@
 /* Begin XCLocalSwiftPackageReference section */
 		AA01A000000000000000000A /* XCLocalSwiftPackageReference "PadelScoring" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = PadelScoring;
+			relativePath = Packages/PadelScoring;
 		};
 		AA01A000000000000000001A /* XCLocalSwiftPackageReference "PadelStorage" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = PadelStorage;
+			relativePath = Packages/PadelStorage;
 		};
 		AA01A000000000000000002A /* XCLocalSwiftPackageReference "PadelDelivery" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = PadelDelivery;
+			relativePath = Packages/PadelDelivery;
 		};
 /* End XCLocalSwiftPackageReference section */
 

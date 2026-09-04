@@ -19,6 +19,7 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 ├── docs/adr/
 │   ├── 0001-example-decision.md
 │   └── 0002-another-decision.md
+├── Packages/                          ← local Swift packages
 ├── padel/                             ← app sources
 └── padel.xcodeproj/
 ```

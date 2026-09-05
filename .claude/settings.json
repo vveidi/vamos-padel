@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(xcrun simctl list *)",
+      "Bash(xcodebuild -list *)",
+      "Bash(xcrun simctl get_app_container *)",
+      "Bash(plutil -p *)",
+      "Bash(xcodebuild -version *)",
+      "Bash(plutil -lint *)"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "xcodebuildmcp": {
+      "command": "npx",
+      "args": ["-y", "xcodebuildmcp@latest", "mcp"],
+      "env": {
+        "XCODEBUILDMCP_ENABLED_WORKFLOWS": "simulator,swift-package",
+        "XCODEBUILDMCP_PROJECT_PATH": "padel.xcodeproj",
+        "XCODEBUILDMCP_SIMULATOR_NAME": "Apple Watch Series 11 (46mm)",
+        "XCODEBUILDMCP_SENTRY_DISABLED": "true"
+      }
+    }
+  }
+}

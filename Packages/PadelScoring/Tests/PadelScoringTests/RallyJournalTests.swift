@@ -9,7 +9,6 @@ struct RallyJournalTests {
         let journal = RallyJournal()
 
         #expect(journal.isEmpty)
-        #expect(journal.isEmpty)
         #expect(journal.last == nil)
     }
 

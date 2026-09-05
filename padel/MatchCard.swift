@@ -12,13 +12,19 @@ import SwiftUI
 struct MatchCard: View {
     let match: SavedMatch
 
+    /// The language and region the card is being read in. Everything dated on
+    /// it is formatted with this rather than with `Locale.current`, so that the
+    /// dates follow the same language as the words beside them — the app's in
+    /// the app, and the chosen one in a preview.
+    @Environment(\.locale) private var locale
+
     var body: some View {
         List {
             Section { summary }
 
             course
         }
-        .navigationTitle(match.day)
+        .navigationTitle(match.day(in: locale))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -42,17 +48,26 @@ struct MatchCard: View {
             Text(state.finalScore.written)
                 .font(.system(size: 44, weight: .semibold, design: .rounded))
                 .monospacedDigit()
-                .accessibilityLabel(state.finalScore.spoken)
+                .accessibilityLabel(Text(state.finalScore.spoken))
 
             Text(match.match.ruleset.name)
                 .font(.subheadline)
 
-            Text("\(match.match.ruleset.manner) · \(match.timeOfDay) · \(match.lasted)")
+            footnote
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+    }
+
+    /// What the match was played by, when it started and how long it went on —
+    /// three whole things with a separator between them, and not one sentence
+    /// assembled out of words. The separator is the only part of it that is not
+    /// somebody's sentence, which is why it is the only part written here.
+    private var footnote: Text {
+        Text(match.match.ruleset.manner)
+            + Text(verbatim: " · \(match.timeOfDay(in: locale)) · \(match.lasted(in: locale))")
     }
 
     /// An abandoned match is said to be one in as many words, and not by the
@@ -64,11 +79,11 @@ struct MatchCard: View {
     /// would be the same sentence twice. The row needs it because a score in a
     /// column of results must not pass for a win at a glance; here the outcome
     /// is already spelled out where a win would have been announced.
-    private var headline: String {
+    private var headline: LocalizedStringKey {
         switch state.outcome {
-        case .finished(let winner): winner == .us ? "Мы выиграли" : "Выиграли соперники"
-        case .abandoned: "Матч не доигран"
-        case .inProgress: "Матч идёт"
+        case .finished(let winner): winner == .us ? "We won" : "Opponents won"
+        case .abandoned: "Match unfinished"
+        case .inProgress: "Match in progress"
         }
     }
 
@@ -83,11 +98,11 @@ struct MatchCard: View {
     /// the engine the same question five times over.
     @ViewBuilder private func sections(of course: MatchCourse) -> some View {
         if course.isEmpty {
-            Section("Ход матча") { nothingPlayed }
+            Section("How it went") { nothingPlayed }
         } else {
             switch course {
             case .points(let steps):
-                Section("Ход матча") { ScoreStrip(steps: steps, step: "Розыгрыш") }
+                Section("How it went") { ScoreStrip(steps: steps, step: .rally) }
 
             case .sets(let sets):
                 ForEach(Array(sets.enumerated()), id: \.offset) { number, set in
@@ -95,7 +110,7 @@ struct MatchCard: View {
                         // A set stopped in before its first game has no games
                         // to draw, and the line below is the whole of what
                         // happened in it.
-                        if !set.games.isEmpty { ScoreStrip(steps: set.games, step: "Гейм") }
+                        if !set.games.isEmpty { ScoreStrip(steps: set.games, step: .game) }
 
                         if let tieBreak = set.tieBreak { self.tieBreak(tieBreak) }
 
@@ -122,16 +137,17 @@ struct MatchCard: View {
     /// two, and saying otherwise would hide the set it was stopped in.
     private func header(of set: SetCourse, number: Int) -> some View {
         let numbered = match.match.ruleset.isMultiSet
+        let title: LocalizedStringKey = numbered ? "Set \(number)" : "How it went"
 
         return HStack {
-            Text(numbered ? "Сет \(number)" : "Ход матча")
+            Text(title)
 
             if numbered {
                 Spacer()
 
                 Text(set.score.written)
                     .monospacedDigit()
-                    .accessibilityLabel(set.score.spoken)
+                    .accessibilityLabel(Text(set.score.spoken))
             }
         }
     }
@@ -139,10 +155,10 @@ struct MatchCard: View {
     /// The tiebreak's points, which the set's own score hides: "7 : 6" says
     /// that a tiebreak happened and nothing at all about how it went.
     private func tieBreak(_ points: SideCounts) -> some View {
-        LabeledContent("Тай-брейк", value: points.written)
+        LabeledContent("Tiebreak", value: points.written)
             .font(.subheadline)
             .monospacedDigit()
-            .accessibilityLabel("Тай-брейк: \(points.spoken)")
+            .accessibilityLabel(Text("Tiebreak") + Text(verbatim: ": ") + Text(points.spoken))
     }
 
     /// Where inside a game the match was stopped.
@@ -160,7 +176,8 @@ struct MatchCard: View {
         LabeledContent(unfinishedTitle, value: state.points.written)
             .font(.subheadline)
             .foregroundStyle(.secondary)
-            .accessibilityLabel("\(unfinishedTitle): \(state.points.spoken)")
+            .accessibilityLabel(
+                Text(unfinishedTitle) + Text(verbatim: ": ") + Text(state.points.spoken))
     }
 
     /// What exactly was left unfinished.
@@ -170,10 +187,10 @@ struct MatchCard: View {
     /// it refuses to let the golden point into one. Which of the two it is
     /// counting, `Points` already knows, and inside a set counted points can
     /// mean nothing else.
-    private var unfinishedTitle: String {
+    private var unfinishedTitle: LocalizedStringKey {
         switch state.points {
-        case .game: "Гейм не доигран"
-        case .count: "Тай-брейк не доигран"
+        case .game: "Game unfinished"
+        case .count: "Tiebreak unfinished"
         }
     }
 
@@ -181,7 +198,7 @@ struct MatchCard: View {
     /// watch does not send one (ticket 10) — but a card that drew a blank
     /// section instead of saying so would hide the arrival of one.
     private var nothingPlayed: some View {
-        Text("Ни одного розыгрыша")
+        Text("No rallies played")
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
@@ -215,7 +232,16 @@ private struct ScoreStrip: View {
     /// What one step is called here — a game or a rally. Only VoiceOver ever
     /// hears it: on screen the columns are told apart by the set they stand
     /// under.
-    let step: String
+    ///
+    /// Which of the two, rather than the word for it: the word and the number
+    /// after it are one sentence in the catalog, and a noun handed in to be
+    /// dropped into a frame is the thing the two languages disagree about.
+    let step: Step
+
+    enum Step {
+        case game
+        case rally
+    }
 
     /// The cells grow with the reader's type size instead of clipping the
     /// digits inside them. A set then stops fitting the width at some point
@@ -227,8 +253,8 @@ private struct ScoreStrip: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: Self.spacing) {
-                side("Мы")
-                side("Соперники")
+                side("Us")
+                side("Opponents")
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -251,7 +277,7 @@ private struct ScoreStrip: View {
         .padding(.vertical, 2)
     }
 
-    private func side(_ name: String) -> some View {
+    private func side(_ name: LocalizedStringKey) -> some View {
         Text(name)
             .frame(height: height, alignment: .leading)
     }
@@ -262,13 +288,31 @@ private struct ScoreStrip: View {
             cell(step.score[.them], won: step.winner == .them, isOurs: false)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(self.step) \(number)")
-        .accessibilityValue(
-            "\(step.score.spoken), выиграли \(step.winner == .us ? "мы" : "соперники")")
+        .accessibilityLabel(name(of: number))
+        .accessibilityValue(Text(step.score.spoken) + Text(verbatim: ", ") + won(by: step.winner))
+    }
+
+    /// Which step of the course this column is — a whole sentence per kind of
+    /// step, because English puts the number after the noun and there is no
+    /// promise the next language will.
+    private func name(of number: Int) -> Text {
+        switch step {
+        case .game: Text("Game \(number)")
+        case .rally: Text("Rally \(number)")
+        }
+    }
+
+    /// Who took the step, as a clause and not as a name: "we won" and "the
+    /// opponents" cannot be told apart by a frame, because English puts the
+    /// side before the verb and Russian after it.
+    private func won(by side: Side) -> Text {
+        side == .us ? Text("we won") : Text("opponents won")
     }
 
     private func cell(_ score: Int, won: Bool, isOurs: Bool) -> some View {
-        Text("\(score)")
+        // Verbatim: a numeral standing on its own is not a sentence, and a
+        // catalog that carried a key of "%lld" would be carrying nothing.
+        Text(verbatim: "\(score)")
             .font(.caption.weight(won ? .semibold : .regular))
             .monospacedDigit()
             .foregroundStyle(won ? .primary : .secondary)
@@ -283,32 +327,64 @@ private struct ScoreStrip: View {
 
 #if DEBUG
 
-#Preview("A win") {
-    NavigationStack { MatchCard(match: .preview(classicWonBy: .us)) }
+/// One card, read in the language the phone is set to — which for a phone set
+/// to neither of ours is English.
+private func card(_ match: SavedMatch) -> some View {
+    NavigationStack { MatchCard(match: match) }
 }
 
-#Preview("Two sets and a tiebreak") {
-    NavigationStack { MatchCard(match: .preview(twoSetsWonBy: .us)) }
+/// The same card in the other language.
+///
+/// Every preview below comes as a pair, because a card looked at in one
+/// language is a card half checked: the two are equal on screen, Russian is the
+/// longer of them, and the numbers on this screen change the words around them.
+/// Between them the pairs say everything the card can say — a win and a defeat,
+/// one set and two, a match to N points, the three ways a match is left
+/// unfinished, and a journal with nothing in it at all.
+private func cardInRussian(_ match: SavedMatch) -> some View {
+    card(match).environment(\.locale, Locale(identifier: "ru"))
 }
 
-#Preview("The match to N points") {
-    NavigationStack { MatchCard(match: .preview(pointsTo: 16)) }
+#Preview("A win") { card(.preview(classicWonBy: .us)) }
+
+#Preview("In Russian: a win") { cardInRussian(.preview(classicWonBy: .us)) }
+
+#Preview("A defeat") { card(.preview(classicWonBy: .them)) }
+
+#Preview("In Russian: a defeat") { cardInRussian(.preview(classicWonBy: .them)) }
+
+#Preview("Two sets and a tiebreak") { card(.preview(twoSetsWonBy: .us)) }
+
+#Preview("In Russian: two sets and a tiebreak") { cardInRussian(.preview(twoSetsWonBy: .us)) }
+
+#Preview("The match to N points") { card(.preview(pointsTo: 16)) }
+
+#Preview("In Russian: the match to N points") { cardInRussian(.preview(pointsTo: 16)) }
+
+#Preview("Stopped early") { card(.previewClassicAbandoned) }
+
+#Preview("In Russian: stopped early") { cardInRussian(.previewClassicAbandoned) }
+
+#Preview("Stopped early, in the second set") { card(.previewAbandonedInSecondSet) }
+
+#Preview("In Russian: stopped early, in the second set") {
+    cardInRussian(.previewAbandonedInSecondSet)
 }
 
-#Preview("Stopped early") {
-    NavigationStack { MatchCard(match: .previewClassicAbandoned) }
+#Preview("Stopped early, in a tiebreak") { card(.previewAbandonedInTieBreak) }
+
+#Preview("In Russian: stopped early, in a tiebreak") {
+    cardInRussian(.previewAbandonedInTieBreak)
 }
 
-#Preview("Stopped early, in the second set") {
-    NavigationStack { MatchCard(match: .previewAbandonedInSecondSet) }
+#Preview("Stopped early, to N points") { card(.preview(pointsTo: 21, abandonedAfter: 9)) }
+
+#Preview("In Russian: stopped early, to N points") {
+    cardInRussian(.preview(pointsTo: 21, abandonedAfter: 9))
 }
 
-#Preview("Stopped early, in a tiebreak") {
-    NavigationStack { MatchCard(match: .previewAbandonedInTieBreak) }
-}
+#Preview("Nothing played") { card(.previewNothingPlayed) }
 
-#Preview("Stopped early, to N points") {
-    NavigationStack { MatchCard(match: .preview(pointsTo: 21, abandonedAfter: 9)) }
-}
+#Preview("In Russian: nothing played") { cardInRussian(.previewNothingPlayed) }
 
 #endif

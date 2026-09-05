@@ -12,6 +12,11 @@ import SwiftUI
 struct MatchRow: View {
     let match: SavedMatch
 
+    /// The language and region the row is being read in — the day and the
+    /// duration are formatted with it, so that they speak the same language as
+    /// the ruleset written above them.
+    @Environment(\.locale) private var locale
+
     var body: some View {
         let state = match.match.state
         let score = state.finalScore
@@ -23,7 +28,7 @@ struct MatchRow: View {
                     .font(.title3.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(isAbandoned ? .secondary : .primary)
-                    .accessibilityLabel(score.spoken)
+                    .accessibilityLabel(Text(score.spoken))
 
                 Spacer(minLength: 8)
 
@@ -33,7 +38,9 @@ struct MatchRow: View {
             Text(match.match.ruleset.name)
                 .font(.subheadline)
 
-            Text("\(match.whenPlayed) · \(match.lasted)")
+            // Two whole things and a separator: neither of them is a word
+            // handed to the other to build a sentence out of.
+            Text(verbatim: "\(match.whenPlayed(in: locale)) · \(match.lasted(in: locale))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -55,7 +62,7 @@ struct MatchRow: View {
     /// is one match on it and room to announce the outcome where a win would
     /// have been announced.
     private var abandoned: some View {
-        Text("не доигран")
+        Text("unfinished")
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 8)
@@ -66,15 +73,26 @@ struct MatchRow: View {
 
 #if DEBUG
 
-#Preview {
-    List {
-        MatchRow(match: .preview(classicWonBy: .us))
-        MatchRow(match: .preview(classicWonBy: .them))
-        MatchRow(match: .preview(twoSetsWonBy: .us))
-        MatchRow(match: .preview(pointsTo: 16))
-        MatchRow(match: .preview(pointsTo: 21, abandonedAfter: 9))
-        MatchRow(match: .previewClassicAbandoned)
-    }
+#Preview("The rows") {
+    List { everyRow }
+}
+
+/// The same rows in the other language — the one a phone set to neither of
+/// ours does not get. Where English wraps, Russian is the longer of the two.
+#Preview("In Russian") {
+    List { everyRow }
+        .environment(\.locale, Locale(identifier: "ru"))
+}
+
+/// One of every row there is: a win, a defeat, two sets, a match to N points,
+/// and the two ways a match is left unfinished.
+@ViewBuilder private var everyRow: some View {
+    MatchRow(match: .preview(classicWonBy: .us))
+    MatchRow(match: .preview(classicWonBy: .them))
+    MatchRow(match: .preview(twoSetsWonBy: .us))
+    MatchRow(match: .preview(pointsTo: 16))
+    MatchRow(match: .preview(pointsTo: 21, abandonedAfter: 9))
+    MatchRow(match: .previewClassicAbandoned)
 }
 
 #endif

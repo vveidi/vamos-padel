@@ -64,6 +64,11 @@
 			path = "padel Watch App";
 			sourceTree = "<group>";
 		};
+		AA01A0000000000000000030 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		DDFEE2E33045B80C00C7278D /* padel */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = padel;
@@ -98,6 +103,7 @@
 		DDFEE2D83045B80C00C7278D = {
 			isa = PBXGroup;
 			children = (
+				AA01A0000000000000000030 /* Shared */,
 				DDFEE2E33045B80C00C7278D /* padel */,
 				AA01A0000000000000000002 /* padel Watch App */,
 				DDFEE2E23045B80C00C7278D /* Products */,
@@ -130,6 +136,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AA01A0000000000000000002 /* padel Watch App */,
+				AA01A0000000000000000030 /* Shared */,
 			);
 			name = "padel Watch App";
 			packageProductDependencies = (
@@ -157,6 +164,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DDFEE2E33045B80C00C7278D /* padel */,
+				AA01A0000000000000000030 /* Shared */,
 			);
 			name = padel;
 			packageProductDependencies = (
@@ -192,6 +200,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = DDFEE2D83045B80C00C7278D;
 			minimizedProjectReferenceProxies = 1;

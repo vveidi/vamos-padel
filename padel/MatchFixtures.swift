@@ -99,6 +99,14 @@ extension SavedMatch {
             abandoned: stopped != nil)
     }
 
+    /// A match whose journal is empty: nothing played, and so nothing decided.
+    /// It has no business on the phone — the watch does not send one — but the
+    /// card says so in as many words instead of drawing a blank section, and a
+    /// preview is the only place that sentence can be looked at.
+    static var previewNothingPlayed: SavedMatch {
+        .preview([], ruleset: .classic(setsToWin: 1, goldenPoint: true))
+    }
+
     /// The rallies by which the listed sides each win a game to love — four
     /// points in a row. A game to love is the shortest there is, which is why
     /// the long journals are built out of it.

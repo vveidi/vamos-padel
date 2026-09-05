@@ -35,7 +35,7 @@ struct HistoryView: View {
                 case .unreadable: unreadable
                 }
             }
-            .navigationTitle("История")
+            .navigationTitle("History")
         }
         .task(id: attempt) { await watch() }
     }
@@ -68,9 +68,9 @@ struct HistoryView: View {
     /// to do — beyond going and playing, which is what the line says.
     private var empty: some View {
         ContentUnavailableView(
-            "Матчей пока нет",
+            "No matches yet",
             systemImage: "figure.tennis",
-            description: Text("Сыгранный на часах матч появится здесь сам"))
+            description: Text("A match played on your watch shows up here by itself"))
     }
 
     /// The database did not answer — the case the screen used to spend
@@ -83,11 +83,11 @@ struct HistoryView: View {
     /// what it does: it tries again, it does not repair anything.
     private var unreadable: some View {
         ContentUnavailableView {
-            Label("История не читается", systemImage: "exclamationmark.triangle")
+            Label("Can't load your history", systemImage: "exclamationmark.triangle")
         } description: {
-            Text("Сыгранные матчи на месте, но приложение не смогло их прочитать")
+            Text("Your matches are still there, but the app couldn't read them")
         } actions: {
-            Button("Попробовать снова") {
+            Button("Try again") {
                 history = .unknown
                 attempt += 1
             }
@@ -128,16 +128,32 @@ struct HistoryView: View {
 #if DEBUG
 
 #Preview("The history") {
-    HistoryView(
-        store: PreviewMatchStore([
-            .preview(classicWonBy: .us),
-            .preview(pointsTo: 16),
-            .preview(pointsTo: 21, abandonedAfter: 9),
-        ]))
+    HistoryView(store: filledStore)
 }
 
 #Preview("An empty history") {
     HistoryView(store: NoMatchStore())
+}
+
+/// The screen in the other language. The history and the empty state both:
+/// between them they hold every sentence this file says except the one about a
+/// database that did not answer, which no preview can bring about.
+#Preview("The history, in Russian") {
+    HistoryView(store: filledStore)
+        .environment(\.locale, Locale(identifier: "ru"))
+}
+
+#Preview("An empty history, in Russian") {
+    HistoryView(store: NoMatchStore())
+        .environment(\.locale, Locale(identifier: "ru"))
+}
+
+private var filledStore: PreviewMatchStore {
+    PreviewMatchStore([
+        .preview(classicWonBy: .us),
+        .preview(pointsTo: 16),
+        .preview(pointsTo: 21, abandonedAfter: 9),
+    ])
 }
 
 /// A few matches and nothing else — the store the preview of a filled history

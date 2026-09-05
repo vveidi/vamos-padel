@@ -24,5 +24,3 @@ public enum Side: String, Sendable, CaseIterable {
         changes % 2 == 0 ? self : opposite
     }
 }
-
-

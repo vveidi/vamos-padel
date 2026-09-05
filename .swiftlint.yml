@@ -1,0 +1,41 @@
+included:
+  - padel
+  - padel Watch App
+  - Shared
+  - Packages/PadelScoring/Sources
+  - Packages/PadelScoring/Tests
+  - Packages/PadelStorage/Sources
+  - Packages/PadelStorage/Tests
+  - Packages/PadelDelivery/Sources
+  - Packages/PadelDelivery/Tests
+
+excluded:
+  - Packages/PadelScoring/.build
+  - Packages/PadelStorage/.build
+  - Packages/PadelDelivery/.build
+
+disabled_rules:
+  # This repo writes a trailing comma on every multi-line literal, so adding an
+  # element touches one line instead of two. The rule would strip all of them.
+  - trailing_comma
+
+opt_in_rules:
+  - contains_over_filter_count
+  - empty_count
+  - explicit_init
+  - first_where
+  - last_where
+  - redundant_nil_coalescing
+  - toggle_bool
+  - unavailable_function
+
+# `us` and `them` are the domain's own words for the two sides (CONTEXT.md), and
+# `db` is what GRDB calls the handle it hands every closure. Short is correct here.
+identifier_name:
+  min_length: 2
+  excluded:
+    - a
+    - t
+    - db
+    - id
+    - us

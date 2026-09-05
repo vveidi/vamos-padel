@@ -9,4 +9,3 @@ public struct Rally: Equatable, Sendable {
         self.winner = winner
     }
 }
-

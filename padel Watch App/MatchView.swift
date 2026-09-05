@@ -1,8 +1,8 @@
+import os
+import PadelDelivery
 import PadelScoring
 import PadelStorage
-import PadelDelivery
 import SwiftUI
-import os
 
 /// The match in progress: the score while it is not over, the outcome as soon
 /// as it is.

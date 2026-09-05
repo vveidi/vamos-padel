@@ -202,7 +202,6 @@ struct MatchCard: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
-
 }
 
 /// Our side's color — the one the watch marks our half of the score screen

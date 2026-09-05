@@ -134,8 +134,7 @@ struct ClassicReplay {
     ///
     /// A game, a tiebreak and a set differ only in the threshold, so the rule
     /// is one. All each of them owns is where it departs from that rule.
-    private static func isWon(by winner: Side, counts: SideCounts, reaching threshold: Int) -> Bool
-    {
+    private static func isWon(by winner: Side, counts: SideCounts, reaching threshold: Int) -> Bool {
         counts[winner] >= threshold && counts[winner] - counts[winner.opposite] >= 2
     }
 

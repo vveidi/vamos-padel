@@ -1,7 +1,7 @@
-import PadelStorage
-import PadelDelivery
-import SwiftUI
 import os
+import PadelDelivery
+import PadelStorage
+import SwiftUI
 
 @main
 struct PadelWatchApp: App {

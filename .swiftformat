@@ -1,0 +1,13 @@
+# SwiftFormat runs on an explicit allowlist, not on its defaults.
+#
+# The default rule set restyles this repo rather than repairing it: it rewrites
+# `case .pointsTo(let target, ...)` into `case let .pointsTo(target, ...)`, moves
+# `public` from the member onto the extension, and breaks every hugging closing
+# paren onto its own line — 55 of 61 files, none of it a defect. The rules below
+# are the ones that fix real noise and leave the house style alone.
+
+--swiftversion 6.0
+
+--rules trailingSpace,consecutiveBlankLines,blankLinesAtEndOfScope,linebreakAtEndOfFile,redundantSelf,redundantReturn,redundantParens,duplicateImports,sortImports
+
+--exclude **/.build,**/DerivedData

@@ -121,7 +121,6 @@ struct ClassicScoringTests {
         #expect(state.finalScore == SideCounts(us: 7, them: 6))
     }
 
-
     @Test("At 6:6 in a tiebreak play runs on until two clear")
     func aTieBreakAtSixAllRunsOn() {
         let tieBreakDeuce = toSixAll + rallies(.us, 6) + rallies(.them, 6)

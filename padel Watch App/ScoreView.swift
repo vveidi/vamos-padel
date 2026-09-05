@@ -83,7 +83,7 @@ private struct ScoreZone: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityValue(accessibilityValue)
-            .accessibilityAction(named: "Отменить последний розыгрыш", onUndo)
+            .accessibilityAction(named: "Undo the last rally", onUndo)
     }
 
     private var content: some View {
@@ -102,7 +102,10 @@ private struct ScoreZone: View {
                 .foregroundStyle(.white)
 
             if let games {
-                Text("\(games)")
+                // A numeral drawn on its own is not a sentence, and a catalog
+                // carrying a key of "%lld" would be carrying nothing. The
+                // spoken score below says the word that goes with it.
+                Text(verbatim: "\(games)")
                     .font(.system(size: 22, weight: .medium, design: .rounded))
                     .minimumScaleFactor(0.5)
                     .foregroundStyle(.white.opacity(0.55))
@@ -129,7 +132,7 @@ private struct ScoreZone: View {
         // keeps them from pushing the points off the center of the zone.
         .overlay(alignment: .trailing) {
             if let sets {
-                Text("\(sets)")
+                Text(verbatim: "\(sets)")
                     .font(.system(size: 22, weight: .semibold, design: .rounded))
                     .padding(.trailing, 12)
                     .foregroundStyle(.white.opacity(0.9))
@@ -147,50 +150,83 @@ private struct ScoreZone: View {
         }
     }
 
-    private var accessibilityLabel: String {
+    /// What the half is, said as what tapping it does rather than as whose
+    /// half it is: "us" on its own is a name, and a name is what the two
+    /// languages decline differently.
+    private var accessibilityLabel: LocalizedStringKey {
         switch side {
-        case .us: "Очко нам"
-        case .them: "Очко соперникам"
+        case .us: "Point to us"
+        case .them: "Point to the opponents"
         }
     }
 
-    private var accessibilityValue: String {
-        var value = pointsLabel
+    /// The score this half is showing, as a list of clauses.
+    ///
+    /// Each clause is whole and the comma between them belongs to no language:
+    /// "геймов 3" used to be a noun and a number glued together here, and the
+    /// noun a count governs is exactly what Russian has four forms of. The
+    /// catalog picks the form; this only puts the clauses in order.
+    private var accessibilityValue: Text {
+        // The points are a label rather than a number — "40", "AD" — and are
+        // padel's own notation in both languages.
+        var value = Text(verbatim: pointsLabel)
 
-        if let games { value += ", геймов \(games)" }
-        if let sets { value += ", сетов \(sets)" }
-        if isServing { value += ", подача" }
+        func add(_ clause: LocalizedStringKey) {
+            value = value + Text(verbatim: ", ") + Text(clause)
+        }
+
+        if let games { add("\(games) games") }
+        if let sets { add("\(sets) sets") }
+        if isServing { add("serving") }
 
         return value
     }
 }
 
-#Preview("Classic scoring") {
-    ScoreView(
-        points: .game(SideCounts(us: 3, them: 2)),
-        games: SideCounts(us: 4, them: 5),
-        sets: nil,
-        servingSide: .us,
-        onRallyWon: { _ in },
-        onUndo: {})
+#if DEBUG
+
+/// Both languages, though only VoiceOver hears a word of this screen: the
+/// numbers on it are the same in either, and everything that is a sentence is
+/// spoken rather than drawn. A preview is still the only place the spoken
+/// score can be read in Russian without a watch on a wrist.
+private func inRussian(_ view: ScoreView) -> some View {
+    view.environment(\.locale, Locale(identifier: "ru"))
 }
 
-#Preview("A match to two sets") {
-    ScoreView(
-        points: .game(SideCounts(us: 4, them: 3)),
-        games: SideCounts(us: 2, them: 4),
-        sets: SideCounts(us: 1, them: 0),
-        servingSide: .them,
-        onRallyWon: { _ in },
-        onUndo: {})
-}
+private let classic = ScoreView(
+    points: .game(SideCounts(us: 3, them: 2)),
+    games: SideCounts(us: 4, them: 5),
+    sets: nil,
+    servingSide: .us,
+    onRallyWon: { _ in },
+    onUndo: {})
 
-#Preview("The match to N points") {
-    ScoreView(
-        points: .count(SideCounts(us: 12, them: 9)),
-        games: nil,
-        sets: nil,
-        servingSide: .them,
-        onRallyWon: { _ in },
-        onUndo: {})
-}
+private let twoSets = ScoreView(
+    points: .game(SideCounts(us: 4, them: 3)),
+    games: SideCounts(us: 2, them: 4),
+    sets: SideCounts(us: 1, them: 0),
+    servingSide: .them,
+    onRallyWon: { _ in },
+    onUndo: {})
+
+private let pointsTo = ScoreView(
+    points: .count(SideCounts(us: 12, them: 9)),
+    games: nil,
+    sets: nil,
+    servingSide: .them,
+    onRallyWon: { _ in },
+    onUndo: {})
+
+#Preview("Classic scoring") { classic }
+
+#Preview("In Russian: classic scoring") { inRussian(classic) }
+
+#Preview("A match to two sets") { twoSets }
+
+#Preview("In Russian: a match to two sets") { inRussian(twoSets) }
+
+#Preview("The match to N points") { pointsTo }
+
+#Preview("In Russian: the match to N points") { inRussian(pointsTo) }
+
+#endif

@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld games" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld game"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld games"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld гейм"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld гейма"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld геймов"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld гейма"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld sets" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld set"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sets"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld сет"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld сета"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld сетов"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld сета"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "A match played on your watch shows up here by itself" : {
       "localizations" : {
         "ru" : {
@@ -17,6 +121,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "История не читается"
+          }
+        }
+      }
+    },
+    "Classic" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Классический"
+          }
+        }
+      }
+    },
+    "Classic scoring" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Классический счёт"
           }
         }
       }
@@ -73,6 +197,26 @@
         }
       }
     },
+    "End" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить"
+          }
+        }
+      }
+    },
+    "End the match?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить матч?"
+          }
+        }
+      }
+    },
     "Game %lld" : {
       "localizations" : {
         "ru" : {
@@ -123,6 +267,16 @@
         }
       }
     },
+    "Keep playing" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Играть дальше"
+          }
+        }
+      }
+    },
     "Match in progress" : {
       "localizations" : {
         "ru" : {
@@ -133,12 +287,32 @@
         }
       }
     },
+    "Match to N points" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Счёт до N очков"
+          }
+        }
+      }
+    },
     "Match unfinished" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Матч не доигран"
+          }
+        }
+      }
+    },
+    "New match" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новый матч"
           }
         }
       }
@@ -183,6 +357,16 @@
         }
       }
     },
+    "Opponents serve" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подают соперники"
+          }
+        }
+      }
+    },
     "Opponents won" : {
       "localizations" : {
         "ru" : {
@@ -193,12 +377,62 @@
         }
       }
     },
+    "Point to the opponents" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очко соперникам"
+          }
+        }
+      }
+    },
+    "Point to us" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очко нам"
+          }
+        }
+      }
+    },
+    "Points (N)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очков (N)"
+          }
+        }
+      }
+    },
     "Rally %lld" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Розыгрыш %lld"
+          }
+        }
+      }
+    },
+    "Rules" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правила"
+          }
+        }
+      }
+    },
+    "Scoring" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Счёт"
           }
         }
       }
@@ -251,6 +485,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Serve after (X)" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подача через (X)"
           }
         }
       }
@@ -317,6 +561,26 @@
         }
       }
     },
+    "Sets" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сеты"
+          }
+        }
+      }
+    },
+    "The match will be saved as unfinished." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Матч сохранится недоигранным."
+          }
+        }
+      }
+    },
     "Tiebreak" : {
       "localizations" : {
         "ru" : {
@@ -337,6 +601,16 @@
         }
       }
     },
+    "To N points" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "До N очков"
+          }
+        }
+      }
+    },
     "Try again" : {
       "localizations" : {
         "ru" : {
@@ -347,12 +621,32 @@
         }
       }
     },
+    "Undo the last rally" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить последний розыгрыш"
+          }
+        }
+      }
+    },
     "Us" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Мы"
+          }
+        }
+      }
+    },
+    "We serve" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подаём мы"
           }
         }
       }
@@ -383,6 +677,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "выиграли соперники"
+          }
+        }
+      }
+    },
+    "serving" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "подача"
           }
         }
       }

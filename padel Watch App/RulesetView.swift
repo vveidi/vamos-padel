@@ -30,32 +30,42 @@ struct RulesetView: View {
 
     var body: some View {
         List {
-            Picker("Счёт", selection: $numbers.isClassic) {
-                Text("классический").tag(true)
-                Text("до N очков").tag(false)
+            Picker("Scoring", selection: $numbers.isClassic) {
+                Text("Classic").tag(true)
+                Text("To N points").tag(false)
             }
 
             if numbers.isClassic {
-                Picker("Сеты", selection: $numbers.setsToWin) {
-                    ForEach(Self.setsToWin, id: \.self) { Text("\($0)") }
+                Picker("Sets", selection: $numbers.setsToWin) {
+                    ForEach(Self.setsToWin, id: \.self) { number($0) }
                 }
 
-                Toggle("Золотое очко", isOn: $numbers.goldenPoint)
+                // The same sentence the start screen puts under the name of
+                // the ruleset, and the phone under the score of a match played
+                // by it: one rule, one name for it.
+                Toggle("Golden point", isOn: $numbers.goldenPoint)
             } else {
-                Picker("Очков (N)", selection: $numbers.target) {
-                    ForEach(Self.targets, id: \.self) { Text("\($0)") }
+                Picker("Points (N)", selection: $numbers.target) {
+                    ForEach(Self.targets, id: \.self) { number($0) }
                 }
 
-                Picker("Подача через (X)", selection: $numbers.serveChangesEvery) {
-                    ForEach(Self.serveChanges, id: \.self) { Text("\($0)") }
+                Picker("Serve after (X)", selection: $numbers.serveChangesEvery) {
+                    ForEach(Self.serveChanges, id: \.self) { number($0) }
                 }
             }
         }
-        .navigationTitle("Правила")
+        .navigationTitle("Rules")
         // What was chosen leaves at once rather than on a "Done" button: there
         // is nothing to confirm on this screen, and an extra tap is the very
         // thing it is hidden behind a push for.
         .onChange(of: numbers.ruleset, initial: false) { _, edited in ruleset = edited }
+    }
+
+    /// A value to be picked, and not a sentence: a numeral standing on its own
+    /// says the same thing in both languages, and a catalog carrying a key of
+    /// "%lld" would be carrying nothing.
+    private func number(_ value: Int) -> Text {
+        Text(verbatim: "\(value)")
     }
 
     /// A match to three sets won is up to five played, the full format of
@@ -118,14 +128,34 @@ struct RulesetView: View {
     }
 }
 
-#Preview("Classic scoring") {
-    @Previewable @State var ruleset = Ruleset.defaultClassic
+#if DEBUG
 
-    NavigationStack { RulesetView(ruleset: $ruleset) }
+/// Both rulesets in both languages. This screen is a column of labels beside
+/// their values, which is where a label that grew in translation shows: "Serve
+/// after (X)" against "Подача через (X)" is the widest pair on it.
+private func rules(_ ruleset: Ruleset) -> some View {
+    RulesScreen(ruleset: ruleset)
 }
 
-#Preview("The match to N points") {
-    @Previewable @State var ruleset = Ruleset.defaultPointsTo
-
-    NavigationStack { RulesetView(ruleset: $ruleset) }
+private func rulesInRussian(_ ruleset: Ruleset) -> some View {
+    rules(ruleset).environment(\.locale, Locale(identifier: "ru"))
 }
+
+/// The screen with a ruleset of its own to edit, and the push it is opened by.
+private struct RulesScreen: View {
+    @State var ruleset: Ruleset
+
+    var body: some View {
+        NavigationStack { RulesetView(ruleset: $ruleset) }
+    }
+}
+
+#Preview("Classic scoring") { rules(.defaultClassic) }
+
+#Preview("In Russian: classic scoring") { rulesInRussian(.defaultClassic) }
+
+#Preview("The match to N points") { rules(.defaultPointsTo) }
+
+#Preview("In Russian: the match to N points") { rulesInRussian(.defaultPointsTo) }
+
+#endif

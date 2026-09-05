@@ -33,14 +33,11 @@ struct OutcomeView: View {
     }
 
     private func finished(_ winner: Side) -> some View {
-        outcome(
-            headline: winner == .us ? "Мы выиграли" : "Выиграли соперники",
-            isOurs: winner == .us
-        ) {
+        outcome(headline: Self.headline(winner), isOurs: winner == .us) {
             // The winner's score comes first — the side the line above named.
             // Otherwise the outcome reads backwards: on the score screen the
             // opponents are on top, while here they would come second.
-            Text("\(score[winner]) : \(score[winner.opposite])")
+            Text(verbatim: "\(score[winner]) : \(score[winner.opposite])")
         }
         // The same gesture as on the score screen. Without it there is nothing
         // to undo a match finished by a mistaken tap with: this screen takes
@@ -52,26 +49,47 @@ struct OutcomeView: View {
         // worse than none. An accidental stop is guarded against by the
         // confirmation.
         .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
-        .accessibilityAction(named: "Отменить последний розыгрыш", onUndo)
+        .accessibilityAction(named: "Undo the last rally", onUndo)
+    }
+
+    /// Who won, as a whole sentence and not as the name of a side handed to a
+    /// frame: English puts the side before the verb and Russian after it, so
+    /// there is no frame left for a name to be dropped into.
+    ///
+    /// The phone's card says this about a match already in the history, and it
+    /// is the same sentence rather than a copy of one — a win is a win on
+    /// either screen.
+    private static func headline(_ winner: Side) -> LocalizedStringKey {
+        winner == .us ? "We won" : "Opponents won"
     }
 
     private var unfinished: some View {
-        outcome(headline: "Матч не доигран", isOurs: false) {
+        outcome(headline: "Match unfinished", isOurs: false) {
             // Who is who is said by the color — the same one that marks our
             // half of the score screen. There is no winner here to set the
             // order, and a "us" label would take room away from the score.
-            (Text("\(score[.us])").foregroundStyle(ScoreView.ourColor)
-                + Text(" : \(score[.them])"))
-                .accessibilityLabel("У нас \(score[.us]), у соперников \(score[.them])")
+            (Text(verbatim: "\(score[.us])").foregroundStyle(ScoreView.ourColor)
+                + Text(verbatim: " : \(score[.them])"))
+                .accessibilityLabel(Text("us \(score[.us]), opponents \(score[.them])"))
         }
     }
 
     private func outcome(
-        headline: String, isOurs: Bool, @ViewBuilder score: () -> some View
+        headline: LocalizedStringKey, isOurs: Bool, @ViewBuilder score: () -> some View
     ) -> some View {
         VStack(spacing: 8) {
+            // This is the sentence the screen exists to say, and it has to
+            // reach its end: "Opponents…" is not an outcome. The screen does
+            // not scroll, so at the largest type the line has to give way
+            // instead — a second line first, and shrinking after that. The
+            // floor is half, which at the largest type is still around the
+            // size this line has at the ordinary one; on the smallest watch
+            // "Выиграли соперники" is the one outcome that needs both.
             Text(headline)
                 .font(.headline)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.5)
                 .foregroundStyle(isOurs ? ScoreView.ourColor : .secondary)
 
             score()
@@ -84,7 +102,7 @@ struct OutcomeView: View {
             // the middle of dissecting the last rally is not something anybody
             // wants. By this point the match is written down in full, so
             // leaving here risks nothing.
-            Button("Новый матч", action: onFinish)
+            Button("New match", action: onFinish)
                 .buttonStyle(.bordered)
                 .font(.footnote)
                 .padding(.top, 4)
@@ -92,10 +110,33 @@ struct OutcomeView: View {
     }
 }
 
-#Preview("A win") {
-    OutcomeView(winner: .us, score: SideCounts(us: 6, them: 4), onUndo: {}, onFinish: {})
+#if DEBUG
+
+/// Every outcome in both languages. The headline is where this screen is
+/// widest, and the longest of the three is the one Russian and English disagree
+/// about the order of: "Opponents won" against "Выиграли соперники".
+private func outcome(winner: Side?, score: SideCounts) -> some View {
+    OutcomeView(winner: winner, score: score, onUndo: {}, onFinish: {})
 }
 
-#Preview("An abandoned match") {
-    OutcomeView(winner: nil, score: SideCounts(us: 3, them: 5), onUndo: {}, onFinish: {})
+private func outcomeInRussian(winner: Side?, score: SideCounts) -> some View {
+    outcome(winner: winner, score: score).environment(\.locale, Locale(identifier: "ru"))
 }
+
+#Preview("A win") { outcome(winner: .us, score: SideCounts(us: 6, them: 4)) }
+
+#Preview("In Russian: a win") { outcomeInRussian(winner: .us, score: SideCounts(us: 6, them: 4)) }
+
+#Preview("A defeat") { outcome(winner: .them, score: SideCounts(us: 4, them: 6)) }
+
+#Preview("In Russian: a defeat") {
+    outcomeInRussian(winner: .them, score: SideCounts(us: 4, them: 6))
+}
+
+#Preview("An abandoned match") { outcome(winner: nil, score: SideCounts(us: 3, them: 5)) }
+
+#Preview("In Russian: an abandoned match") {
+    outcomeInRussian(winner: nil, score: SideCounts(us: 3, them: 5))
+}
+
+#endif

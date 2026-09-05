@@ -61,7 +61,7 @@ private struct MatchControls: View {
         Button(role: .destructive) {
             isConfirming = true
         } label: {
-            Label("Завершить", systemImage: "xmark")
+            Label("End", systemImage: "xmark")
         }
         .padding(.horizontal)
         // The confirmation is mandatory: a swipe with a wet hand and a
@@ -69,25 +69,35 @@ private struct MatchControls: View {
         // by. It is also the only guard against an accidental stop: the match
         // does not come back into play.
         .confirmationDialog(
-            "Завершить матч?",
+            "End the match?",
             isPresented: $isConfirming,
             titleVisibility: .visible
         ) {
-            Button("Завершить", role: .destructive, action: onAbandon)
-            Button("Играть дальше", role: .cancel) {}
+            Button("End", role: .destructive, action: onAbandon)
+            Button("Keep playing", role: .cancel) {}
         } message: {
-            Text("Матч сохранится недоигранным.")
+            Text("The match will be saved as unfinished.")
         }
     }
 }
 
-#Preview {
-    ScorePages(
-        points: .game(SideCounts(us: 3, them: 2)),
-        games: SideCounts(us: 4, them: 5),
-        sets: nil,
-        servingSide: .us,
-        onRallyWon: { _ in },
-        onUndo: {},
-        onAbandon: {})
-}
+#if DEBUG
+
+/// The control page is the one thing on these two pages made of words, and it
+/// is also the narrowest place they are said in: a destructive button, the
+/// confirmation over it and the line under that. The dialog is reached by
+/// tapping "End" in the preview.
+private let pages = ScorePages(
+    points: .game(SideCounts(us: 3, them: 2)),
+    games: SideCounts(us: 4, them: 5),
+    sets: nil,
+    servingSide: .us,
+    onRallyWon: { _ in },
+    onUndo: {},
+    onAbandon: {})
+
+#Preview { pages }
+
+#Preview("In Russian") { pages.environment(\.locale, Locale(identifier: "ru")) }
+
+#endif

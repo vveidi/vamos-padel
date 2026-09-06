@@ -68,12 +68,23 @@ final class HealthKitWorkout: NSObject, Workout {
         // the match's way. The explanation of why a match counter needs health
         // access lives in NSHealth*UsageDescription; the system shows it in
         // this very dialog.
+        // The status is logged on both sides of the request because the
+        // request itself is silent about what it did: it neither throws nor
+        // reports when it decides against showing the dialog. Two readings
+        // tell those cases apart. Still "not determined" afterwards means the
+        // system declined to ask — a locked watch keeps the Health store shut
+        // and answers everything that way. "denied" means an answer is already
+        // on file from an earlier install, and no dialog is ever coming.
+        logger.notice("health share permission before asking: \(self.shareStatus(), privacy: .public)")
+
         do {
             try await healthStore.requestAuthorization(
                 toShare: Self.typesToShare, read: Self.typesToRead)
         } catch {
             logger.error("health permission was not granted: \(error.localizedDescription)")
         }
+
+        logger.notice("health share permission after asking: \(self.shareStatus(), privacy: .public)")
 
         let configuration = HKWorkoutConfiguration()
 
@@ -113,6 +124,27 @@ final class HealthKitWorkout: NSObject, Workout {
             self.builder = builder
         } catch {
             logger.error("the workout did not start: \(error.localizedDescription)")
+        }
+    }
+
+    /// What HealthKit says about the types we write, as one line of log.
+    ///
+    /// The types we read are not here, and cannot be: HealthKit answers
+    /// `notDetermined` for a read type whatever the truth, so that an app
+    /// cannot infer from a refusal that there is something to hide.
+    private func shareStatus() -> String {
+        Self.typesToShare
+            .map { "\($0.identifier): \(Self.name(of: healthStore.authorizationStatus(for: $0)))" }
+            .sorted()
+            .joined(separator: ", ")
+    }
+
+    private static func name(of status: HKAuthorizationStatus) -> String {
+        switch status {
+        case .notDetermined: "not determined"
+        case .sharingDenied: "denied"
+        case .sharingAuthorized: "authorized"
+        @unknown default: "unknown (\(status.rawValue))"
         }
     }
 

@@ -1,0 +1,68 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Padel"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "padel Watch App"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSHealthShareUsageDescription" : {
+      "comment" : "The English is the watch target's INFOPLIST_KEY_NSHealthShareUsageDescription build setting; both languages are written here by hand, and the entry is marked manual so extraction leaves it alone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padel reads your heart rate and calories during a match to record it as a workout."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Счётчик читает пульс и калории во время матча, чтобы записать его как тренировку."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "The English is the watch target's INFOPLIST_KEY_NSHealthUpdateUsageDescription build setting; both languages are written here by hand, and the entry is marked manual so extraction leaves it alone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padel saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Матч записывается в Health как тренировка. Без этого часы не держат экран счёта включённым всю игру, а падел не попадает в кольца активности."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

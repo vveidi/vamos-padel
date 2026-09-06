@@ -1,6 +1,7 @@
 included:
   - padel
   - padel Watch App
+  - padelTests
   - Shared
   - Packages/PadelScoring/Sources
   - Packages/PadelScoring/Tests

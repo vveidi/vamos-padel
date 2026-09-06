@@ -33,6 +33,13 @@ exit code instead of `xcbeautify`'s. Without it a failing build reports success:
 `xcodebuild -list -project padel.xcodeproj` names the schemes; a failed
 `-destination` prints every simulator UUID the scheme accepts.
 
+Most of the tests are the packages' and run under `swift test`. One target's
+tests are the project's: `padelTests`, hosted by the phone app, which reads the
+strings out of the built `padel.app`. It runs under the `padel` scheme's test
+action on an iOS simulator, and `xcbeautify --quiet` prints a passing suite as
+one line — `xcrun xcresulttool get test-results summary --path <.xcresult>`
+counts the cases behind it.
+
 `-list` reads nothing but the project file in name only: it resolves the package
 graph on the way, which writes `SourcePackages` and reaches GitHub for GRDB. It
 sits on the allowlist because it changes no source, not because it is inert.

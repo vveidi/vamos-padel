@@ -22,6 +22,16 @@ public struct MatchState: Equatable, Sendable {
     /// fail to.
     public let servingSide: Side
 
+    /// The half of the court the next rally is served from, in the server's
+    /// own frame — see `ServingHalf`, which is also where the warning about
+    /// mirroring it on screen lives.
+    ///
+    /// `nil` is the golden point: the receiving pair chooses the side there
+    /// and the app is not told which, so the half is not unset but unknowable.
+    /// Computed with the rest of the state, and stored no more than it is
+    /// (ADR-0001).
+    public let servingHalf: ServingHalf?
+
     public let outcome: MatchOutcome
 
     /// The score the match will be remembered by.
@@ -46,6 +56,7 @@ public struct MatchState: Equatable, Sendable {
         sets: SideCounts? = nil,
         finalScore: SideCounts = SideCounts(),
         servingSide: Side = .us,
+        servingHalf: ServingHalf? = .right,
         outcome: MatchOutcome = .inProgress
     ) {
         self.points = points
@@ -53,6 +64,7 @@ public struct MatchState: Equatable, Sendable {
         self.sets = sets
         self.finalScore = finalScore
         self.servingSide = servingSide
+        self.servingHalf = servingHalf
         self.outcome = outcome
     }
 
@@ -69,6 +81,7 @@ public struct MatchState: Equatable, Sendable {
             sets: sets,
             finalScore: finalScore,
             servingSide: servingSide,
+            servingHalf: servingHalf,
             outcome: .abandoned)
     }
 }
@@ -96,6 +109,7 @@ extension MatchState {
                 points: .count(replay.points),
                 finalScore: replay.points,
                 servingSide: firstServer.alternating(replay.serveChanges),
+                servingHalf: replay.servingHalf,
                 outcome: replay.outcome)
 
         case .classic(let setsToWin, let goldenPoint):
@@ -113,6 +127,7 @@ extension MatchState {
                 // match's.
                 finalScore: ruleset.isMultiSet ? replay.setsWon : replay.games,
                 servingSide: firstServer.alternating(replay.serveChanges),
+                servingHalf: replay.servingHalf,
                 outcome: replay.outcome)
         }
     }

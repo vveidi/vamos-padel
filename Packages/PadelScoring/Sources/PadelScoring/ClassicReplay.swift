@@ -34,10 +34,15 @@ struct ClassicReplay {
     /// games start again from zero.
     private var gamesPlayed = 0
 
+    /// Kept past the walk because the golden point is not only a way of
+    /// winning a game: it is also the one rally whose half nobody can compute.
+    private let goldenPoint: Bool
+
     /// The number of sets comes from outside and is therefore clamped from
     /// below: a match to zero sets could be neither started nor finished.
     init(setsToWin: Int, goldenPoint: Bool, journal: RallyJournal) {
         let setsToWin = max(setsToWin, 1)
+        self.goldenPoint = goldenPoint
 
         for rally in journal.rallies {
             points = points.incrementing(rally.winner)
@@ -112,6 +117,27 @@ struct ClassicReplay {
     /// looking at it.
     var serveChanges: Int {
         gamesPlayed + (isTieBreak ? (points.total + 1) / 2 : 0)
+    }
+
+    /// The half the next rally is served from — the parity of the rallies
+    /// played in the game the walk stands in, tiebreak or not. A tiebreak is
+    /// where that reading earns its keep: the serve passes there on a rhythm
+    /// of its own while the half goes on flipping every rally.
+    ///
+    /// `nil` on a golden point, where the receiving pair picks the side and
+    /// the app is never told which.
+    var servingHalf: ServingHalf? {
+        isGoldenPoint ? nil : .alternating(points.total)
+    }
+
+    /// Deuce, with the golden point in force: a single rally to settle the
+    /// game, and the receivers' to choose a side for.
+    ///
+    /// A tiebreak never reaches one — the golden point is a rule of the game,
+    /// and a tiebreak is not a game — so its own 3:3 is an ordinary rally.
+    private var isGoldenPoint: Bool {
+        goldenPoint && !isTieBreak
+            && points == SideCounts(us: Points.deuce, them: Points.deuce)
     }
 
     /// Writes the game down in the set the match stands in and starts the next

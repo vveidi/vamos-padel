@@ -15,17 +15,17 @@ Do not restate them here — build them.
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `ServingHalf` exists in `PadelScoring`, public, with `.right` and `.left`, and a doc comment stating the frame is the server's own
-- [ ] `MatchState.servingHalf: ServingHalf?` is public and computed, stored nowhere (ADR-0001)
-- [ ] In classic scoring the half is the parity of the rallies played in the current game — right on the first, alternating after
-- [ ] The alternation holds inside a tiebreak, where the serve passes on a different rhythm than the half
-- [ ] With `goldenPoint: true`, the half is `nil` on a golden point, and only there — never in a tiebreak, which the golden point does not reach
-- [ ] Without `goldenPoint`, deuce and advantage have an ordinary half and it is never `nil`
-- [ ] In the match to N points the half is the parity of the rallies within the current service turn — right on the turn's first rally
-- [ ] An undo returns the half to what it was, with no code of its own doing it
-- [ ] The cases below are in `PadelScoringTests`, and the package suite is green
+- [x] `ServingHalf` exists in `PadelScoring`, public, with `.right` and `.left`, and a doc comment stating the frame is the server's own
+- [x] `MatchState.servingHalf: ServingHalf?` is public and computed, stored nowhere (ADR-0001)
+- [x] In classic scoring the half is the parity of the rallies played in the current game — right on the first, alternating after
+- [x] The alternation holds inside a tiebreak, where the serve passes on a different rhythm than the half
+- [x] With `goldenPoint: true`, the half is `nil` on a golden point, and only there — never in a tiebreak, which the golden point does not reach
+- [x] Without `goldenPoint`, deuce and advantage have an ordinary half and it is never `nil`
+- [x] In the match to N points the half is the parity of the rallies within the current service turn — right on the turn's first rally
+- [x] An undo returns the half to what it was, with no code of its own doing it
+- [x] The cases below are in `PadelScoringTests`, and the package suite is green
 
 ## Where the value comes from
 
@@ -78,3 +78,54 @@ and the screen's habit carries over unchanged.
 **On what does not change.** `MatchPayload`, the database, the match card: a
 finished match is no better for knowing which half its 47th rally came from.
 The half is a live aid and it dies with the match.
+
+## Comments
+
+**Closed.** `ServingHalf` is a new file in `PadelScoring` — two cases and one
+internal `alternating(_:)`, which is the whole rule ("right on the first, every
+rally after") written down once so that both walks read it from the same place.
+The doc comment says the frame is the server's own and spells out the mirror the
+view will need, so ticket 02's `case (.them, .right): .bottomLeading` has
+something to point at.
+
+Where the value comes from, as the ticket laid out: `ClassicReplay.servingHalf`
+is `.alternating(points.total)` with the golden point ahead of it, and
+`PointsToReplay.servingHalf` is `.alternating(points.total % serveChangesEvery)`.
+Both sit next to `serveChanges`, so the two rhythms of a tiebreak are visibly
+separate computations rather than one counter read twice. `MatchState.init`
+reads them off, exactly as it reads the score.
+
+Two small departures from the file as it stood, both required by the ticket's
+"take the number from `Points`":
+
+- `Points.deuce` lost its `private`. It is now read by
+  `ClassicReplay.isGoldenPoint`, next to `Points.pointsInGame`, which that file
+  already used for the same reason.
+- `ClassicReplay` now keeps `goldenPoint` past its walk. It was a local before,
+  because winning a game is decided during the walk; the half is asked
+  afterwards.
+
+`MatchState`'s internal init defaults the half to `.right`, not to `nil`: a
+match that has not started is served from the right, and `nil` is reserved for
+the one thing it means. `MatchTests`' `match.state == MatchState()` keeps
+passing because of it, and honestly.
+
+Verification — `ServingHalfTests`, eight cases matching the eight the ticket
+asked for: the opening rally in both rulesets; a five-rally game, chosen so
+that anchoring on the match's total rallies gives the wrong answer at the game
+boundary; the tiebreak walked rally by rally with the serve and the half
+asserted together (its 3:3, six rallies in, is asserted to be an ordinary right
+— the golden point does not reach a tiebreak); the golden point `nil` with the
+rally before it `.left`; advantage scoring through deuce, advantage and back
+with the half never `nil`; X = 3, where rally three opens a turn and comes from
+the right while the match's parity says left; X below one behaving like X = 1;
+and undo, asserted the `UndoTests` way — record, undo, compare whole states —
+across a game boundary and a golden point.
+
+`swift test` is green in all three packages and the watch app builds. One
+caution for whoever comes next: adding a field to `MatchState` invalidates
+SwiftPM's incremental state in the *dependent* packages, and `PadelStorage`
+first ran with a stale one — it reported a passing compile and a nonsense
+outcome (`.finished(winner: .them)` on a 2:1 match to 16). `rm -rf .build` and
+it is green. Nothing was wrong with the code; the failure just does not look
+like a stale build.

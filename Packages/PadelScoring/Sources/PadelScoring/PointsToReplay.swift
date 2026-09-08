@@ -48,4 +48,16 @@ struct PointsToReplay {
     /// How many times the serve has changed hands: every X rallies, counted
     /// from the first server.
     var serveChanges: Int { points.total / serveChangesEvery }
+
+    /// The half the next rally is served from.
+    ///
+    /// This ruleset has no games, so the service turn stands in for one: its
+    /// first rally comes from the right and the half alternates from there.
+    /// With the default X = 4 that is the same as the parity of every rally
+    /// played; with an odd X the two part company, and the service turn is the
+    /// one a player would count out loud.
+    ///
+    /// Never `nil`: the golden point is a rule of classic scoring, and there
+    /// is no rally here whose half is anyone's to choose.
+    var servingHalf: ServingHalf { .alternating(points.total % serveChangesEvery) }
 }

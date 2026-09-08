@@ -55,7 +55,7 @@ public enum Points: Equatable, Sendable {
     static var pointsInGame: Int { ladder.count }
 
     /// The score at which deuce begins.
-    private static var deuce: Int { ladder.count - 1 }
+    static var deuce: Int { ladder.count - 1 }
 
     /// After deuce the counters keep growing — 4:3, 5:4 — but there are only
     /// three ways to say it: deuce, advantage, and behind. So past the third

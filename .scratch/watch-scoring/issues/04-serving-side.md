@@ -63,3 +63,25 @@ not by tapping but with a build carrying a pre-set journal: the screen received 
 the real engine rather than from substituted values. The change logic itself is covered by
 tests. If the simulator does not recover, the following tickets should adopt this method as
 the ordinary one rather than the emergency one.
+
+**Correction, 2026-09-09 — taps do reach the app.** Checked while `serving-half` 02 was
+being closed, which had followed the advice above and used a pre-set journal. Two things
+had been read as one:
+
+- **The agent had no tap tool.** `.mcp.json` enables the workflows
+  `simulator,swift-package`, and the tap, touch and long-press tools live in
+  `ui-automation`, which was not among them. Missing tools look exactly like a dead
+  simulator. The `npx xcodebuildmcp ui-automation …` CLI has them all regardless of what
+  the MCP server exposes, and it works.
+- **`tap` does not fire a SwiftUI `Button` on watchOS.** It fires the score screen's
+  `onTapGesture` zones — a tap there scored a point and moved the serve — but the start
+  screen's buttons ignore it. `long-press --duration 250` fires them; that is how a match
+  was started from the start screen and the Health prompt reached.
+
+So an unresponsive button is not proof that events are not arriving. The accessibility
+snapshot also works, and reads labels and values in both languages —
+`snapshot-ui` returned `40, 2 гейма, подача слева`, which makes it the instrument of
+choice for checking what VoiceOver says.
+
+A pre-set journal is still the better tool for a state that is tedious to tap into — a
+golden point, a match at 6:6 — but as a shortcut, not as a workaround.

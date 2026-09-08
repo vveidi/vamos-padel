@@ -34,4 +34,21 @@ struct SharedCatalogTests {
     func theWatchsUndoAction() {
         #expect(Catalog.text("Undo the last rally", in: .ru) == "Отменить последний розыгрыш")
     }
+
+    /// The half the serve comes from, as VoiceOver says it on the score
+    /// screen. Three whole clauses and not one with a fragment glued on — so
+    /// three keys, and the two new ones are pinned here the way the plural
+    /// forms are pinned: the sentence written out by hand, in both languages.
+    ///
+    /// The right and the left are the server's own. The screen mirrors the
+    /// opponents' zone and the spoken score does not, which is a difference
+    /// worth reading twice before either sentence is "fixed" to agree with the
+    /// picture.
+    @Test("The watch names the half the serve comes from, in both languages")
+    func theServingHalf() {
+        #expect(Catalog.text("serving from the right", in: .en) == "serving from the right")
+        #expect(Catalog.text("serving from the right", in: .ru) == "подача справа")
+        #expect(Catalog.text("serving from the left", in: .en) == "serving from the left")
+        #expect(Catalog.text("serving from the left", in: .ru) == "подача слева")
+    }
 }

@@ -18,6 +18,7 @@ struct ScorePages: View {
     let games: SideCounts?
     let sets: SideCounts?
     let servingSide: Side
+    let servingHalf: ServingHalf?
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -42,6 +43,7 @@ struct ScorePages: View {
                 games: games,
                 sets: sets,
                 servingSide: servingSide,
+                servingHalf: servingHalf,
                 onRallyWon: onRallyWon,
                 onUndo: onUndo)
                 .tag(Page.score)
@@ -92,6 +94,7 @@ private let pages = ScorePages(
     games: SideCounts(us: 4, them: 5),
     sets: nil,
     servingSide: .us,
+    servingHalf: .right,
     onRallyWon: { _ in },
     onUndo: {},
     onAbandon: {})

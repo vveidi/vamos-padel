@@ -63,6 +63,7 @@ struct MatchView: View {
                     games: state.games,
                     sets: setsWorthShowing(state),
                     servingSide: state.servingSide,
+                    servingHalf: state.servingHalf,
                     onRallyWon: record(rallyWonBy:),
                     onUndo: undo,
                     onAbandon: abandon)

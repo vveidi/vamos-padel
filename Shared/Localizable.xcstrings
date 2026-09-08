@@ -691,6 +691,26 @@
         }
       }
     },
+    "serving from the left" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "подача слева"
+          }
+        }
+      }
+    },
+    "serving from the right" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "подача справа"
+          }
+        }
+      }
+    },
     "unfinished" : {
       "localizations" : {
         "ru" : {

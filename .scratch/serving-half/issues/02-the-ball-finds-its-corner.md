@@ -11,19 +11,19 @@ across the screen, which is what a serve is.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The indicator is `tennisball.fill`, white, at the size the dot had, in the serving side's zone only
-- [ ] It sits in an **inner** corner — our zone's top corners, the opponents' bottom corners
-- [ ] `.right` draws trailing in our zone and **leading** in the opponents', and the mirror is explained in a comment where it is written
-- [ ] A `nil` half puts the ball at the middle of the zone's inner edge, still naming the side and no longer naming the half
-- [ ] The sets digit stays at `.overlay(alignment: .trailing)`, vertically centered, untouched
-- [ ] A move fades: the old ball out, then the new one in — never both at once
-- [ ] VoiceOver says "serving from the right" or "serving from the left" in place of "serving", and plain "serving" when the half is `nil`
-- [ ] Both new strings are in the catalog in Russian as well as English, and pinned by a test in `padelTests` the way the plural forms are — the catalog is shared, so the phone's target reaches these watch keys
-- [ ] The mapping is a named pure function, `(Side, ServingHalf?) -> Alignment`, not `switch`es inline in `body`
-- [ ] The previews cover both halves in both zones and the golden point, in both languages
-- [ ] The screen is seen running, not only previewed
+- [x] The indicator is `tennisball.fill`, white, at the size the dot had, in the serving side's zone only
+- [x] It sits in an **inner** corner — our zone's top corners, the opponents' bottom corners
+- [x] `.right` draws trailing in our zone and **leading** in the opponents', and the mirror is explained in a comment where it is written
+- [x] A `nil` half puts the ball at the middle of the zone's inner edge, still naming the side and no longer naming the half
+- [x] The sets digit stays at `.overlay(alignment: .trailing)`, vertically centered, untouched
+- [x] A move fades: the old ball out, then the new one in — never both at once
+- [x] VoiceOver says "serving from the right" or "serving from the left" in place of "serving", and plain "serving" when the half is `nil`
+- [x] Both new strings are in the catalog in Russian as well as English, and pinned by a test in `padelTests` the way the plural forms are — the catalog is shared, so the phone's target reaches these watch keys
+- [x] The mapping is a named pure function, `(Side, ServingHalf?) -> Alignment`, not `switch`es inline in `body`
+- [x] The previews cover both halves in both zones and the golden point, in both languages
+- [x] The screen is seen running, not only previewed
 
 ## The mapping
 
@@ -156,3 +156,99 @@ exists, `theOpponentsRightHalfDrawsOnTheLeft` is one file away instead of a
 refactor away — and the previews carry the claim in the meantime. Name them for
 the surprise, not for the state: "The opponents serve from their right (screen
 left)" is read by the person about to straighten out what looks like a typo.
+
+## Comments
+
+**Closed.** `ScoreView` gained `servingHalf`, threaded from `MatchState`
+through `MatchView` and `ScorePages` — three one-line edits, nothing on the way
+computes anything. Everything else is in `ScoreView.swift`:
+
+`serveAlignment(for:from:)` is the mapping, file-private and pure, exactly the
+six cases the ticket's table names. Its doc comment carries the mirror, the
+correction not to make (written out as the two-case `switch` somebody would
+flatten it to), and why the corners are the inner ones — the reader who is
+about to "fix" it is inside this file, and so is the argument.
+
+`ServeIndicator` is the ball. It holds two pieces of state — `corner`, where it
+is drawn, and `isVisible` — and only `isVisible` is ever animated: the opacity
+falls to zero over 0.15s, the sleep lets it get there, and only then does
+`corner` take the new value and the ball come back. A zone change is the same
+sequence run by two zones, one fading out while the other has not started. A
+rally scored mid-fade cancels the sleeping task, and the guard after it is
+load-bearing: without it the cancelled task would put the ball back at the
+corner it was leaving.
+
+The corner carries `.animation(nil, value: corner)`, and that line is the whole
+of the ball not travelling — see the correction below for what it costs to
+leave out.
+
+VoiceOver gets three whole clauses through `servingClause`, and the two new
+catalog keys are pinned in `SharedCatalogTests` rather than in
+`PluralFormsTests` — they take no number, and the suite they joined is the one
+that exists to prove the phone's bundle carries the watch's words.
+
+Two departures worth naming:
+
+- The ball is `Image(systemName:).resizable().frame(width: 10, height: 10)`
+  rather than a font size, so it is the dot's size exactly rather than a glyph
+  that happens to be about it.
+- The overlay lost its `alignment:` argument and aligns inside itself with
+  `.frame(maxWidth:maxHeight:alignment:)`, because the corner has to change at
+  runtime and an `.overlay(alignment:)` is fixed at the call site. The old
+  comment's promise still holds and is restated: an overlay takes no room from
+  the layout, so the digit does not move whatever the ball does.
+
+**Verification.** `swift test` green in all three packages, `padelTests` green
+on an iOS simulator — 9 cases, the new one among them — and the watch app
+builds.
+
+Seen running, twice, both with a pre-set journal, since taps still do not reach
+the app (`watch-scoring` 04):
+
+1. A rigged score screen played by a 3-second clock through a real `Match` from
+   0:0, screenshotted 35 times. The ball walked our zone's top corners
+   trailing → leading → trailing → leading with the alternating rallies, sat at
+   the top middle for exactly the golden point at 40:40, and after the game
+   changed hands moved to the opponents' zone and opened at its bottom
+   **leading** corner — their right, at screen left, which is the whole claim
+   of the ticket. Two of the 35 frames caught a fade in progress with no ball
+   in either zone and none caught two, which is the sequence the fade promises.
+2. The real path — store → `RootView` → `MatchView` → `ScorePages` — launched
+   on a match written into the store three rallies into a tiebreak at 6:6. The
+   ball stood at our zone's top leading corner: the half is `.left` after three
+   rallies while the serve had already changed hands twice, the two rhythms
+   ticket 01 separated, read off a screen.
+
+Positions were measured off the screenshots rather than eyeballed — the ball's
+centroid lands 12pt from both edges of its corner in every frame, mirrored to
+the pixel between the zones — and two frames were looked at whole, the golden
+point and the opponents' serve, to check the ball against the clock and the
+page dots. It is clear of both.
+
+**The ball was sliding, and now it does not.** Reported straight after the
+above: the ball travelled across the zone while it faded. It did, and the
+verification above had not been in a position to see it — screenshots taken
+0.4s apart against a 0.15s fade land either side of the animation, never inside
+it.
+
+The cause was the first version's shape. It drew the ball inside `if let shown`
+and moved the corner with the state, which meant the corner was an animatable
+layout change on a view SwiftUI could still be holding: a reinsertion arriving
+while the removal was in flight reconnected the same view, and it slid from the
+old corner to the new one as it came back. The `?? .center` fallback made it
+worse — a fading ball was also being told to go to the middle of the zone.
+
+What replaced it keeps `corner` and `isVisible` apart and puts
+`.animation(nil, value: corner)` on the frame, so a corner change is excluded
+from every animation, including one already running around it. The ball can
+now be somewhere or nowhere and has nowhere to travel to.
+
+Verified by making the animation observable rather than by looking harder: a
+build with the fade temporarily at 1.2s, played by the same clock-driven rig,
+100 screenshots. Every frame's ball sits at x = 33.2 or x = 339.2 — the two
+corners, to a fifth of a pixel — while its luminance climbs and falls through
+eight or nine intermediate frames per fade, and eleven frames between the fades
+hold no ball in either zone. The frames were clustered rather than averaged,
+after an average had already lied once: a centroid drifting between two corners
+is what a slide and a crossfade look like alike, and only the clusters say
+which. This is also the check the first pass should have run.

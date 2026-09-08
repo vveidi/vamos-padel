@@ -76,6 +76,18 @@ shows it on screen. With anonymous sides only the side is tracked, never the
 particular player within the pair.
 _Avoid_: server, the serve (as an entity)
 
+**Serving half**:
+The half of the court, right or left of the center line, the serve is played
+from. The first rally of a game comes from the right, and the half changes with
+every rally after it — inside a tiebreak as well, where the serve itself passes
+on a different rhythm. In the match to N points a service turn stands in for a
+game: its first rally comes from the right. Right and left are the server's
+own, facing the net, so they do not move when the pairs change ends.
+On a golden point the half is not known: the receiving pair chooses which side
+to take the serve on, and the app is not told which.
+_Avoid_: service box (that is where the ball has to land, diagonally opposite
+the half it was served from), side (that is the pair), quadrant
+
 **Abandoned match**:
 A match stopped before the ruleset declared it over. Saved in the history
 alongside the rest, but marked explicitly, and counted as neither a win nor a

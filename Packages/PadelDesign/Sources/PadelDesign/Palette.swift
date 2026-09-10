@@ -59,8 +59,16 @@ extension Color {
     /// draw them.
     ///
     /// Not `onBall`: a label on the ball is nearly black, and a seam at that
-    /// strength turns the ball into a beach ball. Ticket 02 draws the arcs.
+    /// strength turns the ball into a beach ball. ``Ball`` draws the arcs.
     static let ballSeam = Color(hex: 0x14_28_12).opacity(0.4)
+
+    /// The seams of the ball cut out of a `ball`-yellow button — the one
+    /// place the ball is drawn the other way round, dark felt and bright
+    /// seams, because the court's own ball there would be yellow on yellow.
+    ///
+    /// The ball's own color rather than the ink's: a white seam on a dark disc
+    /// in a yellow button is a third value in a shape 21pt across.
+    static let ballSeamCutOut = Color.ball.opacity(0.8)
 
     // MARK: The net
 

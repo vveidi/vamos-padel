@@ -117,7 +117,6 @@ public enum TypeRamp: Sendable, CaseIterable {
     var font: Font {
         .system(size: size, weight: weight, design: design)
     }
-
 }
 
 extension View {

@@ -6,19 +6,19 @@ two light effects that sit over them.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `CourtHalf(side:)` draws the tinted surface, the weave, the service line,
+- [x] `CourtHalf(side:)` draws the tinted surface, the weave, the service line,
       the center line and the outline — mirrored correctly for the top half
-- [ ] `NetLine()` is a bright tape with a post at **each end**, not a band of
+- [x] `NetLine()` is a bright tape with a post at **each end**, not a band of
       mesh
-- [ ] `Ball(size:)` is drawn, not `Image(systemName: "tennisball.fill")`
-- [ ] `Floodlight(corner:)` and `NightScrim(edge:)` exist as overlays that take
+- [x] `Ball(size:)` is drawn, not `Image(systemName: "tennisball.fill")`
+- [x] `Floodlight(corner:)` and `NightScrim(edge:)` exist as overlays that take
       no room from the layout
-- [ ] A `Court` convenience composes half · net · half for the four screens
+- [x] A `Court` convenience composes half · net · half for the four screens
       that want the whole thing
-- [ ] Nothing in the package imports anything from `PadelScoring` but `Side`
-- [ ] Previews cover both halves, the net at watch and phone scale, the ball at
+- [x] Nothing in the package imports anything from `PadelScoring` but `Side`
+- [x] Previews cover both halves, the net at watch and phone scale, the ball at
       every size it is used at, and the whole court on both platforms
 
 ## The geometry
@@ -131,3 +131,69 @@ from the spec: could a screen that has never heard of a rally use it?
 pre-empt it here, but do not paint yourself out of it either: keep the weave,
 the floodlight and the surface tints separable, so that 10 can drop them
 without unpicking the geometry.
+
+## Comments
+
+### Closing note
+
+Seven files in `Packages/PadelDesign/Sources/PadelDesign`: `CourtMetrics`,
+`CourtHalf` (with `PaintedLine` and `Weave`), `NetLine`, `Court`, `Ball`,
+`Light` (`Floodlight` and `NightScrim`) and `CourtPreviews`. No screen was
+touched — the package is the whole of it, and tickets 04–09 are where it lands
+on glass.
+
+**How each criterion was checked.** Geometry does not show up in a value, so
+the suites render the views and read the pixels back: `Tests/…/Raster.swift`
+runs `ImageRenderer` on the Mac and samples patches out of the bitmap, and
+`CourtTests`, `NetTests`, `BallTests` and `LightTests` assert against it — 22
+new cases, 40 in the package. They measure the service line at 30% of each
+half, that the centre line stops at it, that the outline has three sides and
+the net edge is bare, that the tape spans the width with the same post at each
+end, that the posts add no height to the layout, that the ball is `ball` yellow
+with two seams and is 22/24 of its frame at all seven sizes it is drawn at, and
+that neither light changes the size of what it is laid over. The mirror is
+checked head-on: every row carrying a line across their half must carry one
+across ours at the mirrored row and nowhere else. Flipping `scaleX: 1, y: -1`
+to `y: 1` was tried, and it fails seven cases — the suite is not vacuous.
+
+Both app targets build against the package (watchOS 26.5 and iOS simulators),
+`swiftlint` is clean across `PadelDesign`, and `grep` over the sources finds
+`Side` and no other `PadelScoring` symbol.
+
+**Departures from the ticket as written.**
+
+- **The posts are centred on the tape, not only above it.** The prose says they
+  "extend **above** the line (toward their half)"; every board draws them
+  symmetric — `top: -4px` on a 4px tape, 12px tall — so a post rises into their
+  half and drops into ours by the same amount. The boards won: seen from
+  directly overhead a post has no near end, and the asymmetry would read as a
+  perspective the rest of the court does not have.
+- **The floodlight is an `EllipticalGradient`, not a radial one.** The boards
+  give the light a width and a height of its own (`85% 55%`, `70% 32%`), and a
+  circle centred on the corner of a screen twice as tall as it is wide lights a
+  very different shape. The falloff stays in the token, which is clear by 62%.
+- **`Ball` gained a `Finish`.** The history board draws the ball inverted —
+  dark felt, `ball`-coloured seams — because on the yellow primary button the
+  court's own ball is yellow on yellow. Two cases, `.onCourt` and `.cutOut`,
+  and a `ballSeamCutOut` token beside `ballSeam` in `Palette`. Without it
+  ticket 03 has to redraw the ball, which is the drift ADR-0006 exists to
+  prevent.
+- **`NightScrim` takes a `depth`.** The band is 150px on the watch board and
+  120–130 on the phone's; the default resolves per platform and the parameter
+  is there for the boards that differ.
+- **The outline's inset is points, not a fraction.** The board's 10px is 5pt on
+  the watch at 2x and 10pt on the phone at 1x — about 2.5% of the width and 4%
+  of the half's height, so "~5%" could not be one number in both directions
+  without the margin looking wider at the top than at the sides. It follows the
+  rule the radii already document.
+
+**Left open.** The weave is at the board's 2px on, 4px off, which the watch
+takes as 1pt/2pt — back to exactly 2 and 4 physical pixels at 2x. Whether a
+stripe that fine survives a wrist is the one thing the ticket says to check on
+a device, and there is no screen drawing a court yet to check it on; ticket 04
+is the first chance. If it needs coarsening it is `CourtMetrics.weave`, one
+number.
+
+`ScoreView`'s comment arguing for a white ball is still there. Ticket 04 owns
+that line and already says so in its own notes, so deleting it from here would
+have meant touching a screen this ticket has no business in.

@@ -135,6 +135,27 @@ being named outside `PadelDesign`. After them the watch target has no colour
 literal left anywhere, and no `.system(size:)` outside `OutcomeView`'s 44pt
 score, which is ticket 07's.
 
+### After the review: the sets digit and a stale doc
+
+Two findings from `/code-review` against `e1754cc`, fixed in a follow-up commit.
+Both axes reached the sets digit independently, which is why it moved:
+
+- The ink was `.strong` (0.65) where the board draws the digit at 0.8 for their
+  half and 0.85 for ours, and the screen shipped it at 0.9 before this ticket.
+  The spec's "Layout, proportion and hierarchy transfer from the boards" governs
+  a weight, so it is now `.control` — the 0.82 the ink already names. Borrowing a
+  control's name for a number on a court is the ink vocabulary's gap rather than
+  this screen's, and the call site says so.
+- `TypeRamp`'s enum doc argued for the ramp by citing `ScoreView`'s
+  `.system(size: 64, …)` "as `ScoreView` does today". This ticket is what made
+  that false. The argument now stands in the past tense, which is also the
+  better argument.
+
+Left alone: the points are still spelled `.courtInk(side)` without an explicit
+`.weight(.primary)` beside two siblings that spell theirs. Consistency says
+spell it; the paragraph above says the trio's weights are three decisions and
+not one. Worth a minute from whoever next opens the file.
+
 ### One thing deliberately not changed
 
 The ball's `opacity(0.9)` at the visible end of the fade was written for a white

@@ -154,10 +154,17 @@ private struct ScoreZone: View {
                 // the order the three numbers are read in: the points, then
                 // the sets that decide the match, then the games inside the
                 // current one.
+                //
+                // The weight is the board's — it draws this digit at 0.8 and
+                // 0.85 where it draws the games at 0.5, and hierarchy is the
+                // thing the spec says transfers off a board. `control` is the
+                // 0.82 the ink already has a name for; that the name is a
+                // control's is the vocabulary's gap and not this screen's to
+                // fill.
                 Text(verbatim: "\(sets)")
                     .textStyle(.scoreAside)
                     .padding(.trailing, 12)
-                    .foregroundStyle(Color.courtInk(side).weight(.strong))
+                    .foregroundStyle(Color.courtInk(side).weight(.control))
             }
         }
         .background { court }

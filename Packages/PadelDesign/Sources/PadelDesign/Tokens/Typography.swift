@@ -6,7 +6,8 @@ import SwiftUI
 /// boards are set in Unbounded and Golos Text, ticket 11 decides whether those
 /// two ship, and whatever it decides it changes this file and no screen. A
 /// screen that wrote `.system(size: 64, weight: .semibold, design: .rounded)`
-/// — as `ScoreView` does today — would have to be rewritten instead.
+/// would have to be rewritten instead — which is what `ScoreView` used to say
+/// for its score, and what ticket 04 traded for `.textStyle(.score)`.
 ///
 /// Seven entries, and seven is the budget. An eighth is a sign that a screen
 /// wants a size rather than a role, and the answer to that is nearly always

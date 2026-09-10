@@ -146,10 +146,12 @@ struct ChoiceRowTests {
         let two = try Self.row(chosen: 2)
         let three = try Self.row(chosen: 3)
 
+        // The bottom half of the row, which is where the value stands now that
+        // it is under the label: the label itself says "Sets" in both.
         let strip = { (raster: Raster) in
             raster.meanLuminance(
-                columns: (raster.width * 2 / 3)..<raster.width,
-                rows: 0..<raster.height)
+                columns: 0..<raster.width,
+                rows: (raster.height / 2)..<raster.height)
         }
 
         #expect(strip(two) != strip(three), "the row draws the same thing for 2 and 3")
@@ -158,28 +160,61 @@ struct ChoiceRowTests {
     /// The brief allows no chevron, so the value lit in `ball` is the whole of
     /// the affordance — it is the only lit thing on an otherwise quiet row,
     /// and in this app `ball` means "this is yours, or this is chosen".
-    @Test("The value is lit in ball, which is the only affordance there is")
+    ///
+    /// *Where* it is lit is the other half of the check: under the label at
+    /// the leading edge, and nothing lit on the label's own line.
+    @Test("The value is lit in ball, on its own line under the label")
     func theValueIsDrawnInBall() throws {
         let raster = try Self.row()
 
-        let lit = (raster.width / 2..<raster.width).contains { column in
-            (0..<raster.height).contains { row in
-                raster.pixel(column, row, isCloseTo: .ball, tolerance: 0.2)
+        let lit = { (columns: Range<Int>, rows: Range<Int>) in
+            columns.contains { column in
+                rows.contains { row in
+                    raster.pixel(column, row, isCloseTo: .ball, tolerance: 0.2)
+                }
             }
         }
 
-        #expect(lit, "nothing on the row is drawn in the accent")
+        #expect(
+            lit(0..<(raster.width / 3), (raster.height / 2)..<raster.height),
+            "nothing under the label is drawn in the accent")
+        #expect(
+            !lit(0..<raster.width, 0..<(raster.height / 3)),
+            "the value is on the label's line rather than under it")
     }
 
-    /// The largest Dynamic Type setting's stand-in, as everywhere else here.
-    @Test("A label with no room beside the value puts it underneath")
-    func theRowStacksWhenTheLabelRunsOutOfWidth() throws {
-        let beside = try Self.row()
-        let stacked = try Self.row(label: "Подача через (X)", width: 110)
+    /// Two texts tall for every value, and not only for the ones that ran out
+    /// of width. A card of these rows is read as a column of one shape, which
+    /// a row that stacked only in Russian would not give it.
+    @Test("A row is as tall as its label and its value together")
+    func theRowStandsTwoTextsTall() throws {
+        let short = try Self.row()
+        let long = try Self.row(label: "Подача через (X)", width: 110)
 
+        #expect(Double(short.height) >= Double(ControlMetrics.stackedRowHeight))
+        #expect(Double(long.height) >= Double(ControlMetrics.stackedRowHeight))
+    }
+
+    /// The page a row opens is a column of the same shape as the card it came
+    /// from — tapping a row should not swap cells of one height for cells of
+    /// another. `ChoiceList` is private and nothing here can push it, so the
+    /// question goes to the capsule it fills the page with.
+    @Test("A capsule down the page stands as tall as the row that opened it")
+    func thePageKeepsTheCardsShape() throws {
+        let capsule = { (place: ChoiceCapsule.Place) in
+            Raster(
+                ChoiceCapsule(label: Text(verbatim: "16"), isChosen: true, place: place)
+                    .frame(width: ChoiceRowTests.width)
+                    .background(Color.night))
+        }
+
+        let onThePage = try #require(capsule(.downThePage))
+        let besideItsTwin = try #require(capsule(.besideItsTwin))
+
+        #expect(Double(onThePage.height) >= Double(ControlMetrics.stackedRowHeight))
         #expect(
-            stacked.height > beside.height,
-            "the label stayed beside the value and was cut off instead")
+            onThePage.height > besideItsTwin.height,
+            "the page is drawn in the phone's segment height")
     }
 }
 

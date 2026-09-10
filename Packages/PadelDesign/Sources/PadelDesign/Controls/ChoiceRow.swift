@@ -18,8 +18,8 @@ import SwiftUI
 /// short turn from 21 rather than sixteen from 5.
 ///
 /// **No chevron.** The brief is "no navigation bar, no list rows, no
-/// chevron-and-separator", and the value at the trailing edge is drawn in
-/// `ball` — which in this app means exactly *this is yours, or this is chosen*
+/// chevron-and-separator", and the value under the label is drawn in `ball` —
+/// which in this app means exactly *this is yours, or this is chosen*
 /// (ADR-0006). The one lit thing on an otherwise quiet row is the affordance,
 /// and a chevron beside it would be the system's furniture back again.
 ///
@@ -79,24 +79,20 @@ public struct ChoiceRow<Value: Hashable>: View {
     }
 
     private var row: some View {
-        // Beside each other while the label leaves room, and above each other
-        // when it stops. "Подача через (X)" at the largest setting is wider
-        // than a watch on its own, and a row that kept the value beside it
-        // would be a row with the label cut off.
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: ControlMetrics.rowGap) {
-                labelText
-                Spacer(minLength: ControlMetrics.rowGap)
-                chosenText
-            }
-
-            VStack(alignment: .leading, spacing: ControlMetrics.rowGap) {
-                labelText
-                chosenText.frame(maxWidth: .infinity, alignment: .trailing)
-            }
+        // The value under the label and never beside it, so that each of the
+        // two is given the row's whole width. "Подача через (X)" is wider than
+        // a watch on its own before the value is put anywhere, and a row that
+        // stacked only once it ran out of room would stand one text tall in
+        // English and two in Russian, in a card whose rows are read as a
+        // column of one shape.
+        VStack(alignment: .leading, spacing: ControlMetrics.rowGap) {
+            labelText
+            chosenText
         }
         .padding(.vertical, ControlMetrics.rowPaddingVertical)
-        .frame(maxWidth: .infinity, minHeight: ControlMetrics.rowHeight)
+        .frame(
+            maxWidth: .infinity, minHeight: ControlMetrics.stackedRowHeight,
+            alignment: .leading)
         .contentShape(Rectangle())
         // One element and not two: VoiceOver reading a label and then a value
         // as separate stops is a way of hearing a row and not knowing it opens
@@ -117,7 +113,7 @@ public struct ChoiceRow<Value: Hashable>: View {
         (chosen?.label ?? Text(verbatim: ""))
             .textStyle(.control)
             .foregroundStyle(.ball)
-            .multilineTextAlignment(.trailing)
+            .multilineTextAlignment(.leading)
     }
 
     private var chosen: Option? {
@@ -175,7 +171,8 @@ private struct ChoiceList<Value: Hashable>: View {
                             dismiss()
                         } label: {
                             ChoiceCapsule(
-                                label: option.label, isChosen: option.value == selection)
+                                label: option.label, isChosen: option.value == selection,
+                                place: .downThePage)
                         }
                         .buttonStyle(.plain)
                         .accessibilityAddTraits(

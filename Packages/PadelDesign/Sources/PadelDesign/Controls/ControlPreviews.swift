@@ -90,7 +90,10 @@ private struct Words {
             .foregroundStyle(.ink.weight(.control))
     }
     .tint(.ball)
-    .frame(minHeight: ControlMetrics.rowHeight)
+    // The watch's rows stand two texts tall, and this one has a switch where
+    // their value is: asking for their height is what keeps the last row of
+    // the card from sitting short. On the phone the number is `rowHeight`.
+    .frame(minHeight: ControlMetrics.stackedRowHeight)
 }
 
 // MARK: - The watch's rows
@@ -100,9 +103,11 @@ private struct Words {
     /// The watch's whole rules screen worth of furniture: four rows in a card,
     /// each one opening a page. Nothing here is a segment and nothing is a ± .
     ///
-    /// What to look for: the chosen value lit in `ball` at the trailing edge —
-    /// the only lit thing on the row, and the whole of the affordance, because
-    /// the brief allows no chevron. Then open "Points (N)" and check that the
+    /// What to look for: every row two texts tall, the chosen value lit in
+    /// `ball` on the second line — the only lit thing on the row, and the
+    /// whole of the affordance, because the brief allows no chevron — and the
+    /// golden point standing as tall as the four rows above it with only its
+    /// own label to fill the height. Then open "Points (N)" and check that the
     /// page arrives already scrolled to 16 rather than at 5.
     private struct RowsBoard: View {
         let words: Words

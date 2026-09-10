@@ -15,8 +15,33 @@ import SwiftUI
 /// real `Button`, so the trait and the tap arrive from the platform rather
 /// than from here.
 struct ChoiceCapsule: View {
+    /// Where the capsule is standing, which is the only thing that differs
+    /// between the two — and it differs in one number, its height.
+    enum Place {
+        /// Beside its twin, in the phone's ``SegmentedChoice``.
+        case besideItsTwin
+
+        /// Down the page the watch's ``ChoiceRow`` opens.
+        case downThePage
+
+        /// The least the capsule stands.
+        ///
+        /// A capsule on the page is as tall as the row that opened it —
+        /// ``ControlMetrics/stackedRowHeight``, two texts — so that tapping a
+        /// row does not swap a column of one size for a column of another.
+        /// It holds one text and keeps the height anyway, the way the golden
+        /// point does among the rows.
+        var minHeight: CGFloat {
+            switch self {
+            case .besideItsTwin: ControlMetrics.segmentHeight
+            case .downThePage: ControlMetrics.stackedRowHeight
+            }
+        }
+    }
+
     let label: Text
     let isChosen: Bool
+    let place: Place
 
     var body: some View {
         label
@@ -29,7 +54,7 @@ struct ChoiceCapsule: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, ControlMetrics.segmentPadding)
             .padding(.vertical, ControlMetrics.rowPaddingVertical)
-            .frame(maxWidth: .infinity, minHeight: ControlMetrics.segmentHeight)
+            .frame(maxWidth: .infinity, minHeight: place.minHeight)
             .background(background)
             .contentShape(RoundedRectangle(cornerRadius: .segment))
     }

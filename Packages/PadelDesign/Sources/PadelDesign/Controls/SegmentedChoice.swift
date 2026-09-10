@@ -79,7 +79,7 @@ public struct SegmentedChoice<Value: Equatable>: View {
         return Button {
             selection = option.value
         } label: {
-            ChoiceCapsule(label: option.label, isChosen: isChosen)
+            ChoiceCapsule(label: option.label, isChosen: isChosen, place: .besideItsTwin)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isChosen ? .isSelected : [])

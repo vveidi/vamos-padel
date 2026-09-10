@@ -57,15 +57,39 @@ enum ControlMetrics {
 
     // MARK: The rows in the card
 
-    /// A row in the card: 64px on the watch's board, 68 on the phone's. Both
-    /// kinds of row stand in it — the watch's ``ChoiceRow`` and the phone's
-    /// ``StepperRow`` — because it is the card that decides how tall a row is,
-    /// not what the row does.
+    /// A row in the card: 64px on the watch's board, 68 on the phone's. It is
+    /// the card that decides how tall a row is, not what the row does — a row
+    /// that stands its value under its label asks for ``stackedRowHeight``
+    /// instead, which is this floor raised by the second line and nothing
+    /// else.
     static var rowHeight: CGFloat { Platform.value(watch: 32, phone: 68) }
 
-    /// Between a row's label and whatever stands at its trailing edge — the ±
-    /// on the phone, the chosen value on the watch.
+    /// Between a row's label and whatever stands with it — the ± beside it on
+    /// the phone, the chosen value under it on the watch.
     static var rowGap: CGFloat { Platform.value(watch: 6, phone: 14) }
+
+    /// A row that stands its value *under* its label: two lines of type, the
+    /// gap between them, and the row's own padding above and below.
+    ///
+    /// The watch's ``ChoiceRow`` reaches this by holding two texts, and the
+    /// number is written down for the rows that hold one and have to stand
+    /// among them without looking short — the golden point, which is a label
+    /// and a switch. On the phone no row stacks and this is ``rowHeight``,
+    /// which is why the toggle can ask for it on either platform.
+    ///
+    /// A minimum like every other height here: turn Dynamic Type up and the
+    /// two texts grow past it, with the toggle's own label growing beside
+    /// them.
+    static var stackedRowHeight: CGFloat {
+        max(
+            rowHeight,
+            (TypeRamp.body.size + TypeRamp.control.size) * lineHeight + rowGap
+                + 2 * rowPaddingVertical)
+    }
+
+    /// How much taller a line is than the type it is set in — the room the
+    /// face keeps above the ascenders and below the descenders.
+    private static let lineHeight: CGFloat = 1.2
 
     // MARK: The stepper row, which is the phone's alone
 

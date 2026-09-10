@@ -6,7 +6,7 @@ import SwiftUI
 // Five boards. Everything here is geometry, and geometry is the part of a
 // design that cannot be read off source: a service line at 30% of the wrong
 // edge, a post at one end of the net, a weave that has become stripes and a
-// floodlight that has become a colour all compile.
+// floodlight that has become a color all compile.
 //
 // Both platforms come from the same five. The thicknesses and the radii
 // resolve per platform, so these are the watch's when the canvas is running
@@ -33,7 +33,7 @@ private struct CourtBoard: View {
 /// edge are both visible.
 ///
 /// Their service line is 30% down from the top and ours is 30% up from the
-/// bottom; their centre line runs from the service line to the net and ours
+/// bottom; their center line runs from the service line to the net and ours
 /// from the net to the service line; and neither outline has an edge along the
 /// net. Put the two back together and it is one court.
 private struct HalvesBoard: View {
@@ -144,7 +144,7 @@ private struct BallBoard: View {
 /// The floodlight from each corner, and the scrim at each edge.
 ///
 /// What to look for: the floodlight reading as light rather than as a second
-/// colour, and the scrim reaching `night` at its edge without a visible band
+/// color, and the scrim reaching `night` at its edge without a visible band
 /// where it starts.
 private struct LightBoard: View {
     var body: some View {

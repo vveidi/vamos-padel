@@ -31,7 +31,7 @@ public struct NetLine: View {
 
     /// A post: one tape wide, three tapes long, standing across the line.
     ///
-    /// Centred on the tape, as the boards draw it — it rises into their half
+    /// Centered on the tape, as the boards draw it — it rises into their half
     /// and drops into ours by the same amount, because a post seen from
     /// directly overhead has no near end.
     private var post: some View {

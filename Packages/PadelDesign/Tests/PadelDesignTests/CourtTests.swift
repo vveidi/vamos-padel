@@ -7,7 +7,7 @@ import Testing
 /// The court's geometry, drawn and then measured.
 ///
 /// Read off the boards, the whole of it is four claims: the service line is
-/// 30% in from the half's *outer* edge, the centre line runs from there to the
+/// 30% in from the half's *outer* edge, the center line runs from there to the
 /// net and no further, the outline has three sides because the net is the
 /// fourth, and our half is theirs mirrored rather than a second drawing of it.
 /// Every one of them is a picture, and every one of them compiles when wrong.
@@ -89,21 +89,21 @@ struct CourtTests {
     }
 
     @Test(
-        "The centre line runs from the service line to the net, and no further",
+        "The center line runs from the service line to the net, and no further",
         arguments: Side.allCases)
-    func theCentreLineStopsAtTheServiceLine(side: Side) throws {
+    func theCenterLineStopsAtTheServiceLine(side: Side) throws {
         let raster = try Self.half(side)
         let middle = Self.width / 2
         let clearOfIt = middle - 40
 
-        // Between the service line and the net: the centre line is there.
+        // Between the service line and the net: the center line is there.
         for fraction in [0.5, 0.9] {
             let row = Self.inward(fraction, on: side)
 
             #expect(
                 Self.patch(raster, column: middle, row: row)
                     > Self.patch(raster, column: clearOfIt, row: row) + 0.02,
-                "no centre line at \(Int(fraction * 100))% of \(side)'s half")
+                "no center line at \(Int(fraction * 100))% of \(side)'s half")
         }
 
         // Behind the service line, between it and the back of the court:
@@ -114,14 +114,14 @@ struct CourtTests {
             abs(
                 Self.patch(raster, column: middle, row: behind)
                     - Self.patch(raster, column: clearOfIt, row: behind)) < 0.01,
-            "the centre line runs past the service line into the back of \(side)'s half")
+            "the center line runs past the service line into the back of \(side)'s half")
     }
 
     @Test("The outline has three sides, and the net is the fourth", arguments: Side.allCases)
     func theOutlineLeavesTheNetEdgeUndrawn(side: Side) throws {
         let raster = try Self.half(side)
 
-        // Well clear of the centre line, so that only the outline can be
+        // Well clear of the center line, so that only the outline can be
         // brightening anything.
         let column = 50
         let surface = Self.patch(raster, column: column, row: 200)
@@ -171,7 +171,7 @@ struct CourtTests {
 
     /// The rows of a half that carry a line running across it.
     ///
-    /// A line running *down* the half — the centre line, the outline's two
+    /// A line running *down* the half — the center line, the outline's two
     /// sides — is two pixels of two hundred and moves a row's mean by nothing.
     /// A line running across it moves it a long way, so the rows sort
     /// themselves into two groups and the threshold only has to land between

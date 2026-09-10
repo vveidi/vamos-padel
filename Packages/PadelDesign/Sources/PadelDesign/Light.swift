@@ -54,7 +54,7 @@ public struct Floodlight: View {
 
     public var body: some View {
         // Elliptical rather than radial: the boards give the light a width and
-        // a height of its own, and a circle centred on the corner of a screen
+        // a height of its own, and a circle centered on the corner of a screen
         // twice as tall as it is wide lights a very different shape.
         //
         // The falloff is the token's, not this view's — `floodlight` is clear

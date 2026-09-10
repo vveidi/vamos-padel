@@ -146,7 +146,7 @@ struct Weave: Shape {
 
         // A square with the rect's diagonal for a side still covers it once
         // turned, whatever the angle: the rect's corners are half a diagonal
-        // from its centre, and that is the square's inscribed circle.
+        // from its center, and that is the square's inscribed circle.
         let reach = (rect.width * rect.width + rect.height * rect.height).squareRoot()
         let period = stripe * 3
 

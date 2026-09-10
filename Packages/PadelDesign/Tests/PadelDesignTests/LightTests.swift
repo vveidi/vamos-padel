@@ -46,10 +46,10 @@ struct LightTests {
     }
 
     /// "It is a **light**, not a hue. If it starts reading as a second accent
-    /// colour, it is too strong or too saturated."
+    /// color, it is too strong or too saturated."
     ///
     /// Which is a pair of bounds: it has to lift the ground it is on, and it
-    /// has to lift it by little. The app has one colour and it is the ball
+    /// has to lift it by little. The app has one color and it is the ball
     /// (ADR-0006); a floodlight that arrived as paint would be the second.
     @Test("The floodlight is light rather than paint")
     func theFloodlightIsFaint() throws {

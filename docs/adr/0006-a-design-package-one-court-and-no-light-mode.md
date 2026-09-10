@@ -2,7 +2,7 @@
 
 The app's look lives in a fourth local package, `PadelDesign`, and not in the
 two app targets. It draws one thing — a padel court at dusk, seen from above —
-in one palette, with one accent colour, and it has no light variant.
+in one palette, with one accent color, and it has no light variant.
 
 Three decisions, recorded together because they are one design and separating
 them would make each look arbitrary.
@@ -14,8 +14,8 @@ without a package between them. Five of the six artboards draw the net, four
 draw the two-half court, four draw the ball; left in the targets, those are
 drawn twice each at best and drift apart by the second ticket.
 
-A tokens-only package — colours and fonts, shapes redrawn per screen — was the
-alternative. It fixes colour drift and none of the shape drift, and the shape
+A tokens-only package — colors and fonts, shapes redrawn per screen — was the
+alternative. It fixes color drift and none of the shape drift, and the shape
 drift is the one that shows: a net with the posts at the wrong end reads as a
 different app.
 
@@ -33,19 +33,19 @@ to avoid for. The dependency runs one way and stays that way: nothing in
 
 ## One accent, and it is the ball
 
-The ball's yellow is the only colour in the app, and it means one thing: *this
+The ball's yellow is the only color in the app, and it means one thing: *this
 is yours, or this is chosen*. It marks the serve, the half you picked, and the
-button that starts the match. Losses go cold and grey.
+button that starts the match. Losses go cold and gray.
 
 There is no red anywhere — not on the destructive "End", not on a loss. A red
-would be the second colour, and a second colour argues with the first: once
+would be the second color, and a second color argues with the first: once
 loss is red, the yellow stops meaning "yours" and starts meaning "good", which
 is a different and much weaker idea.
 
 This is why the serve indicator went from white to yellow, retiring the comment
-that argued for white on the grounds that a fifth colour would be spent on the
+that argued for white on the grounds that a fifth color would be spent on the
 smallest thing on screen. In this design the smallest thing on screen is exactly
-what the one colour is for.
+what the one color is for.
 
 ## Dark only
 

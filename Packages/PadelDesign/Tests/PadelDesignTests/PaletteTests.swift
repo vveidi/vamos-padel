@@ -50,15 +50,16 @@ struct PaletteTests {
 
     @Test("The ink's weights descend in one order")
     func inkWeightsAreOrdered() {
-        // `hairline` and `surface` are the same number on purpose — a border
-        // and a panel happen to land on 0.12 and have no reason to move
-        // together — so the descent is checked with the pair collapsed.
+        // Two pairs are the same number on purpose — `hairline` and `surface`
+        // land on 0.12, `tape` and `control` on 0.82, and neither pair has a
+        // reason to move together — so the descent is checked with both pairs
+        // collapsed.
         let descending: [InkWeight] = [
             .primary, .post, .tape, .strong, .secondary, .tertiary, .surface, .surfaceQuiet,
         ]
 
         #expect(
-            descending.count == InkWeight.allCases.count - 1,
+            descending.count == InkWeight.allCases.count - 2,
             "a weight was added and left out of the descent")
 
         for (heavier, lighter) in zip(descending, descending.dropFirst()) {
@@ -68,6 +69,7 @@ struct PaletteTests {
         }
 
         #expect(InkWeight.hairline.opacity == InkWeight.surface.opacity)
+        #expect(InkWeight.tape.opacity == InkWeight.control.opacity)
     }
 
     /// Ticket 02 draws the net out of these and ticket 03 the controls, and

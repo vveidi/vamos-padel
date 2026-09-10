@@ -131,10 +131,11 @@ extension Color {
 /// colors, so it is one token and this vocabulary, and a screen never writes
 /// the number.
 ///
-/// Ordered from full strength down. Two collapses are deliberate: `hairline`
-/// and `surface` land on the same 0.12 and have no reason to move together,
-/// and the boards' 0.10 divider is read as `hairline` rather than given a
-/// weight of its own — two hundredths apart is one weight drawn twice.
+/// Ordered from full strength down. Three collapses are deliberate:
+/// `hairline` and `surface` land on the same 0.12 and have no reason to move
+/// together, the boards' 0.10 divider is read as `hairline` rather than given
+/// a weight of its own — two hundredths apart is one weight drawn twice — and
+/// `tape` and `control` land on the same 0.82 from opposite ends of the app.
 public enum InkWeight: Sendable, CaseIterable {
     /// Full strength — a title, a score, the thing being read.
     case primary
@@ -144,6 +145,18 @@ public enum InkWeight: Sendable, CaseIterable {
 
     /// The net's tape itself.
     case tape
+
+    /// The ink a control is drawn in — a settings row's label, the bar of a
+    /// stepper's − and + .
+    ///
+    /// Named for the same role ``TypeRamp/control`` is named for, and it lands
+    /// on `tape`'s number rather than being spent as it: the net is a shape on
+    /// a court and a row label is a word under a finger, and the day one of
+    /// them moves the other has no business moving with it.
+    ///
+    /// The boards spend 0.82 on the wrist and 0.85 in the hand. That is one
+    /// weight drawn twice, by the rule the paragraph above states.
+    case control
 
     /// A label that is legible but not chosen — the unselected half of a
     /// two-way choice.
@@ -169,6 +182,7 @@ public enum InkWeight: Sendable, CaseIterable {
         case .primary: 1
         case .post: 0.9
         case .tape: 0.82
+        case .control: 0.82
         case .strong: 0.65
         case .secondary: 0.55
         case .tertiary: 0.4

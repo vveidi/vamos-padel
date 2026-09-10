@@ -7,10 +7,14 @@ let package = Package(
     // palette, the radii and the ramp are values, and a value can be checked
     // natively, without a simulator. Building for the Mac is also what gives
     // the package an index, and with it `hover` and `goToDefinition`.
+    // The Mac is v15 and not v14 because of `Group(subviews:)`, which is what
+    // lets `SettingsCard` put a divider between two rows it was handed and not
+    // at the ends. It shipped alongside iOS 18 and watchOS 11 — the two this
+    // package already required — under the Mac's own version number.
     platforms: [
         .iOS(.v18),
         .watchOS(.v11),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(name: "PadelDesign", targets: ["PadelDesign"])

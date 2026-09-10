@@ -11,9 +11,10 @@ says: a screen title, a button label, a VoiceOver label stands in the source in
 English, and that English sentence is at once the key its Russian translation is
 found by (ADR-0005).
 
-That English is American, without exception and on both sides of the line — the
-prose and the strings. One spelling everywhere, so that a doc comment is never a
-bad example for the sentence written underneath it.
+That English is American in the strings and in anything else a player reads: a
+tiebreak is one word and a color has no "u". The prose around them — comments,
+doc comments, commit messages — is exempt, and either spelling is correct there
+(ADR-0005).
 
 The app itself speaks two languages, and the reader's phone chooses between
 them; a phone set to neither gets English. On screen the two are equal. In the

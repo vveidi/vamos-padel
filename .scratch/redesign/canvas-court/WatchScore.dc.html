@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Golos+Text:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #ddf35c; } a:hover { color: #eaff8a; }
+  </style>
+</helmet>
+
+<div style="width: 396px; height: 484px; background: #04181f; color: #eef7f5; font-family: 'Golos Text', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="flex: 1; position: relative; background: #0e3d4c;">
+    <div style="position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.028) 0 2px, rgba(255, 255, 255, 0) 2px 6px);"></div>
+    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+      <div style="position: relative; font-family: 'Unbounded', system-ui, sans-serif; font-size: 92px; font-weight: 600; line-height: 1; color: #dcefe9;">
+        <span style="display: inline-block; letter-spacing: -3px; margin-right: -3px;">40</span>
+        <div style="position: absolute; left: 100%; bottom: 12px; margin-left: 9px; font-size: 28px; font-weight: 500; line-height: 1; color: rgba(220, 239, 233, 0.5);">4</div>
+      </div>
+    </div>
+    <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: 'Unbounded', system-ui, sans-serif; font-size: 26px; font-weight: 600; color: rgba(220, 239, 233, 0.8);">1</div>
+  </div>
+
+  <div style="height: 4px; position: relative; background: rgba(238, 247, 245, 0.82); box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5); z-index: 1;">
+    <div style="position: absolute; left: 0; top: -4px; width: 4px; height: 12px; background: rgba(238, 247, 245, 0.9);"></div>
+    <div style="position: absolute; right: 0; top: -4px; width: 4px; height: 12px; background: rgba(238, 247, 245, 0.9);"></div>
+  </div>
+
+  <div style="flex: 1; position: relative; background: #12564f;">
+    <div style="position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.032) 0 2px, rgba(255, 255, 255, 0) 2px 6px);"></div>
+    <div style="position: absolute; inset: 0; background: radial-gradient(80% 70% at 82% 108%, rgba(255, 248, 214, 0.14) 0%, rgba(255, 248, 214, 0) 64%);"></div>
+    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+      <div style="position: relative; font-family: 'Unbounded', system-ui, sans-serif; font-size: 92px; font-weight: 600; line-height: 1; color: #f4fffb;">
+        <span style="display: inline-block; letter-spacing: -3px; margin-right: -3px;">AD</span>
+        <div style="position: absolute; left: 100%; bottom: 12px; margin-left: 9px; font-size: 28px; font-weight: 500; line-height: 1; color: rgba(244, 255, 251, 0.55);">5</div>
+      </div>
+    </div>
+    <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: 'Unbounded', system-ui, sans-serif; font-size: 26px; font-weight: 600; color: rgba(244, 255, 251, 0.85);">1</div>
+    <div style="position: absolute; left: 18px; bottom: 18px; width: 30px; height: 30px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" fill="#ddf35c"></circle>
+        <path d="M3.6 4.3c3.9 3 3.9 12.4 0 15.4" stroke="rgba(20, 40, 18, 0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+        <path d="M20.4 4.3c-3.9 3-3.9 12.4 0 15.4" stroke="rgba(20, 40, 18, 0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+      </svg>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":396,"height":484}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

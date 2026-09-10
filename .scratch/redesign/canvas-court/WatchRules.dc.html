@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Golos+Text:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #ddf35c; } a:hover { color: #eaff8a; }
+  </style>
+</helmet>
+
+<div style="width: 396px; height: 484px; background: #04181f; color: #eef7f5; font-family: 'Golos Text', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box; padding: 0 16px 16px; overflow: hidden; position: relative;">
+
+  <div style="position: absolute; inset: 0; background: radial-gradient(80% 45% at 15% 0%, rgba(255, 248, 214, 0.12) 0%, rgba(255, 248, 214, 0) 60%);"></div>
+
+  <div style="position: relative; height: 46px; display: flex; align-items: center;">
+    <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: rgba(238, 247, 245, 0.8);">Rules</div>
+  </div>
+
+  <div style="position: relative; display: flex; gap: 7px;">
+    <div style="flex: 1; height: 58px; border-radius: 18px; background: rgba(221, 243, 92, 0.14); box-shadow: inset 0 0 0 2px #ddf35c; display: flex; align-items: center; justify-content: center;">
+      <div style="font-size: 15px; font-weight: 600; color: #ddf35c;">Classic</div>
+    </div>
+    <div style="flex: 1; height: 58px; border-radius: 18px; background: rgba(238, 247, 245, 0.1); display: flex; align-items: center; justify-content: center;">
+      <div style="font-size: 15px; font-weight: 500; color: rgba(238, 247, 245, 0.65);">To N</div>
+    </div>
+  </div>
+
+  <div style="position: relative; margin-top: 10px; border-radius: 22px; background: rgba(238, 247, 245, 0.08); padding: 4px 16px;">
+
+    <div style="height: 64px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-size: 14px; color: rgba(238, 247, 245, 0.82);">Sets to win</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 30px; height: 30px; border-radius: 999px; background: rgba(238, 247, 245, 0.12); display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(238,247,245,0.8)" stroke-width="2.8" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+        </div>
+        <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 24px; font-weight: 600; min-width: 18px; text-align: center;">2</div>
+        <div style="width: 30px; height: 30px; border-radius: 999px; background: rgba(238, 247, 245, 0.12); display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(238,247,245,0.8)" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 1px; background: rgba(238, 247, 245, 0.1);"></div>
+
+    <div style="height: 64px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-size: 14px; color: rgba(238, 247, 245, 0.82);">Golden point</div>
+      <div style="width: 52px; height: 31px; border-radius: 999px; background: #ddf35c; display: flex; align-items: center; justify-content: flex-end; padding: 0 3px; box-sizing: border-box;">
+        <div style="width: 25px; height: 25px; border-radius: 999px; background: #0b2b26;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: relative; margin-top: 12px; font-size: 14px; line-height: 1.42; color: rgba(238, 247, 245, 0.6); text-wrap: pretty;">Best of 3 sets. A set is 6 games, a tiebreak at 6–6. Deuce is one point.</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":396,"height":484}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

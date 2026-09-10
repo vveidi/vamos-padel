@@ -45,3 +45,9 @@ fastlane/test_output
 # Editors
 *.swp
 *~.nib
+
+# Design references — other apps' screenshots, kept out of git
+.scratch/redesign/references/
+
+# Design canvases — the seeded payload, regenerable from the .dc.html sources
+.scratch/redesign/*/padel-*.html

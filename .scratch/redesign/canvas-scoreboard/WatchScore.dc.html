@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #d93b1e; } a:hover { color: #f1573a; }
+  </style>
+</helmet>
+
+<div style="width: 396px; height: 484px; background: #0b0a09; font-family: 'JetBrains Mono', ui-monospace, monospace; display: flex; flex-direction: column; gap: 3px; box-sizing: border-box; overflow: hidden;">
+
+  <div style="flex: 1; position: relative; background: #0b0a09; border: 2px solid rgba(239, 233, 221, 0.28); border-left: 0; border-right: 0; display: flex; align-items: center; justify-content: center; gap: 10px; box-sizing: border-box;">
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 104px; font-weight: 600; line-height: 0.82; color: #efe9dd;">40</div>
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 34px; font-weight: 500; line-height: 1; color: rgba(239, 233, 221, 0.5); align-self: flex-end; padding-bottom: 46px;">4</div>
+    <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: 'Oswald', system-ui, sans-serif; font-size: 34px; font-weight: 600; color: rgba(239, 233, 221, 0.85);">1</div>
+    <div style="position: absolute; left: 18px; top: 16px; font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(239, 233, 221, 0.34);">Them</div>
+  </div>
+
+  <div style="flex: 1; position: relative; background: #efe9dd; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 104px; font-weight: 600; line-height: 0.82; color: #0b0a09;">AD</div>
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 34px; font-weight: 500; line-height: 1; color: rgba(11, 10, 9, 0.5); align-self: flex-end; padding-bottom: 46px;">5</div>
+    <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: 'Oswald', system-ui, sans-serif; font-size: 34px; font-weight: 600; color: rgba(11, 10, 9, 0.85);">1</div>
+    <div style="position: absolute; left: 18px; top: 14px; font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(11, 10, 9, 0.4);">Us</div>
+    <div style="position: absolute; left: 18px; bottom: 18px; width: 16px; height: 16px; border-radius: 999px; background: #d93b1e;"></div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":396,"height":484}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

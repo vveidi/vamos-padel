@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #d93b1e; } a:hover { color: #f1573a; }
+  </style>
+</helmet>
+
+<div style="width: 396px; height: 484px; background: #0b0a09; color: #efe9dd; font-family: 'JetBrains Mono', ui-monospace, monospace; display: flex; flex-direction: column; box-sizing: border-box; padding: 0 18px 0; overflow: hidden;">
+
+  <div style="height: 44px; display: flex; align-items: center;">
+    <div style="font-size: 11px; font-weight: 500; letter-spacing: 2.4px; text-transform: uppercase; color: rgba(239, 233, 221, 0.42);">Rules</div>
+  </div>
+
+  <div style="display: flex; gap: 8px;">
+    <div style="flex: 1; height: 54px; background: #efe9dd; display: flex; align-items: center; justify-content: center;">
+      <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #0b0a09;">Classic</div>
+    </div>
+    <div style="flex: 1; height: 54px; border: 2px solid rgba(239, 233, 221, 0.32); box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+      <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(239, 233, 221, 0.62);">To N</div>
+    </div>
+  </div>
+
+  <div style="height: 2px; background: rgba(239, 233, 221, 0.22); margin-top: 16px;"></div>
+
+  <div style="height: 62px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="font-size: 11px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(239, 233, 221, 0.72);">Sets to win</div>
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 30px; font-weight: 600; line-height: 1; color: #efe9dd;">2</div>
+  </div>
+
+  <div style="height: 1px; background: rgba(239, 233, 221, 0.16);"></div>
+
+  <div style="height: 62px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="font-size: 11px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(239, 233, 221, 0.72);">Golden point</div>
+    <div style="width: 52px; height: 30px; background: #d93b1e; display: flex; align-items: center; justify-content: flex-end; padding: 0 3px; box-sizing: border-box;">
+      <div style="width: 24px; height: 24px; background: #efe9dd;"></div>
+    </div>
+  </div>
+
+  <div style="height: 2px; background: rgba(239, 233, 221, 0.22);"></div>
+
+  <div style="padding: 16px 0 0;">
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 16px; font-weight: 400; line-height: 1.42; color: rgba(239, 233, 221, 0.8); text-wrap: pretty;">Best of 3 sets. A set is 6 games, a tiebreak at 6–6. Deuce is settled by one point.</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":396,"height":484}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

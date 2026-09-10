@@ -1,0 +1,48 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 396, "h": 484, "title": "Watch · new match" },
+    { "file": "WatchRules.dc.html", "x": 520, "y": 0, "w": 396, "h": 484, "title": "Watch · rules" },
+    { "file": "WatchScore.dc.html", "x": 1040, "y": 0, "w": 396, "h": 484, "title": "Watch · score" },
+    { "file": "PhoneNewMatch.dc.html", "x": 0, "y": 600, "w": 393, "h": 852, "title": "Phone · new match" },
+    { "file": "PhoneScore.dc.html", "x": 520, "y": 600, "w": 393, "h": 852, "title": "Phone · score" },
+    { "file": "PhoneHistory.dc.html", "x": 1040, "y": 600, "w": 393, "h": 852, "title": "Phone · history" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -300,
+      "w": 900,
+      "text": "Scoreboard, with the court plan on the watch's first screen.\n\nOne system throughout: Oswald condensed for anything you read at a glance, JetBrains Mono for labels and data, ink on paper for the phone, paper on ink for the watch, and vermilion reserved for exactly two jobs — the serve, and the one action that starts or ends something.\n\nWatch boards are drawn at 2x (396x484 = 198x242 pt). Both fonts carry Cyrillic, so the Russian build has the same voice."
+    },
+    {
+      "id": "court-tap",
+      "x": 0,
+      "y": -140,
+      "w": 396,
+      "text": "The court is the button. Tap the half that serves and the match starts — no second Start press. The line under it is there for the first match only; it's the one gesture nobody guesses."
+    },
+    {
+      "id": "summary-line",
+      "x": 520,
+      "y": -140,
+      "w": 396,
+      "text": "The sentence under the rule is the idea worth stealing from Padel Score Tracker: four separate settings, stated once as what the match will actually be. It changes as you change them."
+    },
+    {
+      "id": "inversion",
+      "x": 1040,
+      "y": -140,
+      "w": 396,
+      "text": "Ours is the inverted half — paper where theirs is ink. No color needed to tell them apart, which is what survives sunlight, and it leaves vermilion free to mean the serve."
+    },
+    {
+      "id": "phone-scorer",
+      "x": 0,
+      "y": 1500,
+      "w": 900,
+      "text": "The phone is a full second scorer: the same two-zone split, the same inversion, the same serve dot — so the two halves you tap are in the same places on both devices. Undo is a visible button here rather than the watch's long press: on a phone there is room to say it, and no wet-hand problem to design around.\n\nOpen question I did not decide: whether a phone match and a watch match can be the same match — picking up on one where you left off on the other — or whether they are simply two ways to start one. That is a data question (rally journal ownership, delivery direction) before it is a design one."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

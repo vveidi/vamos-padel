@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Golos+Text:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #ddf35c; } a:hover { color: #eaff8a; }
+  </style>
+</helmet>
+
+<div style="width: 393px; height: 852px; background: #04181f; color: #eef7f5; font-family: 'Golos Text', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box; padding: 60px 20px 0; overflow: hidden; position: relative;">
+
+  <div style="position: absolute; inset: 0; background: radial-gradient(70% 30% at 88% 1%, rgba(255, 248, 214, 0.13) 0%, rgba(255, 248, 214, 0) 60%);"></div>
+
+  <div style="position: relative; display: flex; align-items: baseline; justify-content: space-between;">
+    <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 31px; font-weight: 600; letter-spacing: -0.6px;">History</div>
+    <div style="font-size: 13px; color: rgba(238, 247, 245, 0.45);">28 matches</div>
+  </div>
+
+  <div style="position: relative; display: flex; flex-direction: column; gap: 10px; margin-top: 22px;">
+    <sc-for list="{{matches}}" as="match" hint-placeholder-count="5">
+      <div style="border-radius: 24px; background: {{match.tile}}; padding: 16px 18px; display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden;">
+        <div style="position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.03) 0 2px, rgba(255, 255, 255, 0) 2px 6px);"></div>
+        <div style="position: relative; display: flex; flex-direction: column; gap: 5px; flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -0.8px; color: {{match.scoreColor}};">{{match.score}}</div>
+          <div style="font-size: 13px; color: rgba(238, 247, 245, 0.55);">{{match.ruleset}}</div>
+        </div>
+        <div style="position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; white-space: nowrap;">
+          <div style="font-size: 13px; color: rgba(238, 247, 245, 0.72);">{{match.day}}</div>
+          <div style="font-size: 12px; color: rgba(238, 247, 245, 0.4);">{{match.duration}}</div>
+        </div>
+        <sc-if value="{{match.won}}" hint-placeholder-val="{{true}}">
+          <div style="position: absolute; right: -14px; top: -14px; width: 74px; height: 74px; border-radius: 999px; background: radial-gradient(circle, rgba(221, 243, 92, 0.16) 0%, rgba(221, 243, 92, 0) 70%);"></div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 34px; height: 64px; border-radius: 22px; background: #ddf35c; display: flex; align-items: center; justify-content: center; gap: 11px;">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" fill="#16260a"></circle>
+      <path d="M3.6 4.3c3.9 3 3.9 12.4 0 15.4" stroke="rgba(221, 243, 92, 0.8)" stroke-width="1.6" fill="none" stroke-linecap="round"></path>
+      <path d="M20.4 4.3c-3.9 3-3.9 12.4 0 15.4" stroke="rgba(221, 243, 92, 0.8)" stroke-width="1.6" fill="none" stroke-linecap="round"></path>
+    </svg>
+    <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 17px; font-weight: 600; color: #16260a;">New match</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const won = '#12564f';
+    const lost = 'rgba(238, 247, 245, 0.07)';
+    const stopped = 'rgba(221, 243, 92, 0.08)';
+    return {
+      matches: [
+        { score: '2 : 1', ruleset: 'Classic scoring · 2 sets', day: '9 September', duration: '1 h 12 min', tile: won, won: true, scoreColor: '#f4fffb' },
+        { score: '16 : 14', ruleset: 'Scoring to 16 points', day: '7 September', duration: '38 min', tile: won, won: true, scoreColor: '#f4fffb' },
+        { score: '0 : 2', ruleset: 'Classic scoring · 2 sets', day: '5 September', duration: '54 min', tile: lost, won: false, scoreColor: 'rgba(238, 247, 245, 0.72)' },
+        { score: '9 : 12', ruleset: 'Scoring to 21 points · stopped', day: '31 August', duration: '16 min', tile: stopped, won: false, scoreColor: 'rgba(238, 247, 245, 0.72)' },
+        { score: '21 : 19', ruleset: 'Scoring to 21 points', day: '24 August', duration: '47 min', tile: won, won: true, scoreColor: '#f4fffb' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

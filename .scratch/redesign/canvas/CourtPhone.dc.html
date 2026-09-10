@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Golos+Text:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #7fd4c1; } a:hover { color: #a8e6d8; }
+  </style>
+</helmet>
+
+<div style="width: 393px; height: 852px; background: #06222a; color: #eaf4f2; font-family: 'Golos Text', system-ui, sans-serif; display: flex; flex-direction: column; box-sizing: border-box; padding: 62px 20px 0; overflow: hidden; position: relative;">
+
+  <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.4px;">History</div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 22px;">
+
+    <sc-for list="{{matches}}" as="match" hint-placeholder-count="5">
+      <div style="border-radius: 16px; background: #0c3b47; border: 1px solid rgba(127, 212, 193, 0.16); padding: 15px 16px 15px 0; display: flex; align-items: stretch; gap: 14px; box-sizing: border-box;">
+        <div style="width: 5px; border-radius: 0 4px 4px 0; background: {{match.mark}};"></div>
+        <div style="display: flex; flex-direction: column; gap: 5px; flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.2px; color: {{match.scoreColor}};">{{match.score}}</div>
+          <div style="font-size: 13px; color: rgba(234, 244, 242, 0.62);">{{match.ruleset}}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 5px; white-space: nowrap;">
+          <div style="font-size: 13px; color: rgba(234, 244, 242, 0.72);">{{match.day}}</div>
+          <div style="font-size: 12px; color: rgba(234, 244, 242, 0.44);">{{match.duration}}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 34px; display: flex; align-items: center; justify-content: center; gap: 10px; height: 58px; border-radius: 18px; background: #f0916a; color: #26130a;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#26130a" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    <div style="font-family: 'Unbounded', system-ui, sans-serif; font-size: 16px; font-weight: 600;">New match</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const won = '#7fd4c1';
+    const lost = 'rgba(234,244,242,0.22)';
+    const stopped = '#f0916a';
+    return {
+      matches: [
+        { score: '2 : 1', ruleset: 'Classic scoring · 2 sets', day: '9 September', duration: '1 h 12 min', mark: won, scoreColor: '#eaf4f2' },
+        { score: '16 : 14', ruleset: 'Scoring to 16 points', day: '7 September', duration: '38 min', mark: won, scoreColor: '#eaf4f2' },
+        { score: '0 : 2', ruleset: 'Classic scoring · 2 sets', day: '5 September', duration: '54 min', mark: lost, scoreColor: 'rgba(234,244,242,0.7)' },
+        { score: '9 : 12', ruleset: 'Scoring to 21 points · stopped', day: '31 August', duration: '16 min', mark: stopped, scoreColor: 'rgba(234,244,242,0.55)' },
+        { score: '21 : 19', ruleset: 'Scoring to 21 points', day: '24 August', duration: '47 min', mark: won, scoreColor: '#eaf4f2' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

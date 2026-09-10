@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #d93b1e; } a:hover { color: #f1573a; }
+  </style>
+</helmet>
+
+<div style="width: 396px; height: 484px; background: #0b0a09; color: #efe9dd; font-family: 'JetBrains Mono', ui-monospace, monospace; display: flex; flex-direction: column; box-sizing: border-box; padding: 0 18px 14px; overflow: hidden;">
+
+  <div style="height: 44px; display: flex; align-items: center;">
+    <div style="font-size: 11px; font-weight: 500; letter-spacing: 2.4px; text-transform: uppercase; color: rgba(239, 233, 221, 0.42);">New match</div>
+  </div>
+
+  <div style="height: 244px; border: 2px solid rgba(239, 233, 221, 0.55); display: flex; flex-direction: column; position: relative; box-sizing: border-box;">
+
+    <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; left: 0; right: 0; top: 30%; height: 1px; background: rgba(239, 233, 221, 0.3);"></div>
+      <div style="position: absolute; top: 30%; bottom: 0; left: 50%; width: 1px; background: rgba(239, 233, 221, 0.3);"></div>
+      <div style="position: relative; font-family: 'Oswald', system-ui, sans-serif; font-size: 40px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; line-height: 1; color: rgba(239, 233, 221, 0.82);">Them</div>
+    </div>
+
+    <div style="height: 3px; background: repeating-linear-gradient(90deg, #efe9dd 0 7px, rgba(239, 233, 221, 0.12) 7px 14px);"></div>
+
+    <div style="flex: 1; position: relative; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; left: 0; right: 0; bottom: 30%; height: 1px; background: rgba(239, 233, 221, 0.3);"></div>
+      <div style="position: absolute; bottom: 0; top: 70%; left: 50%; width: 1px; background: rgba(239, 233, 221, 0.3);"></div>
+      <div style="position: relative; font-family: 'Oswald', system-ui, sans-serif; font-size: 40px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; line-height: 1; color: #efe9dd;">Us</div>
+    </div>
+  </div>
+
+  <div style="height: 30px; display: flex; align-items: center; justify-content: center;">
+    <div style="font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: #d93b1e;">Tap the half that serves</div>
+  </div>
+
+  <div style="height: 2px; background: rgba(239, 233, 221, 0.22);"></div>
+
+  <div style="height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+    <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+      <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap;">Classic · 2 sets</div>
+      <div style="font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: rgba(239, 233, 221, 0.42); white-space: nowrap;">Golden point</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(239,233,221,0.42)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+  </div>
+
+  <div style="height: 2px; background: rgba(239, 233, 221, 0.22);"></div>
+
+  <div style="height: 44px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="width: 9px; height: 9px; border-radius: 999px; background: #d93b1e;"></div>
+      <div style="font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(239, 233, 221, 0.72);">Rec · Health</div>
+    </div>
+    <div style="font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: rgba(239, 233, 221, 0.34);">On</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":396,"height":484}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

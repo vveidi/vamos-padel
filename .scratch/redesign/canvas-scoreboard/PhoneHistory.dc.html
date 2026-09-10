@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #d93b1e; } a:hover { color: #b02d13; }
+  </style>
+</helmet>
+
+<div style="width: 393px; height: 852px; background: #f2eee6; color: #14110e; font-family: 'JetBrains Mono', ui-monospace, monospace; display: flex; flex-direction: column; box-sizing: border-box; padding: 62px 22px 0; overflow: hidden; position: relative;">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between;">
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 36px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1;">History</div>
+    <div style="font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: rgba(20, 17, 14, 0.5);">28 played</div>
+  </div>
+
+  <div style="height: 3px; background: #14110e; margin-top: 12px;"></div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0 8px; font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; color: rgba(20, 17, 14, 0.45);">
+    <div>Date</div>
+    <div>Score · Rules</div>
+    <div>Time</div>
+  </div>
+
+  <div style="height: 1px; background: rgba(20, 17, 14, 0.25);"></div>
+
+  <div style="display: flex; flex-direction: column;">
+    <sc-for list="{{matches}}" as="match" hint-placeholder-count="6">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(20, 17, 14, 0.14);">
+        <div style="width: 34px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+          <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 20px; font-weight: 600; line-height: 1; color: {{match.outcomeColor}};">{{match.outcome}}</div>
+          <div style="font-size: 10px; letter-spacing: 1px; color: rgba(20, 17, 14, 0.4);">{{match.day}}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 27px; font-weight: 600; letter-spacing: 1.2px; line-height: 1; color: {{match.scoreColor}};">{{match.score}}</div>
+          <div style="font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: rgba(20, 17, 14, 0.52);">{{match.ruleset}}</div>
+        </div>
+        <div style="font-size: 12px; letter-spacing: 0.6px; color: rgba(20, 17, 14, 0.6); white-space: nowrap;">{{match.duration}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: absolute; left: 22px; right: 22px; bottom: 34px; height: 62px; background: #d93b1e; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <div style="font-family: 'Oswald', system-ui, sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 2.4px; text-transform: uppercase; color: #f2eee6;">New match</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const won = '#d93b1e';
+    const lost = 'rgba(20,17,14,0.35)';
+    const ink = '#14110e';
+    const faded = 'rgba(20,17,14,0.55)';
+    return {
+      matches: [
+        { outcome: 'W', outcomeColor: won, day: '09.09', score: '2 : 1', ruleset: 'Classic · 2 sets', duration: '1 h 12', scoreColor: ink },
+        { outcome: 'W', outcomeColor: won, day: '07.09', score: '16 : 14', ruleset: 'To 16 points', duration: '38 min', scoreColor: ink },
+        { outcome: 'L', outcomeColor: lost, day: '05.09', score: '0 : 2', ruleset: 'Classic · 2 sets', duration: '54 min', scoreColor: faded },
+        { outcome: '—', outcomeColor: lost, day: '31.08', score: '9 : 12', ruleset: 'To 21 points · stopped', duration: '16 min', scoreColor: faded },
+        { outcome: 'W', outcomeColor: won, day: '24.08', score: '21 : 19', ruleset: 'To 21 points', duration: '47 min', scoreColor: ink },
+        { outcome: 'L', outcomeColor: lost, day: '22.08', score: '1 : 2', ruleset: 'Classic · 2 sets', duration: '1 h 04', scoreColor: faded },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

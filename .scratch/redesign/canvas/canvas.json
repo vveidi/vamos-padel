@@ -1,0 +1,41 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 396, "h": 484, "title": "A · Court — watch" },
+    { "file": "CourtPhone.dc.html", "x": 0, "y": 560, "w": 393, "h": 852, "title": "A · Court — phone" },
+    { "file": "ScoreboardWatch.dc.html", "x": 520, "y": 0, "w": 396, "h": 484, "title": "B · Scoreboard — watch" },
+    { "file": "ScoreboardPhone.dc.html", "x": 520, "y": 560, "w": 393, "h": 852, "title": "B · Scoreboard — phone" },
+    { "file": "ChalkWatch.dc.html", "x": 1040, "y": 0, "w": 396, "h": 484, "title": "C · Chalk — watch" },
+    { "file": "ChalkPhone.dc.html", "x": 1040, "y": 560, "w": 393, "h": 852, "title": "C · Chalk — phone" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -330,
+      "w": 900,
+      "text": "Three directions to pick from — same content in all three, different visual language.\n\nWhat is fixed everywhere: the serve choice IS the start (one tap, no Start button), the rules row shows what today's match is played by, and the workout is stated before the match rather than hidden.\n\nThe watch boards are drawn at 2x (396x484 = 198x242 pt). Fonts here signal character, not a final choice — whichever direction wins gets checked at real watch size and in Russian."
+    },
+    {
+      "id": "dir-a",
+      "x": 0,
+      "y": -150,
+      "w": 396,
+      "text": "A · Court\n\nThe screen is the court seen from above: tap the half that serves. It reuses the top/bottom split the score screen already has, so setup and play are one continuous object.\n\nTradeoff: a filled blue screen costs OLED battery, and it looks the least like a system app."
+    },
+    {
+      "id": "dir-b",
+      "x": 520,
+      "y": -150,
+      "w": 396,
+      "text": "B · Scoreboard\n\nA printed results page. Sharpest hierarchy of the three, reads from arm's length on a sunny court, and the history becomes a table you can scan down.\n\nTradeoff: severe and cold — there is nothing decorative to like, and it all rests on one accent."
+    },
+    {
+      "id": "dir-c",
+      "x": 1040,
+      "y": -150,
+      "w": 396,
+      "text": "C · Chalk\n\nA chalkboard on the wrist, paper on the phone — the score kept the way a group actually keeps it. The history reads like a keepsake rather than a database.\n\nTradeoff: handwriting is the riskiest thing to read at watch size, in sunlight, and in Russian."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

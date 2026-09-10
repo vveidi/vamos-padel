@@ -1,3 +1,4 @@
+import PadelDesign
 import PadelScoring
 import SwiftUI
 
@@ -65,10 +66,11 @@ struct OutcomeView: View {
 
     private var unfinished: some View {
         outcome(headline: "Match unfinished", isOurs: false) {
-            // Who is who is said by the color — the same one that marks our
-            // half of the score screen. There is no winner here to set the
-            // order, and a "us" label would take room away from the score.
-            (Text(verbatim: "\(score[.us])").foregroundStyle(ScoreView.ourColor)
+            // Who is who is said by the color — the ball's, which means "this
+            // is yours" wherever it appears (ADR-0006). There is no winner
+            // here to set the order, and a "us" label would take room away
+            // from the score. Ticket 07 redraws this screen.
+            (Text(verbatim: "\(score[.us])").foregroundStyle(Color.ball)
                 + Text(verbatim: " : \(score[.them])"))
                 .accessibilityLabel(Text("us \(score[.us]), opponents \(score[.them])"))
         }
@@ -90,7 +92,7 @@ struct OutcomeView: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.5)
-                .foregroundStyle(isOurs ? ScoreView.ourColor : .secondary)
+                .foregroundStyle(isOurs ? Color.ball : .secondary)
 
             score()
                 .font(.system(size: 44, weight: .semibold, design: .rounded))

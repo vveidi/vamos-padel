@@ -6,25 +6,25 @@ serving half's corner.
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each zone is a `CourtHalf` — its own tint, weave, service line and center
+- [x] Each zone is a `CourtHalf` — its own tint, weave, service line and center
       line — instead of a flat `.white.opacity(0.1)` / `ourColor.opacity(0.35)`
-- [ ] A `NetLine` sits between the zones, replacing the 2pt `VStack` spacing
-- [ ] The points use `.score`, the games `.scoreAside` on a shared baseline,
+- [x] A `NetLine` sits between the zones, replacing the 2pt `VStack` spacing
+- [x] The points use `.score`, the games `.scoreAside` on a shared baseline,
       the sets `.scoreAside` at the trailing edge — no `.system(size:)` left
-- [ ] The ball is `PadelDesign.Ball`, yellow, at the size the dot has today
-- [ ] `serveAlignment(for:from:)` is **unchanged** — same six cases, same doc
+- [x] The ball is `PadelDesign.Ball`, yellow, at the size the dot has today
+- [x] `serveAlignment(for:from:)` is **unchanged** — same six cases, same doc
       comment, still file-private in `padel Watch App/`
-- [ ] The fade sequence in `ServeIndicator` is unchanged, including
+- [x] The fade sequence in `ServeIndicator` is unchanged, including
       `.animation(nil, value: corner)`
-- [ ] `ScoreView.ourColor` is deleted; nothing outside `PadelDesign` names a
+- [x] `ScoreView.ourColor` is deleted; nothing outside `PadelDesign` names a
       colour
-- [ ] The page dots of `ScorePages` still sit over our bottom edge, and the
+- [x] The page dots of `ScorePages` still sit over our bottom edge, and the
       inner corners are still clear of them and of the clock
-- [ ] Every VoiceOver label, value and action is exactly what it is today
-- [ ] All fourteen existing previews still build and still say what they said
-- [ ] Seen running, not only previewed
+- [x] Every VoiceOver label, value and action is exactly what it is today
+- [x] All fourteen existing previews still build and still say what they said
+- [x] Seen running, not only previewed
 
 ## What must not change
 
@@ -79,3 +79,65 @@ serve; that is the one thing a preview cannot show.
 **On the ball's colour comment.** `ServeIndicator` currently argues for white
 ("a fifth color on a screen that has three"). The argument dies with this
 design. Delete it rather than leaving it to contradict the yellow.
+
+## Comments
+
+### Closing note
+
+`ScoreView` is the court. Their half, a `NetLine`, ours — `VStack(spacing: 0)`,
+so the halves meet on the tape and no seam of `night` runs down the middle. Each
+zone's `.background` is a `CourtHalf(side:)`, and our half carries a
+`Floodlight(corner: .bottomTrailing)` while theirs carries none, as the board
+draws it. The three numbers are `.score`, `.scoreAside` on the shared baseline
+and `.scoreAside` at the trailing edge; the ink is `.courtInk(side)` at
+`.primary`, `.secondary` and `.strong` — the order the three are read in. The
+serve is a `Ball(size: 10)`.
+
+Untouched, as the ticket asks: `serveAlignment(for:from:)` (same six cases, same
+doc comment, still file-private here), the whole of `ServeIndicator`'s fade
+including `.animation(nil, value: corner)`, the `onTapGesture` /
+`onLongPressGesture` pair, the per-zone `contentShape(Rectangle())`, and every
+accessibility label, value and action. All fourteen previews build unchanged.
+
+**How each criterion was checked.** Built for watchOS and for iOS; `swift test`
+green in `PadelDesign`. Run on the 46mm Series 11 and the 40mm SE 3: a match to
+three sets scored by hand to `40` with a games digit and a sets digit, the ball
+watched crossing the net on a change of serve (our top trailing → their bottom
+leading, i.e. the mirror still holds), the golden point seen putting the ball on
+the middle of the inner edge, and a long press seen undoing `40` back to `30`.
+The page dots sit over our bottom edge and the inner corners are clear of them
+and of the clock in every screenshot.
+
+### The ramp's watch `.score`: kept at 46
+
+The ticket said not to take 46 on faith. It was looked at rather than inherited:
+the worst score this screen has — `40` beside a games digit beside a sets digit
+— on the smallest watch there is. It clears the zone with room to spare, and the
+`40` is about as tall as the service box. The reasoning is now recorded on the
+`TypeRamp.score` case, which also loses the line claiming the score is "most of
+the screen": on a court it is not, and that is the point of the redesign.
+`minimumScaleFactor(0.4)` stays.
+
+### Two departures, both forced by deleting `ourColor`
+
+`ScoreView.ourColor` was not only `ScoreView`'s. Deleting it breaks three call
+sites on two screens this ticket does not own, so each was pointed at the
+nearest `PadelDesign` token rather than left to be redrawn:
+
+- `StartView`'s two serve rows are now `Color.courtSurface(side)` — the same two
+  surfaces the score screen says our side with. Ticket 05 redraws the screen.
+- `OutcomeView`'s our-score and our-headline are now `Color.ball`, which is what
+  yellow means (ADR-0006). Turf green would have been text on `night`. Ticket 07
+  redraws the screen.
+
+Neither is this ticket's design; both keep the app building and stop any colour
+being named outside `PadelDesign`. After them the watch target has no colour
+literal left anywhere, and no `.system(size:)` outside `OutcomeView`'s 44pt
+score, which is ticket 07's.
+
+### One thing deliberately not changed
+
+The ball's `opacity(0.9)` at the visible end of the fade was written for a white
+glyph. It stays, because it is a term in the fade expression and the ticket says
+the fade sequence is unchanged. If the ball ever wants its full yellow, that is
+one number and it belongs to whoever revisits the fade.

@@ -1,3 +1,4 @@
+import PadelDesign
 import PadelScoring
 import SwiftUI
 
@@ -54,9 +55,14 @@ struct StartView: View {
                 .frame(maxWidth: .infinity, minHeight: 34)
         }
         .buttonStyle(.plain)
+        // The two halves of the court, as the row you tap to choose one. The
+        // score screen says which side is ours with the same two surfaces, and
+        // saying it twice in two palettes is how the two screens stop being the
+        // same court. Ticket 05 redraws this screen; until it does, the colours
+        // are at least the court's.
         .listRowBackground(
             RoundedRectangle(cornerRadius: 12)
-                .fill(side == .us ? ScoreView.ourColor.opacity(0.35) : .white.opacity(0.12)))
+                .fill(Color.courtSurface(side)))
     }
 
     /// Whose serve it is, as a whole sentence per side rather than a side's

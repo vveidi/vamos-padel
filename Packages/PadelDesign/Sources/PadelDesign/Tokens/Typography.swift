@@ -12,8 +12,15 @@ import SwiftUI
 /// wants a size rather than a role, and the answer to that is nearly always
 /// one of these seven.
 public enum TypeRamp: Sendable, CaseIterable {
-    /// The score. The largest thing on any screen, and on the watch it is
-    /// most of the screen.
+    /// The score. The largest thing on any screen.
+    ///
+    /// The watch's 46 is the board's 92px at 2x, and it is here because it was
+    /// looked at rather than because the arithmetic worked: ticket 04 put the
+    /// worst score this screen has — "40" with a games digit and a sets digit
+    /// beside it — on the smallest watch there is, and at 46 it clears the
+    /// zone with room to spare. The 64 the screen used before the redesign was
+    /// a number for a score on a blank half; a score on a court needs the
+    /// court to be visible around it.
     case score
 
     /// The games digit beside the score, sharing its baseline.

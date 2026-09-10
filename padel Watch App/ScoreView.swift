@@ -1,19 +1,19 @@
+import PadelDesign
 import PadelScoring
 import SwiftUI
 
-/// The score screen: two equal zones filling the display, one per side.
+/// The score screen: the court itself, one half per side, filling the display.
 ///
 /// The opponents on top, us at the bottom — the same as on court: they are
 /// across the net, in front of us. Hitting your own half has to work without
-/// looking and with a wet hand, so the zones split the screen in half and hold
+/// looking and with a wet hand, so the halves split the screen in half and hold
 /// nothing but the score.
+///
+/// Which half is ours is said by the ground it is drawn on — turf green against
+/// their glass blue — and never by a label: a label would take room from the
+/// digit the watch is being looked at for. Both surfaces are the court's own
+/// and belong to `PadelDesign`; this screen names no colour of its own.
 struct ScoreView: View {
-    /// Our side is recognized by color rather than by a label: a label would
-    /// take room from the digit the watch is being looked at for. The color
-    /// lives here and not in the app's accent color, because it is a decision
-    /// of the score screen.
-    static let ourColor = Color(red: 0.188, green: 0.820, blue: 0.345)
-
     let points: Points
 
     /// The games of the current set; in a match to N points there are none,
@@ -39,8 +39,16 @@ struct ScoreView: View {
     let onUndo: () -> Void
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             zone(for: .them)
+
+            // What separates the halves is the net, and the halves meet on it:
+            // the tape takes the room, the posts stand proud of it, and no
+            // spacing opens a seam of `night` down the middle of the court.
+            // Drawn after their half and before ours so its shadow falls on
+            // the turf — the same order `PadelDesign.Court` puts them in.
+            NetLine().zIndex(1)
+
             zone(for: .us)
         }
         .ignoresSafeArea()
@@ -106,23 +114,23 @@ private struct ScoreZone: View {
         // at, and the vertical is not spent on a third tier. A shared baseline
         // holds them as one score rather than two adjacent numbers.
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            // The type size and the shrink limit are the ones the points had
-            // before the games appeared: the games took their place alongside,
-            // but they must not squeeze the digit the watch is being looked at
-            // for.
+            // The largest thing on the screen, and the shrink limit is the one
+            // the points had before the games appeared: the games took their
+            // place alongside, but they must not squeeze the digit the watch
+            // is being looked at for.
             Text(pointsLabel)
-                .font(.system(size: 64, weight: .semibold, design: .rounded))
+                .textStyle(.score)
                 .minimumScaleFactor(0.4)
-                .foregroundStyle(.white)
+                .foregroundStyle(.courtInk(side))
 
             if let games {
                 // A numeral drawn on its own is not a sentence, and a catalog
                 // carrying a key of "%lld" would be carrying nothing. The
                 // spoken score below says the word that goes with it.
                 Text(verbatim: "\(games)")
-                    .font(.system(size: 22, weight: .medium, design: .rounded))
+                    .textStyle(.scoreAside)
                     .minimumScaleFactor(0.5)
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(Color.courtInk(side).weight(.secondary))
             }
         }
         .lineLimit(1)
@@ -142,22 +150,38 @@ private struct ScoreZone: View {
         // keeps them from pushing the points off the center of the zone.
         .overlay(alignment: .trailing) {
             if let sets {
+                // The same ramp entry as the games and a heavier ink, which is
+                // the order the three numbers are read in: the points, then
+                // the sets that decide the match, then the games inside the
+                // current one.
                 Text(verbatim: "\(sets)")
-                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .textStyle(.scoreAside)
                     .padding(.trailing, 12)
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(Color.courtInk(side).weight(.strong))
             }
         }
-        .background(background)
-    // Otherwise the gesture catches only the score itself, not the whole half.
-    .contentShape(Rectangle())
+        .background { court }
+        // Otherwise the gesture catches only the score itself, not the whole
+        // half.
+        .contentShape(Rectangle())
     }
 
-    private var background: Color {
-        switch side {
-        case .us: ScoreView.ourColor.opacity(0.35)
-        case .them: .white.opacity(0.1)
-        }
+    /// The ground under the score: the half of a court this side plays on.
+    ///
+    /// A background rather than a layer of the `HStack` above, so that the
+    /// surface, the weave and the three painted lines cost the score nothing —
+    /// the same argument the ball's overlay makes below.
+    private var court: some View {
+        CourtHalf(side: side)
+            // The board puts a floodlight in the near corner of our half and
+            // none in theirs. It is the light of the court we are standing on;
+            // the half across the net is lit from further away, and giving it
+            // a light of its own would flatten the two halves into one.
+            .overlay {
+                if side == .us {
+                    Floodlight(corner: .bottomTrailing)
+                }
+            }
     }
 
     /// What the half is, said as what tapping it does rather than as whose
@@ -295,13 +319,11 @@ private struct ServeIndicator: View {
     private static let fade: TimeInterval = 0.15
 
     var body: some View {
-        Image(systemName: "tennisball.fill")
-            .resizable()
-            // The size the dot had, and white for contrast against both
-            // backgrounds — a fifth color on a screen that has three would be
-            // spent on the smallest thing on it.
-            .frame(width: 10, height: 10)
-            .foregroundStyle(.white)
+        // The app's own ball at the size the dot had. Yellow, because yellow
+        // is what the ball means: *this is yours, or this is chosen*
+        // (ADR-0006), and the serve is the one thing on this screen that is
+        // either.
+        Ball(size: 10)
             .padding(12)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: corner)
             // The corner is excluded from every animation, including one

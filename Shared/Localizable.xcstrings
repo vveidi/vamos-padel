@@ -397,12 +397,12 @@
         }
       }
     },
-    "Points (N)" : {
+    "Points to win" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Очков (N)"
+            "value" : "Очков до победы"
           }
         }
       }
@@ -489,12 +489,12 @@
         }
       }
     },
-    "Serve after (X)" : {
+    "Serve changes every" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подача через (X)"
+            "value" : "Смена подачи через"
           }
         }
       }

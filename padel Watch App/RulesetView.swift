@@ -45,11 +45,17 @@ struct RulesetView: View {
                 // by it: one rule, one name for it.
                 Toggle("Golden point", isOn: $numbers.goldenPoint)
             } else {
-                Picker("Points (N)", selection: $numbers.target) {
+                // The label names what is being counted, because what stands
+                // with it is a bare numeral: "21" under "Points to win" needs
+                // no letter in brackets to tie it to the ruleset's name.
+                Picker("Points to win", selection: $numbers.target) {
                     ForEach(Self.targets, id: \.self) { number($0) }
                 }
 
-                Picker("Serve after (X)", selection: $numbers.serveChangesEvery) {
+                // The sentence the start screen and the history already use
+                // for this number — "Serve changes every %lld rallies" — with
+                // the count left to the value beside it.
+                Picker("Serve changes every", selection: $numbers.serveChangesEvery) {
                     ForEach(Self.serveChanges, id: \.self) { number($0) }
                 }
             }
@@ -132,7 +138,7 @@ struct RulesetView: View {
 
 /// Both rulesets in both languages. This screen is a column of labels beside
 /// their values, which is where a label that grew in translation shows: "Serve
-/// after (X)" against "Подача через (X)" is the widest pair on it.
+/// changes every" against "Смена подачи через" is the widest pair on it.
 private func rules(_ ruleset: Ruleset) -> some View {
     RulesScreen(ruleset: ruleset)
 }

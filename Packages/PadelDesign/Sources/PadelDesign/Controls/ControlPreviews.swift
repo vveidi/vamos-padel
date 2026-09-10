@@ -7,9 +7,9 @@ import SwiftUI
 // are where the app's words live — every one of them is handed a phrase by a
 // screen — and a control is only as good as the longest phrase it is handed.
 // So each board is drawn twice over, once in each language, and again at the
-// largest Dynamic Type setting: "Serve after (X)" against "Подача через (X)"
-// is the widest pair in the app, and the rules screen at the largest setting
-// is where it has historically run out of width.
+// largest Dynamic Type setting: "Serve changes every" against "Смена подачи
+// через" is the widest pair in the app, and the rules screen at the largest
+// setting is where it has historically run out of width.
 //
 // What to look for at `.accessibility5`: nothing clipped and nothing cut off.
 // The segments drop under each other, the stepper rows put their ± under the
@@ -38,7 +38,7 @@ private struct Words {
     let scoring: Scoring
     let sets: String
     let points: String
-    let serveAfter: String
+    let serveChange: String
     let goldenPoint: String
     let newMatch: String
     let end: String
@@ -51,8 +51,8 @@ private struct Words {
     static let english = Words(
         scoring: .init(label: "Scoring", classic: "Classic", toNPoints: "To N points"),
         sets: "Sets",
-        points: "Points (N)",
-        serveAfter: "Serve after (X)",
+        points: "Points to win",
+        serveChange: "Serve changes every",
         goldenPoint: "Golden point",
         newMatch: "New match",
         end: "End",
@@ -65,8 +65,8 @@ private struct Words {
     static let russian = Words(
         scoring: .init(label: "Счёт", classic: "Классический", toNPoints: "До N очков"),
         sets: "Сеты",
-        points: "Очков (N)",
-        serveAfter: "Подача через (X)",
+        points: "Очков до победы",
+        serveChange: "Смена подачи через",
         goldenPoint: "Золотое очко",
         newMatch: "Новый матч",
         end: "Завершить",
@@ -107,15 +107,15 @@ private struct Words {
     /// `ball` on the second line — the only lit thing on the row, and the
     /// whole of the affordance, because the brief allows no chevron — and the
     /// golden point standing as tall as the four rows above it with only its
-    /// own label to fill the height. Then open "Points (N)" and check that the
-    /// page arrives already scrolled to 16 rather than at 5.
+    /// own label to fill the height. Then open "Points to win" and check that
+    /// the page arrives already scrolled to 16 rather than at 5.
     private struct RowsBoard: View {
         let words: Words
 
         @State private var isClassic = true
         @State private var sets = 2
         @State private var points = 16
-        @State private var serveAfter = 4
+        @State private var serveChange = 4
         @State private var goldenPoint = true
 
         var body: some View {
@@ -137,7 +137,7 @@ private struct Words {
                         ChoiceRow(Text(verbatim: words.points), value: $points, in: 5...40)
 
                         ChoiceRow(
-                            Text(verbatim: words.serveAfter), value: $serveAfter, in: 1...6)
+                            Text(verbatim: words.serveChange), value: $serveChange, in: 1...6)
 
                         toggle(words: words, isOn: $goldenPoint)
                     }
@@ -170,7 +170,7 @@ private struct ControlsBoard: View {
     @State private var isClassic = true
     @State private var sets = 2
     @State private var points = 16
-    @State private var serveAfter = 4
+    @State private var serveChange = 4
     @State private var goldenPoint = true
 
     var body: some View {
@@ -190,7 +190,7 @@ private struct ControlsBoard: View {
                     StepperRow(Text(verbatim: words.points), value: $points, in: 5...40)
 
                     StepperRow(
-                        Text(verbatim: words.serveAfter), value: $serveAfter, in: 1...6)
+                        Text(verbatim: words.serveChange), value: $serveChange, in: 1...6)
 
                     toggle(words: words, isOn: $goldenPoint)
                 }

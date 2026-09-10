@@ -24,7 +24,18 @@ import SwiftUI
 
 /// One board's worth of phrases.
 private struct Words {
-    let scoring: (classic: String, toNPoints: String)
+    /// What the ruleset choice says.
+    ///
+    /// A type and not a tuple, because it is three fields and the third is the
+    /// one only one board spends: the watch names the choice on its row before
+    /// opening the page, and the phone's segments carry no label above them.
+    struct Scoring {
+        let label: String
+        let classic: String
+        let toNPoints: String
+    }
+
+    let scoring: Scoring
     let sets: String
     let points: String
     let serveAfter: String
@@ -38,7 +49,7 @@ private struct Words {
     let duration: String
 
     static let english = Words(
-        scoring: (classic: "Classic", toNPoints: "To N points"),
+        scoring: .init(label: "Scoring", classic: "Classic", toNPoints: "To N points"),
         sets: "Sets",
         points: "Points (N)",
         serveAfter: "Serve after (X)",
@@ -52,7 +63,7 @@ private struct Words {
         duration: "1 h 12 min")
 
     static let russian = Words(
-        scoring: (classic: "Классический", toNPoints: "До N очков"),
+        scoring: .init(label: "Счёт", classic: "Классический", toNPoints: "До N очков"),
         sets: "Сеты",
         points: "Очков (N)",
         serveAfter: "Подача через (X)",
@@ -66,10 +77,88 @@ private struct Words {
         duration: "1 ч 12 мин")
 }
 
-// MARK: - The controls
+/// The one system control the redesign keeps, tinted — what ``SettingsCard``
+/// documents rather than wraps.
+///
+/// Shared by both boards on purpose: the golden point is the one row that does
+/// *not* part company between the platforms, and drawing it twice is how two
+/// rows that ought to match drift apart.
+@MainActor private func toggle(words: Words, isOn: Binding<Bool>) -> some View {
+    Toggle(isOn: isOn) {
+        Text(verbatim: words.goldenPoint)
+            .textStyle(.body)
+            .foregroundStyle(.ink.weight(.control))
+    }
+    .tint(.ball)
+    .frame(minHeight: ControlMetrics.rowHeight)
+}
 
-/// The choice, the card and the two buttons — the rules screen's furniture,
-/// live: the segments switch, the ± move, the crown scrubs the focused row.
+// MARK: - The watch's rows
+
+#if os(watchOS)
+
+    /// The watch's whole rules screen worth of furniture: four rows in a card,
+    /// each one opening a page. Nothing here is a segment and nothing is a ± .
+    ///
+    /// What to look for: the chosen value lit in `ball` at the trailing edge —
+    /// the only lit thing on the row, and the whole of the affordance, because
+    /// the brief allows no chevron. Then open "Points (N)" and check that the
+    /// page arrives already scrolled to 16 rather than at 5.
+    private struct RowsBoard: View {
+        let words: Words
+
+        @State private var isClassic = true
+        @State private var sets = 2
+        @State private var points = 16
+        @State private var serveAfter = 4
+        @State private var goldenPoint = true
+
+        var body: some View {
+            NavigationStack {
+                ScrollView {
+                    SettingsCard {
+                        ChoiceRow(
+                            Text(verbatim: words.scoring.label),
+                            selection: $isClassic,
+                            options: [
+                                .init(Text(verbatim: words.scoring.classic), value: true),
+                                .init(Text(verbatim: words.scoring.toNPoints), value: false),
+                            ])
+
+                        ChoiceRow(Text(verbatim: words.sets), value: $sets, in: 1...3)
+
+                        // The row the pushed page exists for: 36 values, which
+                        // is 35 taps of a ± and one turn of the crown.
+                        ChoiceRow(Text(verbatim: words.points), value: $points, in: 5...40)
+
+                        ChoiceRow(
+                            Text(verbatim: words.serveAfter), value: $serveAfter, in: 1...6)
+
+                        toggle(words: words, isOn: $goldenPoint)
+                    }
+                    .padding()
+                }
+                .background(Color.night)
+            }
+        }
+    }
+
+    #Preview("The rows") { RowsBoard(words: .english) }
+
+    #Preview("The rows, in Russian") { RowsBoard(words: .russian) }
+
+    #Preview("The rows, largest type") {
+        RowsBoard(words: .russian).environment(\.dynamicTypeSize, .accessibility5)
+    }
+
+#endif
+
+// MARK: - The phone's controls
+
+#if !os(watchOS)
+
+/// The choice, the card and the two buttons — the phone's furniture, live: the
+/// segments switch and the ± move.
 private struct ControlsBoard: View {
     let words: Words
 
@@ -90,14 +179,15 @@ private struct ControlsBoard: View {
                 SettingsCard {
                     StepperRow(Text(verbatim: words.sets), value: $sets, in: 1...3)
 
-                    // The row the crown exists for: 36 values, which is 35
-                    // taps and one spin.
+                    // 36 values behind a ± , which a thumb can cross and a
+                    // wrist cannot — the reason the watch opens a page for
+                    // this row instead.
                     StepperRow(Text(verbatim: words.points), value: $points, in: 5...40)
 
                     StepperRow(
                         Text(verbatim: words.serveAfter), value: $serveAfter, in: 1...6)
 
-                    toggle
+                    toggle(words: words, isOn: $goldenPoint)
                 }
 
                 PillButton(Text(verbatim: words.newMatch), carriesBall: true) {}
@@ -109,18 +199,6 @@ private struct ControlsBoard: View {
             .padding()
         }
         .background(Color.night)
-    }
-
-    /// The one system control the redesign keeps, tinted — what
-    /// ``SettingsCard`` documents rather than wraps.
-    private var toggle: some View {
-        Toggle(isOn: $goldenPoint) {
-            Text(verbatim: words.goldenPoint)
-                .textStyle(.body)
-                .foregroundStyle(.ink.weight(.control))
-        }
-        .tint(.ball)
-        .frame(minHeight: ControlMetrics.rowHeight)
     }
 }
 
@@ -135,6 +213,8 @@ private struct ControlsBoard: View {
 #Preview("In Russian, largest type") {
     ControlsBoard(words: .russian).environment(\.dynamicTypeSize, .accessibility5)
 }
+
+#endif
 
 // MARK: - The history
 

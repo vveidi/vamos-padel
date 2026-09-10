@@ -24,8 +24,13 @@ enum ControlMetrics {
     /// phone's.
     static var segmentHeight: CGFloat { Platform.value(watch: 29, phone: 62) }
 
-    /// Between the two sides.
+    /// Between one capsule and the next — side by side on the phone, down the
+    /// page on the watch.
     static var segmentGap: CGFloat { Platform.value(watch: 3.5, phone: 8) }
+
+    /// Left and right of a capsule's label, so a long one is padded rather
+    /// than pressed against the ring.
+    static var segmentPadding: CGFloat { Platform.value(watch: 3.5, phone: 8) }
 
     /// The ring around the chosen side. Inset, so it sits inside the segment
     /// rather than growing it — the boards draw it as `inset` box shadow.
@@ -42,53 +47,60 @@ enum ControlMetrics {
     /// than a box with air in it.
     static let cardPaddingVertical: CGFloat = 2
 
+    /// Above and below what a row or a capsule holds — its own padding, not
+    /// the card's, so that a row inside a card does not pay both.
+    static let rowPaddingVertical: CGFloat = 2
+
     /// The line between two rows. Half a point on the watch is one physical
     /// pixel at 2x, which is what the board draws.
     static var divider: CGFloat { Platform.value(watch: 0.5, phone: 1) }
 
-    // MARK: The stepper row
+    // MARK: The rows in the card
 
-    /// A row in the card: 64px on the watch's board, 68 on the phone's.
+    /// A row in the card: 64px on the watch's board, 68 on the phone's. Both
+    /// kinds of row stand in it — the watch's ``ChoiceRow`` and the phone's
+    /// ``StepperRow`` — because it is the card that decides how tall a row is,
+    /// not what the row does.
     static var rowHeight: CGFloat { Platform.value(watch: 32, phone: 68) }
 
+    /// Between a row's label and whatever stands at its trailing edge — the ±
+    /// on the phone, the chosen value on the watch.
+    static var rowGap: CGFloat { Platform.value(watch: 6, phone: 14) }
+
+    // MARK: The stepper row, which is the phone's alone
+
     /// The circular − and + .
-    static var stepperButton: CGFloat { Platform.value(watch: 15, phone: 34) }
-
-    /// What the finger actually has to hit.
     ///
-    /// Larger than the circle it is drawn around, and deliberately so: the
-    /// board's watch circle is 15pt across, which is a target nobody hits on a
-    /// moving wrist. The circle stays the board's size and the hit area grows
-    /// under it, which costs the layout nothing — see ``stepperSpacing``.
-    static var stepperHit: CGFloat { Platform.value(watch: 26, phone: 44) }
+    /// A phone number and not a pair: ``StepperRow`` is unavailable on
+    /// watchOS, and the board's 15pt circle is exactly why (see that control's
+    /// doc comment). The Mac takes it because the Mac takes the phone's
+    /// numbers, which is what lets the tests measure this control at all.
+    static let stepperButton: CGFloat = 34
 
-    /// Between a circle and the value it moves, on the boards.
-    static var stepperGap: CGFloat { Platform.value(watch: 6, phone: 14) }
+    /// What the finger actually has to hit — larger than the circle drawn
+    /// under it, which costs the layout nothing: see ``stepperSpacing``.
+    static let stepperHit: CGFloat = 44
 
-    /// The spacing that leaves the *drawn* gap at ``stepperGap`` once each
-    /// button is wearing a hit area wider than its circle.
+    /// The spacing that leaves the *drawn* gap at ``rowGap`` once each button
+    /// is wearing a hit area wider than its circle.
     ///
     /// Half the overhang sits on each side of the circle, so it is half the
     /// overhang that has to come out of the spacing.
     static var stepperSpacing: CGFloat {
-        max(0, stepperGap - (stepperHit - stepperButton) / 2)
+        max(0, rowGap - (stepperHit - stepperButton) / 2)
     }
 
     /// The bar of the − and the + , which the board draws as `M5 12h14` in a
-    /// 24-unit box: 14 units of a 15pt icon on the phone.
-    static var stepperGlyph: CGFloat { Platform.value(watch: 4, phone: 9) }
+    /// 24-unit box: 14 units of a 15pt icon.
+    static let stepperGlyph: CGFloat = 9
 
     /// How thick that bar is — the board's `stroke-width: 2.8` at the same
     /// scale, round-capped.
-    static var stepperGlyphStroke: CGFloat { Platform.value(watch: 1, phone: 1.8) }
+    static let stepperGlyphStroke: CGFloat = 1.8
 
     /// The width kept for the value, so that 9 and 40 do not move the two
     /// buttons apart.
-    static var stepperValue: CGFloat { Platform.value(watch: 9, phone: 20) }
-
-    /// The ring around the row the Digital Crown will move. Watch only —
-    /// there is no crown to point at anywhere else.
-    static var focusRing: CGFloat { Platform.value(watch: 1.5, phone: 2) }
+    static let stepperValue: CGFloat = 20
 
     // MARK: The pill button
 

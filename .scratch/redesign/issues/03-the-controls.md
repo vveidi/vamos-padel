@@ -209,3 +209,27 @@ was told not to have one about.
   `target` alone — was **not** taken, and nothing was written into the code
   about it: it is a decision for the first time this is worn, and ticket 06 is
   where the rules screen finds out.
+
+**Superseded in part, the same day.** Two of the five controls turned out to be
+wrong for the watch, and the boards with them. `SegmentedChoice` wants both
+labels legible side by side and a 198pt screen does not have the width;
+`StepperRow`'s ± circles halve to 15pt, and 5...40 behind them is 35 taps
+whether or not a crown is bound to the row.
+
+So the watch now sets everything with one new control, `ChoiceRow`: a row that
+names its value and opens a page listing what it could be. The crown scrolls
+that page — it still crosses 5...40 in a turn, and nothing has to be focused
+first, which is what the focused-row design was paying for. The two controls
+above are unchanged in behaviour and are now marked `@available(watchOS,
+unavailable)`: they are the phone's, and `PhoneNewMatch` is the board they
+belong to.
+
+What this does to the criteria ticked above: the third clause of the
+`StepperRow` line — "and the **Digital Crown** on watchOS" — no longer holds,
+and the crown machinery is gone from that control. Everything else on the list
+stands, and `ChoiceRow` meets the same three cross-cutting criteria: it reflows
+at the largest type, it is one VoiceOver element carrying label and value, and
+its board is previewed in both languages. Ticket 06 and the spec's "The watch
+picks on a page; the phone picks in place" carry the decision forward; this
+note is here so the checked box above is not read as a promise the code still
+makes.

@@ -3,6 +3,12 @@ import SwiftUI
 /// A choice between two options, drawn as two capsules side by side, the
 /// chosen one ringed in `ball`.
 ///
+/// **The phone's control, and only the phone's.** It needs both labels legible
+/// beside each other, which a 198pt screen does not have: "Классический"
+/// against "До N очков" on a wrist is two columns two words wide. The watch
+/// picks the same value with ``ChoiceRow``, which names it on a row and opens
+/// a page — same act, same capsules, room to read them.
+///
 /// **Two options, and not n.** "Classic" against "To N points" is the whole of
 /// its job, and the app has exactly two rulesets. A general n-way control is a
 /// thing to build the day a third one exists — until then it would be a
@@ -22,6 +28,7 @@ import SwiftUI
 ///     .init(Text("Classic"), value: true),
 ///     .init(Text("To N points"), value: false))
 /// ```
+@available(watchOS, unavailable)
 public struct SegmentedChoice<Value: Equatable>: View {
     /// One side of the choice: what it says, and what choosing it means.
     ///
@@ -52,10 +59,9 @@ public struct SegmentedChoice<Value: Equatable>: View {
 
     public var body: some View {
         // Side by side while both labels fit, and stacked when they stop
-        // fitting. At the largest Dynamic Type setting "До N очков" is wider
-        // than half a watch, and the choice between wrapping it into an
-        // illegible column and dropping the second capsule under the first is
-        // not a close one.
+        // fitting. At the largest Dynamic Type setting the pair is wider than
+        // a phone, and the choice between wrapping them into two illegible
+        // columns and dropping one under the other is not a close one.
         ViewThatFits(in: .horizontal) {
             HStack(spacing: ControlMetrics.segmentGap) { capsules }
             VStack(spacing: ControlMetrics.segmentGap) { capsules }
@@ -73,34 +79,9 @@ public struct SegmentedChoice<Value: Equatable>: View {
         return Button {
             selection = option.value
         } label: {
-            option.label
-                .textStyle(.control)
-                // The unselected side is a shade lighter as well as dimmer:
-                // it is a choice not taken, and the two have to be told apart
-                // at a glance from across a court.
-                .fontWeight(isChosen ? .semibold : .medium)
-                .foregroundStyle(isChosen ? Color.ball : .ink.weight(.strong))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, ControlMetrics.segmentGap)
-                .padding(.vertical, ControlMetrics.cardPaddingVertical)
-                .frame(maxWidth: .infinity, minHeight: ControlMetrics.segmentHeight)
-                .background(background(isChosen: isChosen))
-                .contentShape(RoundedRectangle(cornerRadius: .segment))
+            ChoiceCapsule(label: option.label, isChosen: isChosen)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isChosen ? .isSelected : [])
-    }
-
-    private func background(isChosen: Bool) -> some View {
-        RoundedRectangle(cornerRadius: .segment)
-            .fill(isChosen ? Color.ballWash : .ink.weight(.surface))
-            .overlay {
-                // Inset rather than drawn around the outside, so that ringing
-                // a segment does not move the two of them apart.
-                if isChosen {
-                    RoundedRectangle(cornerRadius: .segment)
-                        .strokeBorder(.ball, lineWidth: ControlMetrics.segmentRing)
-                }
-            }
     }
 }

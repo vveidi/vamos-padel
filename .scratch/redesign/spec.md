@@ -175,18 +175,32 @@ burn-in, battery, and a screen the HIG asks to be dimmed.
 Ticket 10 gives the court primitives a dimmed variant. It is one focused change
 at the bottom of the stack rather than a clause in every screen ticket.
 
-### The crown survives the rules screen
+### The watch picks on a page; the phone picks in place
 
-The board replaces three `Picker`s with a segmented choice and ± stepper rows.
-That reads well and works for `setsToWin` (1...3) and `serveChangesEvery`
-(1...6). It does not work for **`target` (5...40)**: 36 values behind a ±
-button is 35 taps, where a `Picker` spins under the crown today.
+The board replaces three `Picker`s with a segmented choice and ± stepper rows,
+and draws them at 198pt. Both are wrong on a wrist, and for the same reason:
+they are controls that want width. "Классический" against "До N очков" side by
+side is two columns two words wide, and the board's ± circles halve to 15pt —
+a target nobody hits on a moving wrist. **`target` (5...40)** settles it: 36
+values behind a ± is 35 taps, where a `Picker` spins under the crown today.
 
-So the stepper binds the Digital Crown on the focused row — ± for one step, the
-crown for a jump. A redesign that removes the watch's one precise input is a
-downgrade dressed as a repaint. If it proves fiddly on a wrist, the fallback is
-a `Picker` for N alone and a visible seam in the rules screen, not a 35-tap
-stepper.
+So on the watch every setting is one control: **a row that names its value and
+opens a page listing what it could be**, a tap picking and coming straight
+back. One act for the ruleset and for all three numbers, no segmented control,
+no ± anywhere. The crown still crosses 5...40 in a turn — it scrolls the page
+instead of spinning a value in place — and the page opens already scrolled to
+what is chosen, so 21 is one short turn from 21 rather than sixteen from 5.
+Nothing has to be focused first, which is what the earlier design paid for the
+crown with.
+
+The segmented choice and the ± stepper stay, as **the phone's**. They are what
+`PhoneNewMatch` draws, and that board is out of this feature (see "What is in,
+and what is not") — so they ship unused for now and are marked unavailable on
+watchOS, which is the platform they are wrong for.
+
+A redesign that removes the watch's one precise input would be a downgrade
+dressed as a repaint. This one hands the crown a longer list instead of a
+smaller number.
 
 ## What the boards say that the app does not do
 

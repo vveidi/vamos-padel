@@ -1,8 +1,8 @@
 # 06: The watch rules screen
 
 **What to build:** `RulesetView` loses its `List` and its `Picker`s: a
-segmented choice for the ruleset, stepper rows for the numbers, a toggle for
-the golden point, and a sentence at the bottom saying what the match will be.
+`ChoiceRow` for the ruleset, a `ChoiceRow` for each number, a toggle for the
+golden point, and a sentence at the bottom saying what the match will be.
 
 **Blocked by:** 03
 
@@ -12,9 +12,10 @@ the golden point, and a sentence at the bottom saying what the match will be.
       `List`
 - [ ] `.toolbar(.hidden, for: .navigationBar)`; "Rules" is drawn as content at
       the top left, clear of the clock
-- [ ] `SegmentedChoice` chooses between Classic and To N points
-- [ ] The numbers are `StepperRow`s, and **the Digital Crown moves the focused
-      row**
+- [ ] A `ChoiceRow` chooses between Classic and To N points — **not** a
+      `SegmentedChoice`, which is unavailable on watchOS
+- [ ] The numbers are `ChoiceRow`s over their ranges, and **the crown scrolls
+      the page each one opens**, which is where 5...40 is crossed
 - [ ] The golden point is a `Toggle` tinted `ball`, knob `#0b2b26`
 - [ ] The bottom sentence describes the chosen ruleset in words
 - [ ] The choice still leaves the screen on change, not on a "Done" button
@@ -24,15 +25,20 @@ the golden point, and a sentence at the bottom saying what the match will be.
 
 ## The crown
 
-The whole reason ticket 03 builds a stepper rather than using `Stepper`. Today
-every number is a `Picker` and the crown spins it; `target` is **5...40**, and
-a ± button alone makes crossing that range 35 taps.
+Today every number is a `Picker` and the crown spins it; `target` is
+**5...40**, and a ± button alone would make crossing that range 35 taps. The
+crown keeps that range, but it now scrolls the page a `ChoiceRow` opens rather
+than spinning a value in place. Nothing has to be focused first.
 
-Verify on a device, or at least in the simulator with the crown: focus a row,
-turn, watch the number move, and check that the focused row is visibly the one
-that will move. If it does not work well, take the fallback ticket 03 names —
-`Picker` for `target` alone — and write down in the closing note that the seam
-in the layout is deliberate.
+Verify on a device, or at least in the simulator with the crown: open "Points
+(N)", check the page arrives already scrolled to the current value rather than
+at 5, turn the crown across the list, tap one, and check it comes straight back
+without a "Done".
+
+**This replaces the design ticket 03 shipped**, where the stepper bound the
+crown to a focused row. The boards draw a segmented control and ± on the watch
+and both were judged wrong for a 198pt screen; see the spec's "The watch picks
+on a page; the phone picks in place".
 
 ## The sentence at the bottom
 

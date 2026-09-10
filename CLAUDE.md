@@ -44,6 +44,34 @@ counts the cases behind it.
 graph on the way, which writes `SourcePackages` and reaches GitHub for GRDB. It
 sits on the allowlist because it changes no source, not because it is inert.
 
+## Where things live in the packages
+
+Each package's sources are grouped by subsystem, and its tests mirror the
+grouping folder for folder. A file's folder is the fastest thing to read about
+it:
+
+    PadelScoring/   Vocabulary/  the small value types — Side, Points, ServingHalf
+                    Journal/     the rally journal, which is the source of truth
+                    Rules/       Ruleset and the two replays that walk the journal
+                    Match/       Match, its state, its outcome, its course
+
+    PadelStorage/   Seam/        the protocols and SavedMatch (ADR-0002)
+                    SQLite/      the GRDB implementation behind that seam
+
+    PadelDelivery/  Transport/   the wire and what travels over it
+                    Ends/        the watch's side and the phone's side
+
+    PadelDesign/    Tokens/      what a screen names: palette, ramp, radii
+                    Court/       the court, net, ball and the two lights
+                    Controls/    the five controls and their metrics
+
+What is *not* in a folder is deliberate: a package's shared test harness and
+its isolation test sit at the test target's root, and `Logging.swift` sits at
+`PadelDelivery`'s, because they belong to no one subsystem.
+
+Adding a folder needs no manifest edit — SwiftPM compiles everything under the
+target's directory.
+
 ## Reading code
 
 Reach for the `LSP` tool before `cat`. `documentSymbol` outlines a file in about

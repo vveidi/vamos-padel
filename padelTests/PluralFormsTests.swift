@@ -56,6 +56,17 @@ struct PluralFormsTests {
         #expect(reading.matches(Catalog.text("\(reading.number) sets", in: reading.language)))
     }
 
+    /// The target as a clause on its own — the watch's start screen under the
+    /// name of the ruleset, where the row used to read "N = 16".
+    ///
+    /// Counted the ordinary way and not after "до", which is the whole reason
+    /// it is pinned separately from the sentence above: here 21 takes *очко*
+    /// and 22 *очка*, and the genitive below turns that pair around.
+    @Test("N points", arguments: Reading.points)
+    func points(_ reading: Reading) {
+        #expect(reading.matches(Catalog.text("\(reading.number) points", in: reading.language)))
+    }
+
     /// The games of the current set, read out by VoiceOver: none yet at the
     /// start of a set, and seven at the end of one won 7:6.
     @Test("N games", arguments: Reading.games)
@@ -126,6 +137,19 @@ extension Reading {
             + spread(.en, 2...3, { "Classic scoring · \($0) sets" })
             + spread(.ru, 1...1, { "Классический счёт · \($0) сет" })
             + spread(.ru, 2...3, { "Классический счёт · \($0) сета" })
+
+    /// The whole range the rules screen offers, for the same reason as
+    /// `pointsTo`: Russian changes form on the last two digits, so 21, 22, 31
+    /// and 32 are four separate chances to get it wrong.
+    static let points: [Reading] =
+        spread(.en, 5...40, { "\($0) points" })
+            + spread(.ru, 5...20, { "\($0) очков" })
+            + spread(.ru, 21...21, { "\($0) очко" })
+            + spread(.ru, 22...24, { "\($0) очка" })
+            + spread(.ru, 25...30, { "\($0) очков" })
+            + spread(.ru, 31...31, { "\($0) очко" })
+            + spread(.ru, 32...34, { "\($0) очка" })
+            + spread(.ru, 35...40, { "\($0) очков" })
 
     static let sets: [Reading] =
         spread(.en, 0...0, { "\($0) sets" })

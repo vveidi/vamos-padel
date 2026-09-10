@@ -5,11 +5,11 @@ import SwiftUI
 ///
 /// **The phone's control, and only the phone's.** It needs both labels legible
 /// beside each other, which a 198pt screen does not have: "Классический"
-/// against "До N очков" on a wrist is two columns two words wide. The watch
+/// against "По очкам" on a wrist is two columns two words wide. The watch
 /// picks the same value with ``ChoiceRow``, which names it on a row and opens
 /// a page — same act, same capsules, room to read them.
 ///
-/// **Two options, and not n.** "Classic" against "To N points" is the whole of
+/// **Two options, and not n.** "Classic" against "By points" is the whole of
 /// its job, and the app has exactly two rulesets. A general n-way control is a
 /// thing to build the day a third one exists — until then it would be a
 /// parameter with one value, and a `ForEach` where two named sides read
@@ -26,7 +26,7 @@ import SwiftUI
 /// SegmentedChoice(
 ///     selection: $isClassic,
 ///     .init(Text("Classic"), value: true),
-///     .init(Text("To N points"), value: false))
+///     .init(Text("By points"), value: false))
 /// ```
 @available(watchOS, unavailable)
 public struct SegmentedChoice<Value: Equatable>: View {

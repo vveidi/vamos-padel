@@ -32,7 +32,7 @@ struct RulesetView: View {
         List {
             Picker("Scoring", selection: $numbers.isClassic) {
                 Text("Classic").tag(true)
-                Text("To N points").tag(false)
+                Text("By points").tag(false)
             }
 
             if numbers.isClassic {

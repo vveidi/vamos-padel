@@ -23,8 +23,8 @@ struct SharedCatalogTests {
     /// visible.
     @Test("The watch's name for the match to N points is in the phone's bundle")
     func theWatchsRulesetName() {
-        #expect(Catalog.text("Match to N points", in: .ru) == "Счёт до N очков")
-        #expect(Catalog.text("Match to N points", in: .en) == "Match to N points")
+        #expect(Catalog.text("Point scoring", in: .ru) == "Счёт по очкам")
+        #expect(Catalog.text("Point scoring", in: .en) == "Point scoring")
     }
 
     /// A VoiceOver action on two of the watch's screens, and a second key from

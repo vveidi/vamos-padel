@@ -32,7 +32,7 @@ struct SegmentedChoiceTests {
     /// Rendered at `width` unless a narrower one is asked for, which is how
     /// the stacking branch is reached.
     static func choice(
-        selecting chosen: Bool, labels: (String, String) = ("Classic", "To N points"),
+        selecting chosen: Bool, labels: (String, String) = ("Classic", "By points"),
         width: CGFloat = SegmentedChoiceTests.width
     ) throws -> Raster {
         var selection = chosen
@@ -98,7 +98,7 @@ struct SegmentedChoiceTests {
         let beside = try Self.choice(selecting: true)
         let stacked = try Self.choice(
             selecting: true,
-            labels: ("Классический счёт", "Счёт до N очков"),
+            labels: ("Классический счёт", "Счёт по очкам"),
             width: 120)
 
         #expect(

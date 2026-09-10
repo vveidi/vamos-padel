@@ -32,7 +32,7 @@ private struct Words {
     struct Scoring {
         let label: String
         let classic: String
-        let toNPoints: String
+        let byPoints: String
     }
 
     let scoring: Scoring
@@ -43,13 +43,13 @@ private struct Words {
     let newMatch: String
     let end: String
     let keepPlaying: String
-    let ruleset: (classic: String, toNPoints: String)
+    let ruleset: (classic: String, byPoints: String)
     let stopped: String
     let day: String
     let duration: String
 
     static let english = Words(
-        scoring: .init(label: "Scoring", classic: "Classic", toNPoints: "To N points"),
+        scoring: .init(label: "Scoring", classic: "Classic", byPoints: "By points"),
         sets: "Sets",
         points: "Points to win",
         serveChange: "Serve changes every",
@@ -57,13 +57,13 @@ private struct Words {
         newMatch: "New match",
         end: "End",
         keepPlaying: "Keep playing",
-        ruleset: (classic: "Classic scoring · 2 sets", toNPoints: "Scoring to 21 points"),
+        ruleset: (classic: "Classic scoring · 2 sets", byPoints: "Scoring to 21 points"),
         stopped: "Match unfinished",
         day: "9 September",
         duration: "1 h 12 min")
 
     static let russian = Words(
-        scoring: .init(label: "Счёт", classic: "Классический", toNPoints: "До N очков"),
+        scoring: .init(label: "Счёт", classic: "Классический", byPoints: "По очкам"),
         sets: "Сеты",
         points: "Очков до победы",
         serveChange: "Смена подачи через",
@@ -71,7 +71,7 @@ private struct Words {
         newMatch: "Новый матч",
         end: "Завершить",
         keepPlaying: "Играть дальше",
-        ruleset: (classic: "Классический счёт · 2 сета", toNPoints: "Счёт до 21 очка"),
+        ruleset: (classic: "Классический счёт · 2 сета", byPoints: "Счёт до 21 очка"),
         stopped: "Матч не доигран",
         day: "9 сентября",
         duration: "1 ч 12 мин")
@@ -127,7 +127,7 @@ private struct Words {
                             selection: $isClassic,
                             options: [
                                 .init(Text(verbatim: words.scoring.classic), value: true),
-                                .init(Text(verbatim: words.scoring.toNPoints), value: false),
+                                .init(Text(verbatim: words.scoring.byPoints), value: false),
                             ])
 
                         ChoiceRow(Text(verbatim: words.sets), value: $sets, in: 1...3)
@@ -179,7 +179,7 @@ private struct ControlsBoard: View {
                 SegmentedChoice(
                     selection: $isClassic,
                     .init(Text(verbatim: words.scoring.classic), value: true),
-                    .init(Text(verbatim: words.scoring.toNPoints), value: false))
+                    .init(Text(verbatim: words.scoring.byPoints), value: false))
 
                 SettingsCard {
                     StepperRow(Text(verbatim: words.sets), value: $sets, in: 1...3)

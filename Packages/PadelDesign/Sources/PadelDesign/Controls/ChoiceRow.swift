@@ -4,7 +4,7 @@ import SwiftUI
 /// opens a page to change it.
 ///
 /// **One control for the ruleset and for the numbers alike.** "Classic against
-/// To N points" and "sets to win: 2" are the same act on a 198pt screen — pick
+/// By points" and "sets to win: 2" are the same act on a 198pt screen — pick
 /// one of a short list — and the wrist has no room to draw them two different
 /// ways. So there is no segmented control here and no ± anywhere: the row
 /// names the value, the page lists what it could be, a tap picks and comes
@@ -29,7 +29,7 @@ import SwiftUI
 ///     selection: $isClassic,
 ///     options: [
 ///         .init(Text("Classic"), value: true),
-///         .init(Text("To N points"), value: false),
+///         .init(Text("By points"), value: false),
 ///     ])
 ///
 /// ChoiceRow(Text("Sets to win"), value: $setsToWin, in: 1...3)

@@ -89,10 +89,15 @@ struct StartView: View {
         .minimumScaleFactor(0.7)
     }
 
-    /// The name of the ruleset — the one the glossary gives it. Numbers are
-    /// not substituted in: "Scoring to 21 points" would have to decline the
-    /// noun, whereas "Match to N points" is a name, and the N in it explains
+    /// The name of the ruleset. Numbers are not substituted in: "Scoring to 21
+    /// points" would have to decline the noun, whereas "Point scoring" is a
+    /// name — it says how the match is scored and leaves how far it runs to
     /// the row below.
+    ///
+    /// It is the name the screens use and not the glossary's own. `CONTEXT.md`
+    /// calls this ruleset "the match to N points", which is what the code says
+    /// throughout; the letters are notation for reading the source and were
+    /// never much of a name to be shown a player.
     ///
     /// The phone names a ruleset too, and says something else on purpose: here
     /// one is about to be chosen and the numbers stay out of its name, there a
@@ -102,7 +107,7 @@ struct StartView: View {
     private static func name(of ruleset: Ruleset) -> LocalizedStringKey {
         switch ruleset {
         case .classic: "Classic scoring"
-        case .pointsTo: "Match to N points"
+        case .pointsTo: "Point scoring"
         }
     }
 
@@ -118,10 +123,14 @@ struct StartView: View {
                 + Text(Self.goldenPoint(goldenPoint))
 
         case .pointsTo(let target, let serveChangesEvery):
-            // Letters and not words: N and X are the notation the name above
-            // and the rules screen call the two numbers by, and they read the
-            // same in both languages.
-            Text(verbatim: "N = \(target) · X = \(serveChangesEvery)")
+            // Clauses, like the classic side above, and for the same reason:
+            // both nouns are declined by the catalog. This row used to read
+            // "N = 16 · X = 4", which was the notation the name above and the
+            // rules screen called these two numbers by — and neither says a
+            // letter any more.
+            Text("\(target) points")
+                + Text(verbatim: " · ")
+                + Text("Serve changes every \(serveChangesEvery) rallies")
         }
     }
 
@@ -139,7 +148,9 @@ struct StartView: View {
 /// this screen runs out of width: it is a caption already leaning on
 /// `minimumScaleFactor`, and the two languages are longer than each other in
 /// different places — "Classic scoring" is shorter than "Классический счёт",
-/// "Match to N points" longer than "Счёт до N очков".
+/// "Point scoring" shorter than "Счёт по очкам", and the row under the match
+/// to N points now carries two declined clauses where it used to carry
+/// "N = 16 · X = 4".
 ///
 /// The default ruleset is one set, which is the shortest this row ever gets
 /// and the one form of the noun Russian shares with English. Two sets is here

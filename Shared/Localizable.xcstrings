@@ -53,6 +53,58 @@
         }
       }
     },
+    "%lld points" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld point"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld points"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld очко"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld очка"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld очков"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld очка"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld sets" : {
       "localizations" : {
         "en" : {
@@ -111,6 +163,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сыгранный на часах матч появится здесь сам"
+          }
+        }
+      }
+    },
+    "By points" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "По очкам"
           }
         }
       }
@@ -287,16 +349,6 @@
         }
       }
     },
-    "Match to N points" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Счёт до N очков"
-          }
-        }
-      }
-    },
     "Match unfinished" : {
       "localizations" : {
         "ru" : {
@@ -373,6 +425,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Выиграли соперники"
+          }
+        }
+      }
+    },
+    "Point scoring" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Счёт по очкам"
           }
         }
       }
@@ -597,16 +659,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Тай-брейк не доигран"
-          }
-        }
-      }
-    },
-    "To N points" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "До N очков"
           }
         }
       }

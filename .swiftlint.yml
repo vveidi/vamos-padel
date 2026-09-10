@@ -9,11 +9,14 @@ included:
   - Packages/PadelStorage/Tests
   - Packages/PadelDelivery/Sources
   - Packages/PadelDelivery/Tests
+  - Packages/PadelDesign/Sources
+  - Packages/PadelDesign/Tests
 
 excluded:
   - Packages/PadelScoring/.build
   - Packages/PadelStorage/.build
   - Packages/PadelDelivery/.build
+  - Packages/PadelDesign/.build
 
 disabled_rules:
   # This repo writes a trailing comma on every multi-line literal, so adding an

@@ -68,7 +68,7 @@ Four things carry it, and they are worth stating before any hex value:
   the serving half's corner during play, and rides the primary button. Same
   object every time.
 - **One accent.** The ball's yellow is the only color in the app. Losses go
-  cold and grey. There is no red anywhere and no second accent to argue with
+  cold and gray. There is no red anywhere and no second accent to argue with
   the first.
 
 ## Reading the boards
@@ -143,10 +143,11 @@ knows the domain, the domain never hears about the design.
 The boards are set in Unbounded (numbers, titles) and Golos Text (everything
 else). Neither ships in this feature — ticket 11 is where that is decided.
 
-What ships now is the **ramp**: `.score`, `.display`, `.control`, `.body`,
-`.caption`, `.footnote`, each mapped to a system face today (SF Rounded for the
-numbers and titles, SF for the rest) and each carrying a `relativeTo:` so
-Dynamic Type keeps working. After this feature no call site writes
+What ships now is the **ramp**: `.score`, `.scoreAside`, `.display`,
+`.tileScore`, `.control`, `.body`, `.caption` — seven, as ticket 01's table
+sets them out — each mapped to a system face today (SF Rounded for the numbers
+and titles, SF for the rest) and each carrying a `relativeTo:` so Dynamic Type
+keeps working. After this feature no call site writes
 `.font(.system(size:weight:design:))` again — `ScoreView`'s hand-written
 `size: 64` and `MatchCard`'s `size: 44` are gone.
 

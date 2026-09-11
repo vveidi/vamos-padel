@@ -126,6 +126,43 @@ installed at user scope — `~/.claude/hooks/no-heredoc-writes.py`, wired up in
 `~/.claude/settings.json` — so it guards every project and lives in none of
 them. Nothing in this repo enforces it, and a fresh clone gets no such guard.
 
+## Writing comments
+
+Write them the way Apple writes its documentation: the summary first, the rest
+only if the summary leaves something unsafe to assume.
+
+- **One sentence, then a blank line.** A doc comment opens with a single
+  sentence saying what the symbol is or does. Types and properties take a noun
+  phrase — "The side serving the current game." Methods take a third-person
+  verb — "Returns the score after the rally."
+- **A discussion paragraph only for what a caller would otherwise get wrong:**
+  a precondition, a failure mode, a unit, a threading rule, an ownership rule.
+  Two or three sentences. If it needs more, it is an ADR.
+- **Rationale lives elsewhere.** Why a design was chosen belongs in
+  `docs/adr/` or in the commit message. A comment says what the code does now,
+  not how we arrived at it — the reader needs to know the workout keeps the
+  screen awake, not the two gestures we tried before the button.
+- **Use the callouts rather than prose** where one fits: `- Parameter`,
+  `- Returns`, `- Throws`, `- Note`, `- Important`, `- Warning`, and
+  double-backtick links to other symbols.
+- **Never restate the code.** `// increment the score` over `score += 1` is
+  noise.
+
+Anything deferred is a `TODO:` on its own line, where the work will have to be
+done, with the ticket it belongs to:
+
+    // TODO: Trim the journal once a match can run past five sets
+    // (.scratch/match-time/issues/01-the-clock-follows-the-journal.md)
+
+Xcode lists `TODO:` and `FIXME:` in the jump bar, which is the whole reason for
+the exact spelling — `// todo` and `// Todo(later)` are invisible there.
+`FIXME:` marks something already wrong; `TODO:` marks something not yet done.
+Neither is a place to argue a case: one line saying what, plus the path.
+
+The comments already in the repo are the older, narrative style, and they are
+not being retrofitted. Apply this to what you write and to what you are already
+changing; leave the rest alone until a ticket says otherwise.
+
 ## Bulk edits
 
 For a mechanical change across many files — renaming a call, reshaping an API,

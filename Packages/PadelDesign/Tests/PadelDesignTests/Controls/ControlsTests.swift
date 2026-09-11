@@ -183,6 +183,28 @@ struct ChoiceRowTests {
             "the value is on the label's line rather than under it")
     }
 
+    /// The chevron, which is the half of the affordance the lit value does not
+    /// carry: the value says what the row *is*, the chevron says it opens.
+    ///
+    /// Measured at the trailing edge against the same band on the leading
+    /// side, where the label is set in the same ink — so what this catches is
+    /// the mark missing, not the row being dark.
+    @Test("A row that opens a list says so at its trailing edge")
+    func theRowWearsAChevron() throws {
+        let raster = try Self.row()
+
+        let band = Int(ControlMetrics.chevronWell)
+        let middle = raster.height / 2
+        let rows = (middle - band / 2)..<(middle + band / 2)
+
+        let trailing = raster.meanLuminance(
+            columns: (raster.width - band)..<raster.width, rows: rows)
+        let ground = raster.meanLuminance(
+            columns: (raster.width - 3 * band)..<(raster.width - 2 * band), rows: rows)
+
+        #expect(trailing > ground, "nothing is drawn where the chevron should be")
+    }
+
     /// Two texts tall for every value, and not only for the ones that ran out
     /// of width. A card of these rows is read as a column of one shape, which
     /// a row that stacked only in Russian would not give it.

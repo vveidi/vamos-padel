@@ -91,6 +91,39 @@ enum ControlMetrics {
     /// face keeps above the ascenders and below the descenders.
     private static let lineHeight: CGFloat = 1.2
 
+    // MARK: The chevron on a row that opens something
+
+    /// Between what a row says and the chevron at its trailing edge. 10px on
+    /// the watch's board.
+    static var rowGapToChevron: CGFloat { Platform.value(watch: 5, phone: 10) }
+
+    /// The well the chevron sits in. 26px.
+    static var chevronWell: CGFloat { Platform.value(watch: 13, phone: 26) }
+
+    /// The chevron in it.
+    ///
+    /// The board's is a 14px box holding a glyph 12 units of 24 tall — about
+    /// 3.5pt of actual chevron. SF's is measured by type size rather than by
+    /// its box, and 9pt is where it lands on about the same height.
+    static var chevron: CGFloat { Platform.value(watch: 9, phone: 18) }
+
+    // MARK: The switch
+
+    /// The track of the `ball`-tinted switch — 52×31px on the watch's board,
+    /// 56×33 on the phone's.
+    ///
+    /// The one size here that is not a minimum. A switch is furniture at the
+    /// end of a row, and ``BallSwitch`` says why it does not grow with the
+    /// sentence beside it.
+    static var switchTrack: CGSize {
+        CGSize(
+            width: Platform.value(watch: 26, phone: 56),
+            height: Platform.value(watch: 15.5, phone: 33))
+    }
+
+    /// How much track shows all round the knob — the boards' 3px, on both.
+    static var switchKnobInset: CGFloat { Platform.value(watch: 1.5, phone: 3) }
+
     // MARK: The stepper row, which is the phone's alone
 
     /// The circular − and + .

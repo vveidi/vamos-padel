@@ -16,16 +16,14 @@ import SwiftUI
 /// SettingsCard {
 ///     StepperRow(Text("Sets"), value: $sets, in: 1...3)
 ///     Toggle(isOn: $goldenPoint) { Text("Golden point") }
-///         .tint(.ball)
+///         .toggleStyle(.ball)
 /// }
 /// ```
 ///
-/// **The `Toggle` above is the one system control the redesign keeps.** The
-/// boards draw it as a `ball`-yellow track with a dark knob, which is a
-/// `Toggle` with `.tint(.ball)` and nothing else — so it is taken for free
-/// rather than rebuilt. Check the knob against ``SwiftUI/Color/knob``: it is
-/// deep teal and not black, and a black knob reads as a hole punched in the
-/// track.
+/// **The `Toggle` above is the one system control the redesign keeps**, and it
+/// keeps it as a `Toggle` — the binding, the label and the tap are SwiftUI's,
+/// and only the drawing is the boards'. ``BallSwitch`` is that drawing and
+/// says why `.tint(.ball)` was not enough on its own.
 public struct SettingsCard<Content: View>: View {
     private let content: Content
 

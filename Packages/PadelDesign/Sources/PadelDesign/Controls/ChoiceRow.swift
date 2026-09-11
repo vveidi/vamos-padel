@@ -17,11 +17,16 @@ import SwiftUI
 /// will move. The page opens already scrolled to what is chosen, so 21 is one
 /// short turn from 21 rather than sixteen from 5.
 ///
-/// **No chevron.** The brief is "no navigation bar, no list rows, no
-/// chevron-and-separator", and the value under the label is drawn in `ball` —
+/// **A chevron at the trailing edge.** The row was drawn without one to begin
+/// with: the brief is "no navigation bar, no list rows, no
+/// chevron-and-separator", and the value under the label is drawn in `ball`,
 /// which in this app means exactly *this is yours, or this is chosen*
-/// (ADR-0006). The one lit thing on an otherwise quiet row is the affordance,
-/// and a chevron beside it would be the system's furniture back again.
+/// (ADR-0006). Looked at on a wrist, that argument turned out to be about the
+/// wrong thing. The lit value says what the row *is*; it does not say the row
+/// **opens**, and a row that opens a screen has to say so before it is tapped.
+/// The brief's chevron is the one on a `List` row, ruled off by separators —
+/// this is ``Chevron``, in its well, and it is drawn on exactly the rows that
+/// lead somewhere.
 ///
 /// ```swift
 /// ChoiceRow(
@@ -79,15 +84,21 @@ public struct ChoiceRow<Value: Hashable>: View {
     }
 
     private var row: some View {
-        // The value under the label and never beside it, so that each of the
-        // two is given the row's whole width. "Подача через (X)" is wider than
-        // a watch on its own before the value is put anywhere, and a row that
-        // stacked only once it ran out of room would stand one text tall in
-        // English and two in Russian, in a card whose rows are read as a
-        // column of one shape.
-        VStack(alignment: .leading, spacing: ControlMetrics.rowGap) {
-            labelText
-            chosenText
+        HStack(spacing: ControlMetrics.rowGapToChevron) {
+            // The value under the label and never beside it, so that each of
+            // the two is given the row's whole width. "Подача через (X)" is
+            // wider than a watch on its own before the value is put anywhere,
+            // and a row that stacked only once it ran out of room would stand
+            // one text tall in English and two in Russian, in a card whose
+            // rows are read as a column of one shape.
+            VStack(alignment: .leading, spacing: ControlMetrics.rowGap) {
+                labelText
+                chosenText
+            }
+
+            Spacer(minLength: 0)
+
+            Chevron()
         }
         .padding(.vertical, ControlMetrics.rowPaddingVertical)
         .frame(
@@ -151,7 +162,12 @@ extension ChoiceRow where Value == Int {
 ///
 /// It keeps watchOS's own title and back chevron. The brief's "no navigation
 /// bar" is about the screens the boards draw; a pushed page that hid its way
-/// back would be a page a player can only leave by choosing something.
+/// back would be a page a player can only leave by choosing something — which
+/// is not a figure of speech. `RulesetView` hid its bar and was a trap: the
+/// edge swipe does not stand in for a Back button, and the screen that pushed
+/// this one now keeps its own bar for the same reason (``PadelDesign`` cannot
+/// see that screen, so ``RulesetSettings`` on the watch is where it is written
+/// down).
 @available(iOS, unavailable)
 private struct ChoiceList<Value: Hashable>: View {
     let title: Text

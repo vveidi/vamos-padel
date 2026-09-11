@@ -77,8 +77,8 @@ private struct Words {
         duration: "1 ч 12 мин")
 }
 
-/// The one system control the redesign keeps, tinted — what ``SettingsCard``
-/// documents rather than wraps.
+/// The one system control the redesign keeps, wearing the boards' switch —
+/// what ``SettingsCard`` documents rather than wraps.
 ///
 /// Shared by both boards on purpose: the golden point is the one row that does
 /// *not* part company between the platforms, and drawing it twice is how two
@@ -89,11 +89,9 @@ private struct Words {
             .textStyle(.body)
             .foregroundStyle(.ink.weight(.control))
     }
-    .tint(.ball)
-    // The watch's rows stand two texts tall, and this one has a switch where
-    // their value is: asking for their height is what keeps the last row of
-    // the card from sitting short. On the phone the number is `rowHeight`.
-    .frame(minHeight: ControlMetrics.stackedRowHeight)
+    // The row's height comes with the style: the watch's rows stand two texts
+    // tall and this one has a switch where their value is. See ``BallSwitch``.
+    .toggleStyle(.ball)
 }
 
 // MARK: - The watch's rows

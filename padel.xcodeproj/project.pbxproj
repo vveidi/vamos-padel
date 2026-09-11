@@ -59,7 +59,7 @@
 		AA01A0000000000000000020 /* Exceptions for "padel Watch App" folder in "padel Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = AA01A0000000000000000003 /* padel Watch App */;
 		};
@@ -350,7 +350,7 @@
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "padel Watch App/Info.plist";
+				INFOPLIST_FILE = "padel Watch App/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Padel;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Padel reads your heart rate and calories during a match to record it as a workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Padel saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings.";
@@ -383,7 +383,7 @@
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "padel Watch App/Info.plist";
+				INFOPLIST_FILE = "padel Watch App/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Padel;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Padel reads your heart rate and calories during a match to record it as a workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Padel saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings.";

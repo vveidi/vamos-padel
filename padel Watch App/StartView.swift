@@ -24,8 +24,7 @@ struct StartView: View {
     /// Starts the match with the given first server.
     let onStart: (Side) -> Void
 
-    /// Which way the ball is leaning. Toggled once; the animation on it
-    /// reverses forever — see ``lean``.
+    /// Which way the ball is leaning — see ``lean``.
     @State private var leaning = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -63,22 +62,18 @@ struct StartView: View {
     /// screen and the same as on court: they are across the net, in front of
     /// us. The colors are the same too, so the half the player will be tapping
     /// for their own points all match is recognizable before the first rally.
-    /// **The capsule is the button, not the half around it.** The half was the
-    /// target at first, which meant a thumb anywhere on the court lit a
-    /// capsule it was nowhere near — a control has to light because it was
-    /// touched, or the light means nothing. The court is inert now.
+    /// **The capsule is the button and the court around it is inert.** A
+    /// control has to light because it was touched, or the light means
+    /// nothing.
     ///
-    /// **A `Button`, after two gestures that were not.** A `DragGesture` gave
-    /// the pressed state and took the paging with it, attached plainly and
-    /// simultaneously alike. A button is the platform's own answer — the
-    /// scroll cancels its press rather than competing with it — so the pressed
-    /// state comes from a `ButtonStyle` rather than from anything this screen
-    /// tracks itself. It is also what gives VoiceOver its button back: no
-    /// traits are put on by hand here any more.
+    /// **A `Button` and not a gesture**, which the page below depends on: a
+    /// `DragGesture` tracking the finger takes the `TabView`'s swipe with it,
+    /// attached plainly and simultaneously alike, where a button's press is
+    /// cancelled by the scroll instead of competing with it. It also gives
+    /// VoiceOver its button back — no traits are put on by hand here.
     ///
-    /// The two paddings are outside the button on purpose. Inside the style
-    /// they would grow what the finger can hit, which is the whole of what
-    /// this screen just stopped doing.
+    /// The two paddings sit outside the button: inside the style they would
+    /// grow what the finger can hit.
     private func half(_ side: Side) -> some View {
         CourtHalf(side: side)
             .overlay(alignment: side == .them ? .bottom : .top) {
@@ -93,8 +88,8 @@ struct StartView: View {
             }
     }
 
-    /// Names the server and starts the match, with the app's one haptic under
-    /// it: a match starting is worth one, a rally scored is not.
+    /// Names the serving side and starts the match, with the app's one haptic
+    /// under it: a match starting is worth one, a rally scored is not.
     ///
     /// `WKInterfaceDevice` and not SwiftUI's `.sensoryFeedback`: that watches
     /// a value, and the value would change in the same update that replaces
@@ -165,11 +160,7 @@ private struct ServeCapsule: ButtonStyle {
     let side: Side
 
     func makeBody(configuration: Configuration) -> some View {
-        capsule(around: configuration.label, isPressed: configuration.isPressed)
-    }
-
-    private func capsule(around label: Configuration.Label, isPressed: Bool) -> some View {
-        label
+        configuration.label
             .textStyle(.display)
             .multilineTextAlignment(.center)
             // Two lines are expected rather than tolerated — see `serves(_:)`.
@@ -179,23 +170,18 @@ private struct ServeCapsule: ButtonStyle {
             // is where two lines of the longer language still stop short of
             // it, measured on a 42mm — the least room of the sizes.
             .dynamicTypeSize(...Board.largestType)
-            .foregroundStyle(isPressed ? Color.ball : .courtInk(side))
             .padding(.horizontal, Board.capsulePadding)
             .padding(.vertical, Board.capsulePaddingVertical)
-            .background {
-                RoundedRectangle(cornerRadius: .segment)
-                    .fill(isPressed ? Color.ballWash : .ink.weight(.surface))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: .segment)
-                            .strokeBorder(
-                                isPressed ? Color.ball : .ink.weight(.strong),
-                                lineWidth: Board.capsuleBorder)
-                    }
-            }
-            // The capsule and not its bounding box: the corners are court, and
-            // a finger on the court starts nothing.
-            .contentShape(RoundedRectangle(cornerRadius: .segment))
-            .animation(.easeOut(duration: Board.press), value: isPressed)
+            // The one capsule in the app that is not a `ChoiceCapsule` — the
+            // sentences here are `display` and hug their own width — so it
+            // borrows the look rather than redrawing it. The ring at rest is
+            // what says the half can be tapped; it takes the hit test with it,
+            // and the corners stay court.
+            .choiceCapsule(
+                isChosen: configuration.isPressed,
+                restingInk: .courtInk(side),
+                isRingedAtRest: true)
+            .animation(.easeOut(duration: Board.press), value: configuration.isPressed)
     }
 }
 
@@ -230,12 +216,8 @@ private enum Board {
     /// indicator at the trailing edge.
     static let capsuleInset: CGFloat = 14
 
-    /// The line around it: 2px at the watch's 2x, which is what the boards
-    /// draw a border at.
-    static let capsuleBorder: CGFloat = 1
-
-    /// The largest type the sentences are set at — see `HalfButton` for why
-    /// there is a ceiling at all.
+    /// The largest type the sentences are set at — see ``ServeCapsule`` for
+    /// why there is a ceiling at all.
     static let largestType: DynamicTypeSize = .accessibility2
 
     /// How long the capsule takes to light under a finger and to go out.

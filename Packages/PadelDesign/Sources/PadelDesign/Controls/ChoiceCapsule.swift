@@ -50,25 +50,58 @@ struct ChoiceCapsule: View {
             // a choice not taken, and the two have to be told apart at a
             // glance from across a court.
             .fontWeight(isChosen ? .semibold : .medium)
-            .foregroundStyle(isChosen ? Color.ball : .ink.weight(.strong))
             .multilineTextAlignment(.center)
             .padding(.horizontal, ControlMetrics.segmentPadding)
             .padding(.vertical, ControlMetrics.rowPaddingVertical)
             .frame(maxWidth: .infinity, minHeight: place.minHeight)
-            .background(background)
-            .contentShape(RoundedRectangle(cornerRadius: .segment))
+            .choiceCapsule(isChosen: isChosen)
     }
+}
 
-    private var background: some View {
-        RoundedRectangle(cornerRadius: .segment)
-            .fill(isChosen ? Color.ballWash : .ink.weight(.surface))
-            .overlay {
-                // Inset rather than drawn around the outside, so that ringing
-                // a capsule does not move it or its neighbour.
-                if isChosen {
-                    RoundedRectangle(cornerRadius: .segment)
-                        .strokeBorder(.ball, lineWidth: ControlMetrics.segmentRing)
-                }
+// MARK: - The look, apart from the control
+
+extension View {
+    /// Draws this label as one option of a choice: `ballWash` behind it inside
+    /// a `ball` ring when chosen, a translucent panel when not.
+    ///
+    /// Public because one capsule in the app is not a ``ChoiceCapsule``. The
+    /// watch's start screen sets its sentences in `display` and lets them hug
+    /// their own width, where this control is `control` and fills its column —
+    /// but what *chosen* looks like must not differ between them, and that is
+    /// what this carries: the fill, the ring, the radius and the ink the label
+    /// takes. Size and padding stay with the caller.
+    ///
+    /// - Parameters:
+    ///   - restingInk: the label's colour while it is not chosen. The ink on
+    ///     `night` inside a card; the court's own ink on a half.
+    ///   - isRingedAtRest: whether an unchosen capsule keeps an outline.
+    ///     False among its own kind, where the column it stands in says what
+    ///     it is; true on the court, where nothing else does.
+    public func choiceCapsule(
+        isChosen: Bool,
+        restingInk: Color = Color.ink.weight(.strong),
+        isRingedAtRest: Bool = false
+    ) -> some View {
+        foregroundStyle(isChosen ? Color.ball : restingInk)
+            .background {
+                RoundedRectangle(cornerRadius: .segment)
+                    .fill(isChosen ? Color.ballWash : .ink.weight(.surface))
+                    .overlay {
+                        // Inset rather than drawn around the outside, so that
+                        // ringing a capsule does not move it or its neighbour.
+                        if isChosen || isRingedAtRest {
+                            RoundedRectangle(cornerRadius: .segment)
+                                .strokeBorder(
+                                    // `strong` and not `hairline`, which is
+                                    // the weight for a border: a resting ring
+                                    // is only ever drawn where nothing else
+                                    // says the capsule is a control, and 0.12
+                                    // of the ink disappears on a lit court.
+                                    isChosen ? Color.ball : .ink.weight(.strong),
+                                    lineWidth: ControlMetrics.segmentRing)
+                        }
+                    }
             }
+            .contentShape(RoundedRectangle(cornerRadius: .segment))
     }
 }

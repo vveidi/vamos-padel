@@ -72,6 +72,31 @@ its isolation test sit at the test target's root, and `Logging.swift` sits at
 Adding a folder needs no manifest edit — SwiftPM compiles everything under the
 target's directory.
 
+## Where things live in the two apps
+
+Both app targets split the same way — `Sources/` and `Resources/` — and the
+sources are grouped by what the player is doing at the time:
+
+    padel Watch App/Sources/   App/       the entry point and the root's one question
+                               Start/     the court before the match, its settings and its rules
+                               Match/     the match while it runs, and how it ends
+                               Workout/   the workout the match runs inside
+
+    padel/Sources/             App/       the entry point, the store and reception
+                               Screens/   the history, its rows and the match card
+
+`MatchWording.swift` and `MatchFixtures.swift` sit at `padel/Sources/`'s root
+because they belong to both screens rather than to either.
+
+`Resources/` holds the asset catalog, and on the watch the `Info.plist` and the
+catalog that localizes it. The entitlements stay at the target's root: they are
+signed with, not shipped.
+
+Both targets are `PBXFileSystemSynchronizedRootGroup`s, so moving a file or
+adding a folder needs no project edit. `Info.plist` is the one exception — its
+path is written twice in `INFOPLIST_FILE` and once in the target's membership
+exceptions, and all three have to agree.
+
 ## Reading code
 
 Reach for the `LSP` tool before `cat`. `documentSymbol` outlines a file in about

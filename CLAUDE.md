@@ -148,6 +148,14 @@ only if the summary leaves something unsafe to assume.
 - **Never restate the code.** `// increment the score` over `score += 1` is
   noise.
 
+`///` and `//` are held to different bars. A doc comment on a type, a member or
+a function is expected, and is written even when the name looks self-evident:
+it is what Quick Help shows, and a symbol without one shows nothing. An inline
+comment inside a body is not expected and has to earn its line — where a number
+came from, what a workaround is working around, an API constraint the call site
+cannot show on its own. One line above the code it is about. A body needing
+several of them wants splitting, not annotating.
+
 Anything deferred is a `TODO:` on its own line, where the work will have to be
 done, with the ticket it belongs to:
 

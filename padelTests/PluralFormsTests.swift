@@ -67,6 +67,23 @@ struct PluralFormsTests {
         #expect(reading.matches(Catalog.text("\(reading.number) points", in: reading.language)))
     }
 
+    /// The sentence at the foot of the watch's rules screen, which says the
+    /// classic match back in words. 1 to 3, the sets the screen offers.
+    ///
+    /// One set is a different sentence and not a shorter one — "First to 1
+    /// sets" is not English and "Матч до 1 выигранных сетов" is not Russian —
+    /// so the `one` category restates the whole line in both languages, which
+    /// is exactly the kind of thing that is only visible once it is pinned.
+    @Test("First to N sets", arguments: Reading.matchToSets)
+    func matchToSets(_ reading: Reading) {
+        #expect(
+            reading.matches(
+                Catalog.text(
+                    "First to \(reading.number) sets. A set is 6 games, a tiebreak at 6:6.",
+                    in: reading.language))
+        )
+    }
+
     /// The games of the current set, read out by VoiceOver: none yet at the
     /// start of a set, and seven at the end of one won 7:6.
     @Test("N games", arguments: Reading.games)
@@ -158,6 +175,18 @@ extension Reading {
             + spread(.ru, 0...0, { "\($0) сетов" })
             + spread(.ru, 1...1, { "\($0) сет" })
             + spread(.ru, 2...3, { "\($0) сета" })
+
+    /// The two sentences the `one` category restates rather than counts are
+    /// written out here beside the two it counts, so that the line the screen
+    /// draws for a one-set match is in this file rather than inferred from the
+    /// three-set one.
+    static let matchToSets: [Reading] =
+        spread(.en, 1...1, { _ in "A single set of 6 games, a tiebreak at 6:6." })
+            + spread(.en, 2...3, { "First to \($0) sets. A set is 6 games, a tiebreak at 6:6." })
+            + spread(.ru, 1...1, { _ in "Один сет: 6 геймов, на 6:6 тай-брейк." })
+            + spread(
+                .ru, 2...3,
+                { "Матч до \($0) выигранных сетов. Сет — 6 геймов, на 6:6 тай-брейк." })
 
     static let games: [Reading] =
         spread(.en, 0...0, { "\($0) games" })

@@ -208,3 +208,25 @@ button, so there is a way back either way — but the swipe itself wants a wrist
 and nothing else" and then says to check the knob against `knob` — and `.tint`
 does not reach the knob. That is ticket 03's control and ticket 03's number, so
 it is left alone and written down here.
+
+### Two lines of this ticket that ticket 06 has since overtaken
+
+The knob is the boards' now: ticket 06 needed it for the golden point, wrote
+`PadelDesign/BallSwitch` for it, and the Health row on this page wears the same
+style — one switch drawn one way, a scroll apart. `.frame(minHeight:)` on that
+row went with it; the style carries the height.
+
+And there is no rules screen any more. Ticket 06 hid its bar, which is that
+ticket's own criterion — and hiding the bar on a *pushed* watchOS screen takes
+the only way back with it: the edge swipe does not answer for the Back button,
+so the screen was a trap. The rules are a section of this page now, under its
+title and above the Health switch, and the page scrolls. The row that pushed
+them is gone, and `name(of:)` and `parameters(of:)` went with it — this
+ticket's "otherwise untouched" outlived the row it was about.
+
+**This page's own `.toolbar(.hidden, for: .navigationBar)` went too**, and the
+criterion above should be read as "no bar is drawn" rather than as that line.
+It was drawing none either way — neither page has a title, and watchOS reserves
+nothing for an empty bar; the two pages screenshot identically with the line
+and without it. What the line did cost was the stack's bar model, and every
+push logged two SaltUICore faults for it. Ticket 06 has the log and the bisect.

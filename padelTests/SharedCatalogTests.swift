@@ -12,19 +12,24 @@ import Testing
 /// in the phone's own bundle, they can only have come from the shared file.
 @Suite("The shared catalog")
 struct SharedCatalogTests {
-    /// The name of a ruleset about to be chosen — the watch's start screen.
-    /// The phone names a ruleset already played and puts the numbers in it, so
-    /// this sentence has no reason to exist on the phone at all.
+    /// The label of a rules row — the watch's settings page. The phone reads a
+    /// match already played and never sets this number, so the sentence has no
+    /// reason to exist on the phone at all.
     ///
     /// The Russian is what carries the proof. English is the source language,
     /// so a key that resolved to nothing would still come back as its own
     /// English text and the two would be indistinguishable; a key that
     /// resolved to nothing in Russian comes back in English, and that is
     /// visible.
-    @Test("The watch's name for the match to N points is in the phone's bundle")
-    func theWatchsRulesetName() {
-        #expect(Catalog.text("Point scoring", in: .ru) == "Счёт по очкам")
-        #expect(Catalog.text("Point scoring", in: .en) == "Point scoring")
+    ///
+    /// It used to be "Point scoring", the name the watch gave a ruleset on the
+    /// row that pushed the rules screen. That row went when the rules moved
+    /// onto the settings page itself, and a test whose subject nothing says
+    /// any more proves less than one whose subject is on screen.
+    @Test("A watch rules label is in the phone's bundle")
+    func theWatchsRulesLabel() {
+        #expect(Catalog.text("Serve changes every", in: .ru) == "Смена подачи через")
+        #expect(Catalog.text("Serve changes every", in: .en) == "Serve changes every")
     }
 
     /// A VoiceOver action on two of the watch's screens, and a second key from
@@ -62,5 +67,24 @@ struct SharedCatalogTests {
     func theHealthSwitch() {
         #expect(Catalog.text("Record to Health", in: .en) == "Record to Health")
         #expect(Catalog.text("Record to Health", in: .ru) == "Записывать в Здоровье")
+    }
+
+    /// The clause the golden point turns over at the foot of the rules screen.
+    /// The rest of that sentence counts sets and is pinned with the other
+    /// plural forms; these two count nothing and are only ever one of the
+    /// pair, which is what makes them easy to edit into agreeing with each
+    /// other.
+    @Test("The watch says what deuce is, both ways and in both languages")
+    func theTwoWaysToPlayDeuce() {
+        #expect(Catalog.text("Deuce is one point.", in: .en) == "Deuce is one point.")
+        #expect(
+            Catalog.text("Deuce is one point.", in: .ru)
+                == "При счёте «ровно» — одно решающее очко.")
+        #expect(
+            Catalog.text("Deuce is played out to a two-point lead.", in: .en)
+                == "Deuce is played out to a two-point lead.")
+        #expect(
+            Catalog.text("Deuce is played out to a two-point lead.", in: .ru)
+                == "При счёте «ровно» — игра до преимущества в два очка.")
     }
 }

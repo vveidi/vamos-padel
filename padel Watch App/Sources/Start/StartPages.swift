@@ -13,14 +13,21 @@ import SwiftUI
 /// What opens is always the court, never the settings — that is what putting
 /// the court first in the `TabView` means.
 ///
-/// The `NavigationStack` is around the pages rather than inside one, so that
-/// the rules screen pushed from the settings page covers the paging instead of
-/// being pushed underneath the page indicator. Its bar is hidden: neither page
-/// has a title on the board, and hiding the bar costs nothing — the edge-swipe
-/// back belongs to the stack and not to the bar.
+/// The `NavigationStack` is around the pages rather than inside one, so that a
+/// list pushed by a rules row covers the paging instead of being pushed
+/// underneath the page indicator.
+///
+/// **Nothing here hides the navigation bar, and nothing draws one.** Neither
+/// page has a title, which is all it takes: watchOS reserves no room for a bar
+/// it has nothing to put in. Hiding it by hand looked identical and cost the
+/// stack its bar model — see the comment on the `TabView`. What is pushed
+/// keeps its bar, because the bar is where the Back button is and the edge
+/// swipe does not answer for it; that is what the rules screen found out, and
+/// ``RulesetSettings`` is what it turned into.
 struct StartPages: View {
-    /// The ruleset the match will start with. The rules screen changes it and
-    /// the store remembers it: it arrives here from the previous match.
+    /// The ruleset the match will start with. The rules on the settings page
+    /// change it and the store remembers it: it arrives here from the previous
+    /// match.
     @Binding var ruleset: Ruleset
 
     /// Whether the match about to be played is written to Health as a workout.
@@ -43,47 +50,59 @@ struct StartPages: View {
             // this". The crown scrolls it, which is the one input a wrist has
             // that a finger does not.
             .tabViewStyle(.verticalPage)
-            .toolbar(.hidden, for: .navigationBar)
+            // The bar is *not* hidden here, and that is the fix rather than an
+            // omission. Neither page has a title, so watchOS draws no bar and
+            // reserves nothing for one — the court runs to the glass either
+            // way. Hiding it explicitly left the stack with no bar to push
+            // from, and every push logged
+            // "Transitioning bar did not exist during transition" and
+            // "the navigation controller is likely in a bad state" from
+            // SaltUICore. The same bad state is what the rules screen's
+            // missing way back was made of.
         }
     }
 }
 
-/// The page under the court: what is chosen once and then left alone.
+/// The page under the court: what is chosen once and then left alone — the
+/// rules the match will be played by, and whether it goes to Health.
 ///
 /// `night` with a light on it rather than more court — the language the rules
 /// board is drawn in. A court means *a match is about to be played on it*, and
 /// this page is where somebody has stopped to change something instead.
+///
+/// It scrolls, where the court does not. Everything that used to be a screen
+/// behind a chevron is on it now, which is more than a watch is tall.
 private struct StartSettings: View {
     @Binding var ruleset: Ruleset
 
     @Binding var recordsToHealth: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Board.titleGap) {
-            // The board's 0.8, which is `control` to two hundredths. Borrowing
-            // a control's name for a title is the ink vocabulary's gap rather
-            // than this page's — `ScoreView` says the same about the sets
-            // digit it draws at the same weight.
-            Text("Settings")
-                .textStyle(.display)
-                .foregroundStyle(.ink.weight(.control))
-                .lineLimit(1)
+        // The page scrolls, which the court above it does not: the rules are
+        // on it now, and four rows, the sentence and the switch stand taller
+        // than a watch. The crown scrolls this; a swipe past its end turns
+        // back to the court.
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // The board's 0.8, which is `control` to two hundredths.
+                // Borrowing a control's name for a title is the ink
+                // vocabulary's gap rather than this page's — `ScoreView` says
+                // the same about the sets digit it draws at the same weight.
+                Text("Settings")
+                    .textStyle(.display)
+                    .foregroundStyle(.ink.weight(.control))
+                    .lineLimit(1)
 
-            SettingsCard {
-                NavigationLink {
-                    RulesetView(ruleset: $ruleset)
-                } label: {
-                    rules
-                }
-                .buttonStyle(.plain)
+                RulesetSettings(ruleset: $ruleset).padding(.top, Board.titleGap)
 
-                health
+                // A card of its own, under the sentence rather than among the
+                // rules: what the rules are is one subject, and whether the
+                // match is written to Health is another.
+                SettingsCard { health }.padding(.top, Board.cardGap)
             }
-
-            Spacer(minLength: 0)
+            .padding(.horizontal, Board.inset)
+            .padding(.bottom, Board.inset)
         }
-        .padding(.horizontal, Board.inset)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background {
             Color.night
                 // The rules board's light: softer than the court's, and from
@@ -94,78 +113,11 @@ private struct StartSettings: View {
         }
     }
 
-    /// The rules are visible without needing to be touched: the row says what
-    /// we are playing by today, and opens the screen where that is changed.
-    ///
-    /// **The one chevron in the app.** `ChoiceRow` argues at length that a
-    /// value drawn in `ball` is its own affordance and a chevron beside it
-    /// would be the system's furniture back again. That row shows what is
-    /// chosen; this one shows what is *set* and leads somewhere else entirely,
-    /// and it is the only row here that leads anywhere. The board draws the
-    /// chevron on this row alone.
-    private var rules: some View {
-        HStack(spacing: Board.rowGapToChevron) {
-            VStack(alignment: .leading, spacing: Board.rulesGap) {
-                Text(Self.name(of: ruleset))
-                    .textStyle(.control)
-                    .foregroundStyle(.ink)
-                    // A name is one line by right: it is short in both
-                    // languages, and a name broken across two would stop
-                    // looking like one.
-                    .lineLimit(1)
-
-                // The numbers below take a second line rather than an
-                // ellipsis. At the largest type this row does not fit one line
-                // in either language — "2 sets · No golden point" is as long as
-                // "2 сета · Без золотого очка" — and of the two ways out, the
-                // one that hides the golden point is the wrong one.
-                Self.parameters(of: ruleset)
-                    .textStyle(.caption)
-                    .foregroundStyle(.ink.weight(.secondary))
-                    .lineLimit(2)
-            }
-            .multilineTextAlignment(.leading)
-            .minimumScaleFactor(0.7)
-
-            Spacer(minLength: 0)
-
-            chevron
-        }
-        .frame(maxWidth: .infinity, minHeight: Board.rowHeight, alignment: .leading)
-        .contentShape(Rectangle())
-        // One stop and not two: VoiceOver reading the name and then the
-        // numbers as separate rows is a way of hearing this and not knowing it
-        // opens anything.
-        .accessibilityElement(children: .combine)
-    }
-
-    /// The chevron in its well.
-    ///
-    /// The system's glyph, unlike the ball: a chevron is not a character this
-    /// app has an opinion about, it is the mark every platform uses for "this
-    /// leads somewhere", and `chevron.forward` turns itself round in a
-    /// right-to-left layout for free.
-    ///
-    /// It does not grow with the type beside it. The well is furniture at the
-    /// end of a row, and at the largest setting a circle that kept pace with
-    /// the sentence would take the row the sentence needs.
-    private var chevron: some View {
-        Image(systemName: "chevron.forward")
-            .font(.system(size: Board.chevron, weight: .semibold))
-            .foregroundStyle(.ink.weight(.control))
-            .frame(width: Board.chevronWell, height: Board.chevronWell)
-            // The board's 0.14. `surface` is 0.12 and is the weight this
-            // vocabulary has for a translucent panel — two hundredths apart is
-            // one weight drawn twice, which is the rule `InkWeight` states
-            // about its own collapses.
-            .background(Circle().fill(.ink.weight(.surface)))
-    }
-
     /// Whether the match is written to Health.
     ///
-    /// A `Toggle` tinted `ball`, which is the one system control the redesign
-    /// keeps — see ``PadelDesign/SettingsCard``, whose doc comment makes that
-    /// argument and names the knob colour to check it against.
+    /// A `Toggle` wearing ``PadelDesign/BallSwitch``, which is the one system
+    /// control the redesign keeps — see ``PadelDesign/SettingsCard``, whose
+    /// doc comment makes that argument.
     ///
     /// Worded as what the app will do rather than as a name for a feature:
     /// "Health" on its own is a noun two languages decline differently, and
@@ -183,62 +135,9 @@ private struct StartSettings: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
         }
-        .tint(.ball)
-        .frame(minHeight: Board.rowHeight)
-    }
-
-    // MARK: The words for a ruleset
-
-    /// The name of the ruleset. Numbers are not substituted in: "Scoring to 21
-    /// points" would have to decline the noun, whereas "Point scoring" is a
-    /// name — it says how the match is scored and leaves how far it runs to
-    /// the row below.
-    ///
-    /// It is the name the screens use and not the glossary's own. `CONTEXT.md`
-    /// calls this ruleset "the match to N points", which is what the code says
-    /// throughout; the letters are notation for reading the source and were
-    /// never much of a name to be shown a player.
-    ///
-    /// The phone names a ruleset too, and says something else on purpose: here
-    /// one is about to be chosen and the numbers stay out of its name, there a
-    /// match is already played and the numbers are what make its score
-    /// readable. The shared catalog puts the phone's "Classic scoring · 2 sets"
-    /// within reach and does not make it this sentence.
-    private static func name(of ruleset: Ruleset) -> LocalizedStringKey {
-        switch ruleset {
-        case .classic: "Classic scoring"
-        case .pointsTo: "Point scoring"
-        }
-    }
-
-    /// The numbers under the name: whole clauses with a separator between
-    /// them, and not a line assembled out of words. The count of the sets is
-    /// one such clause, and its noun is declined by the catalog — this row used
-    /// to carry a hand-written two of the four forms Russian has.
-    private static func parameters(of ruleset: Ruleset) -> Text {
-        switch ruleset {
-        case .classic(let setsToWin, let goldenPoint):
-            Text("\(setsToWin) sets")
-                + Text(verbatim: " · ")
-                + Text(Self.goldenPoint(goldenPoint))
-
-        case .pointsTo(let target, let serveChangesEvery):
-            // Clauses, like the classic side above, and for the same reason:
-            // both nouns are declined by the catalog. This row used to read
-            // "N = 16 · X = 4", which was the notation the name above and the
-            // rules screen called these two numbers by — and neither says a
-            // letter any more.
-            Text("\(target) points")
-                + Text(verbatim: " · ")
-                + Text("Serve changes every \(serveChangesEvery) rallies")
-        }
-    }
-
-    /// Whether the golden point is on. The phone says this on its card about a
-    /// match already played, and it is the same sentence rather than a copy of
-    /// one: the rule has one name, whichever screen names it.
-    private static func goldenPoint(_ isOn: Bool) -> LocalizedStringKey {
-        isOn ? "Golden point" : "No golden point"
+        // The row's own height comes with the style, which is where the
+        // number that keeps a switch standing among taller rows lives.
+        .toggleStyle(.ball)
     }
 }
 
@@ -246,38 +145,19 @@ private struct StartSettings: View {
 /// token covers, with the board's pixels halved — the watch artboards are 2x
 /// (the spec's "Reading the boards").
 ///
-/// The card, its radius and its dividers come out of `PadelDesign`. What is
-/// left is the chevron in its well, the row it sits at the end of, and the
-/// page's own margins.
+/// The card, its radius and its dividers come out of `PadelDesign`, and the
+/// rules bring their own gap. What is left is the page's own margins.
 private enum Board {
-    /// Left and right of the page. `WatchRules.dc.html`'s 16px.
+    /// Left and right of the page, and under the last card. The board's 16px.
     static let inset: CGFloat = 8
 
     /// Between the title and the card under it. The rules board gives the
     /// title a 46px band and starts the controls under it.
     static let titleGap: CGFloat = 10
 
-    /// A row in the card: 64px on the rules board, and the least the row may
-    /// be rather than its height. Two lines of the ramp are already taller
-    /// than it at the default setting; at the smallest of the twelve they are
-    /// not, and a row that shrank with them would stop being a target.
-    static let rowHeight: CGFloat = 32
-
-    /// Between the ruleset's name and its numbers. 2px.
-    static let rulesGap: CGFloat = 1
-
-    /// Between what a row says and the chevron at its trailing edge. 10px.
-    static let rowGapToChevron: CGFloat = 5
-
-    /// The well the chevron sits in. 26px.
-    static let chevronWell: CGFloat = 13
-
-    /// The chevron in it.
-    ///
-    /// The board's is a 14px box holding a glyph 12 units of 24 tall — about
-    /// 3.5pt of actual chevron. SF's is measured by type size rather than by
-    /// its box, and 9pt is where it lands on about the same height.
-    static let chevron: CGFloat = 9
+    /// Between one card and the next. The board's 12px, which is also the gap
+    /// the rules leave between their card and the sentence under it.
+    static let cardGap: CGFloat = 6
 
     /// How much light the corner spends. The rules board's 0.12, which is the
     /// bottom of the range `Floodlight` documents: there is no court here for
@@ -287,16 +167,18 @@ private enum Board {
 
 #if DEBUG
 
-/// Every ruleset in both languages, because the row under the name is where
-/// this page runs out of width: it is a caption already leaning on
-/// `minimumScaleFactor`, and the two languages are longer than each other in
-/// different places — "Classic scoring" is shorter than "Классический счёт",
-/// "Point scoring" shorter than "Счёт по очкам", and the row under the match
-/// to N points carries two declined clauses.
+/// Every ruleset in both languages, because the words are what this page is
+/// made of: four rows whose labels are longer in Russian — "Смена подачи
+/// через" is the widest of them — and under them a sentence that declines its
+/// own nouns.
 ///
-/// The default ruleset is one set, which is the shortest this row ever gets
-/// and the one form of the noun Russian shares with English. Two sets is here
-/// as well, for the wider line and the declined noun.
+/// The default ruleset is one set, which is the shortest the sentence ever
+/// gets and the one form of the noun Russian shares with English. Two sets is
+/// here as well, for the declined noun and the longer line.
+///
+/// What to look for is the page's *length*: title, card, sentence and switch
+/// are taller than every watch, so all four previews scroll — and the switch
+/// at the foot has to be reachable.
 private func start(_ ruleset: Ruleset, recordsToHealth: Bool = true) -> some View {
     StartScreen(ruleset: ruleset, recordsToHealth: recordsToHealth)
 }
@@ -305,15 +187,14 @@ private func inRussian(_ view: some View) -> some View {
     view.environment(\.locale, Locale(identifier: "ru"))
 }
 
-/// The largest of the twelve Dynamic Type settings, which is where the rules
-/// row finds its second and third lines and the switch's own label finds its
-/// second.
+/// The largest of the twelve Dynamic Type settings, which is where the rows'
+/// labels find their second line and the switch's own label finds its second.
 private func atLargestType(_ view: some View) -> some View {
     view.environment(\.dynamicTypeSize, .accessibility5)
 }
 
 /// The pages with a ruleset and a switch of their own to change, so that a
-/// preview can scroll down, push into the rules screen and come back.
+/// preview can scroll down, open a value's list and come back.
 private struct StartScreen: View {
     @State var ruleset: Ruleset
 
@@ -342,8 +223,8 @@ private struct StartScreen: View {
 }
 
 // Both rulesets and both languages again at the far end of the type range.
-// Two sets rather than one, because it is the wider of the two classic rows in
-// both languages.
+// Two sets rather than one, because it is the wider of the two classic
+// sentences in both languages.
 
 #Preview("At the largest type: two sets") {
     atLargestType(start(.classic(setsToWin: 2, goldenPoint: true)))

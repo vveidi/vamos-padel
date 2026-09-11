@@ -8,28 +8,36 @@ none.
 
 **Status:** ready-for-human
 
-- [x] A half answers the finger: it lifts while pressed and starts the match on
-      release, so a tentative press teaches the screen instead of committing to
-      a match
-- [x] A press that leaves the half — dragged across the net, or off the court —
-      starts nothing
+The lines below are the criteria as they were written, corrected where the
+owner redirected the work — a tick has to mean what the code does, or it tells
+the next session to go and build something else. The reasons are in the
+Comments.
+
+- [x] The control answers the finger: it lights while pressed and starts the
+      match on release, so a tentative press teaches the screen instead of
+      committing to a match — **the capsule and not the half around it, which
+      is inert**
+- [x] A press that leaves the control starts nothing — the `Button` cancels it,
+      the way it cancels for a swipe
 - [x] The paging survives: a swipe down the court still reaches the settings
       page without starting a match — with a `Button`, and **not** with the
       gesture this line was written for
 - [x] Starting a match plays a haptic
-- [x] The ball says both halves are live before anything is touched, and on the
-      tap it travels to the chosen half's corner — where the score screen keeps
-      it
+- [x] The ball says both halves are live before anything is touched —
+      **the travel to the chosen corner is retracted: the match screen is up
+      by the time it would be drawn**
 - [x] Under Reduce Motion nothing travels and nothing breathes: the ball sits
-      on the net as it does today, and the press state is the whole of the
-      feedback
-- [x] Each half carries its own light, so the screen reads as two objects
-      rather than one picture of a court
-- [x] Not one word is added to the screen, and the two sentences keep their
-      wording and their place
+      on the net as it does today
+- [ ] Each half carries its own light, so the screen reads as two objects
+      rather than one picture of a court — **retracted: two lights did not
+      read as two objects, and the court's single light is back**
+- [x] Not one word is added to the screen and the two sentences keep their
+      wording — **their place moved: both now stand the same distance from the
+      net rather than a fifth down their half**
 - [x] VoiceOver still finds exactly two elements — "We serve" and "Opponents
       serve" — each a button, and the ball is still not one of them
-- [x] Both languages and both ends of the Dynamic Type range still hold
+- [x] Both languages hold, and the Dynamic Type range up to the ceiling the
+      capsules set at `.accessibility2`
 - [ ] Verified on a wrist or in the simulator rather than by reasoning about
       it, and the verdict written into the closing note: if the halves still do
       not read as tappable, **the capsule below is what to do next**
@@ -136,6 +144,9 @@ is not self-evident. Keep it in reserve behind even the capsule.
 for the gesture and the light, `ball` for the ball, `Board` for whatever new
 numbers this needs. The court primitives it draws with are
 `PadelDesign/Court/`: `CourtHalf`, `NetLine`, `Ball`, `Floodlight`.
+*(As built: `half(_:)` takes no clock, the press lives in the `ServeCapsule`
+button style, and the capsule's look comes from `PadelDesign`'s
+`choiceCapsule(isChosen:restingInk:isRingedAtRest:)`.)*
 
 **Where the press state belongs.** Probably in `StartView` and not in
 `PadelDesign`: `CourtHalf` is "one half of the court, seen from above" and
@@ -143,9 +154,9 @@ knows nothing about a rally, let alone about a finger. If the lift turns out to
 be worth a token — a weight on the ramp, or a brightness step — that token goes
 in `Tokens/`, and the state stays here.
 
-**`contentShape(Rectangle())` must stay.** Without it the tap catches the
-painted surface but not the weave and the lines over it, which is a note
-already in the file.
+**~~`contentShape(Rectangle())` must stay.~~** Retired: the half stopped being
+the target, so there is nothing on it to shape. The capsule takes the hit test
+instead, as the rounded shape itself rather than its bounding box.
 
 **The ball must stay out of the hit test.** It is `.allowsHitTesting(false)`
 today, and it is about to move across the net — a ball that swallowed a tap on
@@ -322,3 +333,27 @@ hand, and this screen is tapped once before anything has started.
   the capsule pages when it is brisk and does not when it is slow — a slow
   drag off a button reads as a press the button then cancels. No match starts
   either way, which is the property that matters.
+
+**After review: the capsule's look moved into `PadelDesign`.** A two-axis
+review of the commit found the start screen hand-drawing what `ChoiceCapsule`
+already draws — `ballWash`, a `ball` label, a `ball` ring, the `.segment`
+radius — which is the drift ADR-0006 exists to stop, plus a `capsuleBorder`
+number restating `ControlMetrics.segmentRing`.
+
+- `choiceCapsule(isChosen:restingInk:isRingedAtRest:)` is now public on `View`
+  in `Controls/ChoiceCapsule.swift`, and both capsules go through it.
+  `ChoiceCapsule` itself stays internal: the start screen's capsule is not one
+  — it is `display` rather than `control`, and it hugs its sentence rather
+  than filling a column — so what is shared is the look and not the control.
+- The two parameters are the two honest differences. `restingInk` is the ink
+  on `night` in a card against the court's own ink on a half; `isRingedAtRest`
+  is false among a column of capsules, which explain each other, and true on
+  the court, where nothing else says the thing is a control. The resting ring
+  is `strong` and not `hairline` — the weight the vocabulary keeps for a
+  border — because 0.12 of the ink disappears on a lit court; that argument
+  now lives beside the ring.
+- Also from the review: a dangling doc reference to a `HalfButton` that no
+  longer exists, "server" where `CONTEXT.md` says serving side, a `makeBody`
+  that only unpacked its configuration, and two comments retelling this
+  ticket's history — all fixed. The package's tests and the watch build are
+  green, and the screen is pixel-for-pixel what it was.

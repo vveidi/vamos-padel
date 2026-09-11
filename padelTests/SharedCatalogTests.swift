@@ -51,4 +51,16 @@ struct SharedCatalogTests {
         #expect(Catalog.text("serving from the left", in: .en) == "serving from the left")
         #expect(Catalog.text("serving from the left", in: .ru) == "подача слева")
     }
+
+    /// The switch on the watch's settings page — the one sentence the redesign
+    /// added rather than moved.
+    ///
+    /// Health is a product name and Apple has already translated it, so the
+    /// Russian says Здоровье rather than a word for health. Pinning it is what
+    /// stops the next edit "translating" the app's name for the app.
+    @Test("The watch's switch for Health is in the phone's bundle")
+    func theHealthSwitch() {
+        #expect(Catalog.text("Record to Health", in: .en) == "Record to Health")
+        #expect(Catalog.text("Record to Health", in: .ru) == "Записывать в Здоровье")
+    }
 }

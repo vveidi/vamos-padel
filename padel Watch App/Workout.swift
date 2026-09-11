@@ -24,9 +24,11 @@ protocol Workout {
 /// No workout at all: the match is played, the score is counted, and nothing
 /// reaches Health.
 ///
-/// For previews, and for the case where there is no health access whatsoever. A
-/// denied permission does not lead here: a match with a denial still runs
-/// through `HealthKitWorkout`, which simply writes nothing.
+/// For previews, for the case where there is no health access whatsoever, and
+/// for a player who turned the switch off on the settings page — `RootView`
+/// hands this over instead of the real one, and the match screen never learns
+/// which it is holding. A denied permission does not lead here: a match with a
+/// denial still runs through `HealthKitWorkout`, which simply writes nothing.
 struct NoWorkout: Workout {
     func start() {}
 

@@ -2,195 +2,223 @@ import PadelDesign
 import PadelScoring
 import SwiftUI
 
-/// The screen a match starts from.
+/// The screen a match starts from: the court before anybody has played on it,
+/// and nothing else.
 ///
 /// Speed is what matters here. A group plays by the same rules for months, so
 /// the previous match's rules are already filled in and the only thing asked is
 /// what changes every time — whose serve is first. That same answer starts the
 /// match: the tap by which the player names the serving side is exactly the
 /// "start with one tap". A separate "Start" button next to the serve choice
-/// would be a second tap that says nothing new.
+/// would be a second tap that says nothing new, which is why the board draws
+/// none.
 ///
-/// The rules screen sits behind a navigation push: a setting asked before every
+/// So the two halves of the court *are* the control, and they are the whole of
+/// this page. The ball waits on the net between them. Everything that is not
+/// the one question — the rules, and whether the match goes to Health — is a
+/// scroll down, on ``StartPages``' second page: a setting asked before every
 /// match is a tax paid for something that happens twice a year.
 struct StartView: View {
-    /// The ruleset the match will start with. The rules screen changes it and
-    /// the store remembers it: it arrives here from the previous match.
-    @Binding var ruleset: Ruleset
-
     /// Starts the match with the given first server.
     let onStart: (Side) -> Void
 
     var body: some View {
-        NavigationStack {
-            List {
-                // The opponents on top, us at the bottom — the same as on the
-                // score screen and the same as on court: they are across the
-                // net, in front of us. The colors are the same, so the half
-                // the player will be tapping for their own points all match is
-                // recognizable before the first rally.
-                serve(.them)
-                serve(.us)
-
-                NavigationLink {
-                    RulesetView(ruleset: $ruleset)
-                } label: {
-                    rules
-                }
-            }
-            // The same words the outcome screen's button promises, and for
-            // the same reason it is short: at the largest type "Start a match"
-            // takes two lines on the smallest watch and the list scrolls over
-            // the second one.
-            .navigationTitle("New match")
+        // The whole page ignores the safe area, and the geometry is read for
+        // what it ignored: the clock stands in the top inset and the sentence
+        // on their half has to start below it.
+        GeometryReader { screen in
+            court(below: screen.safeAreaInsets.top)
+                // The light is over the whole court rather than over a half,
+                // which is what makes this board different from the score
+                // screen's: there the near half is lit and the far one is not,
+                // here one floodlight in the top left crosses the net and both
+                // halves. Drawn above the net, as the board draws it, and
+                // below the ball.
+                .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
+                .overlay { ball }
+                // Inside the reader rather than around it: the reader is laid
+                // out in the safe rect and so can say what it is, and the
+                // court is what runs past it to the glass.
+                .ignoresSafeArea()
         }
     }
 
-    private func serve(_ side: Side) -> some View {
-        Button {
-            onStart(side)
-        } label: {
-            Text(Self.serves(side))
-                .font(.body.weight(.semibold))
-                .frame(maxWidth: .infinity, minHeight: 34)
+    // MARK: The court
+
+    /// Their half, the net, ours — the same three pieces in the same order as
+    /// on the score screen, and for the same reason: the halves meet on the
+    /// tape and no seam of `night` opens down the middle.
+    ///
+    /// Built out of ``PadelDesign/CourtHalf`` and ``PadelDesign/NetLine``
+    /// rather than out of ``PadelDesign/Court``, because each half here is a
+    /// button and `Court` takes no content.
+    ///
+    /// - Parameter clock: how much of the top of the screen the system's own
+    ///   clock stands in. Their sentence starts below it; ours is nowhere near
+    ///   it and is given nothing to clear.
+    private func court(below clock: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            half(.them, clearing: clock)
+
+            NetLine().zIndex(1)
+
+            half(.us, clearing: 0)
         }
-        .buttonStyle(.plain)
-        // The two halves of the court, as the row you tap to choose one. The
-        // score screen says which side is ours with the same two surfaces, and
-        // saying it twice in two palettes is how the two screens stop being the
-        // same court. Ticket 05 redraws this screen; until it does, the colours
-        // are at least the court's.
-        .listRowBackground(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.courtSurface(side)))
+    }
+
+    /// One half of the court, as the thing you tap to start the match.
+    ///
+    /// The opponents on top, us at the bottom — the same as on the score
+    /// screen and the same as on court: they are across the net, in front of
+    /// us. The colors are the same too, so the half the player will be tapping
+    /// for their own points all match is recognizable before the first rally.
+    /// **A tap gesture and not a `Button`**, for the reason `ScoreView` gives
+    /// for the same choice: this page lives inside a `TabView` whose next page
+    /// is a swipe down the court, and a half that is a button is a half that
+    /// starts a match out of the swipe on its way past. The score screen has
+    /// been two tap zones inside that same paging since ticket 04 without
+    /// scoring a point by accident.
+    ///
+    /// Everything a button gave VoiceOver is put back by hand below.
+    private func half(_ side: Side, clearing obstruction: CGFloat) -> some View {
+        CourtHalf(side: side)
+            .overlay { sentence(for: side, clearing: obstruction) }
+            // Otherwise the tap catches the painted surface but not the
+            // texture and the lines over it.
+            .contentShape(Rectangle())
+            .onTapGesture { onStart(side) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(Text(Self.serves(side)))
+    }
+
+    /// Whose serve it is, near the top of its own half rather than in the
+    /// middle of it.
+    ///
+    /// The ball is centred on the net, so a sentence centred in its half would
+    /// sit against it. The board drops each sentence about a fifth into its
+    /// half, which reads as two different things and is why the two fractions
+    /// are not one: their half's top is the top of the screen, so theirs lands
+    /// under the clock, while ours counts from the net and lands just clear of
+    /// the ball.
+    private func sentence(for side: Side, clearing obstruction: CGFloat) -> some View {
+        GeometryReader { proxy in
+            let drop = max(obstruction, proxy.size.height * Board.sentenceDrop(side))
+
+            Text(Self.serves(side))
+                .textStyle(.display)
+                .multilineTextAlignment(.center)
+                // Two lines are expected rather than tolerated — see
+                // `serves(_:)`. The scale factor and the room below it are for
+                // the far end of the Dynamic Type range, where the sentence
+                // shrinks into its own half rather than growing across the
+                // net.
+                .lineLimit(2)
+                .minimumScaleFactor(Board.sentenceMinimumScale)
+                .foregroundStyle(.courtInk(side))
+                .padding(.horizontal, Board.sentenceInset)
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: max(0, proxy.size.height - drop),
+                    alignment: .top)
+                .padding(.top, drop)
+        }
+        // The sentence is what the button says; it must not be a second thing
+        // to hit inside it.
+        .allowsHitTesting(false)
     }
 
     /// Whose serve it is, as a whole sentence per side rather than a side's
     /// name dropped into a frame: English puts the side before the verb and
     /// Russian after it, and there is no frame that survives the move.
+    ///
+    /// The board draws "Them" over "to serve", which is a two-line English
+    /// arrangement and not a sentence in two parts — translated piecewise it
+    /// reads "Они / подавать", which is not Russian. So the board's two lines
+    /// are one sentence here, free to wrap to two of its own.
     private static func serves(_ side: Side) -> LocalizedStringKey {
         side == .us ? "We serve" : "Opponents serve"
     }
 
-    /// The rules are visible without needing to be touched: the row says what
-    /// we are playing by today, and opens the screen where that is changed.
-    private var rules: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(Self.name(of: ruleset))
-                .font(.footnote)
-                // A name is one line by right: it is short in both languages,
-                // and a name broken across two would stop looking like one.
-                .lineLimit(1)
-
-            // The numbers below take a second line rather than an ellipsis.
-            // At the largest type this row does not fit one line in either
-            // language — "2 sets · No golden point" is as long as "2 сета ·
-            // Без золотого очка" — and of the two ways out, the one that hides
-            // the golden point is the wrong one.
-            Self.parameters(of: ruleset)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-        }
-        .minimumScaleFactor(0.7)
-    }
-
-    /// The name of the ruleset. Numbers are not substituted in: "Scoring to 21
-    /// points" would have to decline the noun, whereas "Point scoring" is a
-    /// name — it says how the match is scored and leaves how far it runs to
-    /// the row below.
+    /// The ball, waiting on the net.
     ///
-    /// It is the name the screens use and not the glossary's own. `CONTEXT.md`
-    /// calls this ruleset "the match to N points", which is what the code says
-    /// throughout; the letters are notation for reading the source and were
-    /// never much of a name to be shown a player.
+    /// Centred in the court, which is the middle of the tape: the two halves
+    /// are equal and the net is between them, so the court's centre is the
+    /// net's. It means what it means everywhere else in the app — *this is
+    /// yours, or this is chosen* (ADR-0006) — and before a match nothing is
+    /// either, which is exactly why it is sitting still in the middle.
+    private var ball: some View {
+        Ball(size: Board.ball)
+            .allowsHitTesting(false)
+    }
+}
+
+/// What `Main.dc.html` draws that no token covers, with the board's pixels
+/// halved — the watch artboards are 2x (the spec's "Reading the boards").
+///
+/// The court itself comes out of `PadelDesign` and is not here. What is left
+/// is the two things this board is the only board to draw: a ball resting on
+/// the net, and a sentence high in each half.
+private enum Board {
+    /// The ball waiting on the net. 40px.
+    static let ball: CGFloat = 20
+
+    /// How far down its own half a side's sentence starts, as a fraction of
+    /// the half.
     ///
-    /// The phone names a ruleset too, and says something else on purpose: here
-    /// one is about to be chosen and the numbers stay out of its name, there a
-    /// match is already played and the numbers are what make its score
-    /// readable. The shared catalog puts the phone's "Classic scoring · 2 sets"
-    /// within reach and does not make it this sentence.
-    private static func name(of ruleset: Ruleset) -> LocalizedStringKey {
-        switch ruleset {
-        case .classic: "Classic scoring"
-        case .pointsTo: "Point scoring"
+    /// **Two numbers and not one drawn twice.** The board's 21% and 16% look
+    /// five hundredths apart and are measuring from opposite ends of the
+    /// court: a half's top is the top of the screen for them and the net for
+    /// us, so theirs puts a sentence near the outer edge and ours puts one
+    /// just under the ball — 8pt under it, on the board.
+    static func sentenceDrop(_ side: Side) -> CGFloat {
+        switch side {
+        case .them: 0.21
+        case .us: 0.16
         }
     }
 
-    /// The numbers under the name: whole clauses with a separator between
-    /// them, and not a line assembled out of words. The count of the sets is
-    /// one such clause, and its noun is declined by the catalog — this row used
-    /// to carry a hand-written two of the four forms Russian has.
-    private static func parameters(of ruleset: Ruleset) -> Text {
-        switch ruleset {
-        case .classic(let setsToWin, let goldenPoint):
-            Text("\(setsToWin) sets")
-                + Text(verbatim: " · ")
-                + Text(Self.goldenPoint(goldenPoint))
+    /// Left and right of a sentence, so that the longer of the two languages
+    /// clears the outline painted round the half instead of running into it.
+    static let sentenceInset: CGFloat = 10
 
-        case .pointsTo(let target, let serveChangesEvery):
-            // Clauses, like the classic side above, and for the same reason:
-            // both nouns are declined by the catalog. This row used to read
-            // "N = 16 · X = 4", which was the notation the name above and the
-            // rules screen called these two numbers by — and neither says a
-            // letter any more.
-            Text("\(target) points")
-                + Text(verbatim: " · ")
-                + Text("Serve changes every \(serveChangesEvery) rallies")
-        }
-    }
+    /// How far a sentence may shrink to stay inside its half.
+    ///
+    /// Not a number off the board — the board is drawn at one Dynamic Type
+    /// setting out of twelve and never meets this.
+    static let sentenceMinimumScale: CGFloat = 0.6
 
-    /// Whether the golden point is on. The phone says this on its card about a
-    /// match already played, and it is the same sentence rather than a copy of
-    /// one: the rule has one name, whichever screen names it.
-    private static func goldenPoint(_ isOn: Bool) -> LocalizedStringKey {
-        isOn ? "Golden point" : "No golden point"
-    }
+    /// How much light the corner spends.
+    ///
+    /// The board's 0.17, which is the top of the range `Floodlight` documents:
+    /// this is the one board whose light has a whole court to cross rather
+    /// than a half.
+    static let floodlight: Double = 0.17
 }
 
 #if DEBUG
 
-/// Every ruleset in both languages, because the row under the name is where
-/// this screen runs out of width: it is a caption already leaning on
-/// `minimumScaleFactor`, and the two languages are longer than each other in
-/// different places — "Classic scoring" is shorter than "Классический счёт",
-/// "Point scoring" shorter than "Счёт по очкам", and the row under the match
-/// to N points now carries two declined clauses where it used to carry
-/// "N = 16 · X = 4".
-///
-/// The default ruleset is one set, which is the shortest this row ever gets
-/// and the one form of the noun Russian shares with English. Two sets is here
-/// as well, for the wider line and the declined noun.
-private func start(_ ruleset: Ruleset) -> some View {
-    StartScreen(ruleset: ruleset)
+/// Both languages, because the sentences are the page: "Opponents serve" is
+/// one line in English and "Подают соперники" is two on a small watch, and
+/// which of them wraps is the only thing this page can get wrong.
+private func inRussian(_ view: some View) -> some View {
+    view.environment(\.locale, Locale(identifier: "ru"))
 }
 
-private func startInRussian(_ ruleset: Ruleset) -> some View {
-    start(ruleset).environment(\.locale, Locale(identifier: "ru"))
+/// The largest of the twelve Dynamic Type settings, which is where both
+/// sentences find their second line.
+private func atLargestType(_ view: some View) -> some View {
+    view.environment(\.dynamicTypeSize, .accessibility5)
 }
 
-/// The screen with a ruleset of its own to change, so that a preview can be
-/// pushed into the rules screen and come back.
-private struct StartScreen: View {
-    @State var ruleset: Ruleset
+private let court = StartView(onStart: { _ in })
 
-    var body: some View {
-        StartView(ruleset: $ruleset, onStart: { _ in })
-    }
-}
+#Preview("The court") { court }
 
-#Preview("Classic scoring") { start(.defaultClassic) }
+#Preview("In Russian") { inRussian(court) }
 
-#Preview("In Russian: classic scoring") { startInRussian(.defaultClassic) }
+#Preview("At the largest type") { atLargestType(court) }
 
-#Preview("Two sets") { start(.classic(setsToWin: 2, goldenPoint: false)) }
-
-#Preview("In Russian: two sets") { startInRussian(.classic(setsToWin: 2, goldenPoint: false)) }
-
-#Preview("The match to N points") { start(.pointsTo(target: 21, serveChangesEvery: 2)) }
-
-#Preview("In Russian: the match to N points") {
-    startInRussian(.pointsTo(target: 21, serveChangesEvery: 2))
-}
+#Preview("In Russian, at the largest type") { atLargestType(inRussian(court)) }
 
 #endif

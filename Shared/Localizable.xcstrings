@@ -479,6 +479,16 @@
         }
       }
     },
+    "Record to Health" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записывать в Здоровье"
+          }
+        }
+      }
+    },
     "Rules" : {
       "localizations" : {
         "ru" : {
@@ -629,6 +639,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сеты"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки"
           }
         }
       }

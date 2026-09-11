@@ -28,6 +28,18 @@ struct RootView: View {
     /// them.
     @State private var ruleset = Ruleset.defaultClassic
 
+    /// Whether a match is written to Health as a workout. On unless somebody
+    /// turned it off on the settings page.
+    ///
+    /// In `UserDefaults` rather than in the store, and that is not the store's
+    /// rule being broken. `lastRuleset()` argues that the previous match's
+    /// rules must not be kept beside the matches, because they are already
+    /// *in* a match and a second copy would diverge from the first. This is
+    /// the other kind of value: nothing about any match says it, no match can
+    /// be asked for it, and it is a preference about the app rather than a
+    /// fact about padel.
+    @AppStorage("records-to-health") private var recordsToHealth = true
+
     /// The store does not answer instantly, and until it does it is not even
     /// known which screen to show. Flashing the start screen under the hand of
     /// a player who came back to a running match is a sure way to start a new
@@ -57,7 +69,7 @@ struct RootView: View {
                 MatchView(
                     match: match,
                     store: store,
-                    workout: workout,
+                    workout: workoutForThisMatch,
                     delivery: delivery,
                     onFinish: startOver)
                     // A different match means a different screen, from a clean
@@ -66,10 +78,31 @@ struct RootView: View {
                     // one's state.
                     .id(match.id)
             } else {
-                StartView(ruleset: $ruleset, onStart: start(servedBy:))
+                // The settings page gets the switch and not the workout: a
+                // screen holding a `Workout` is a screen that could start one,
+                // and this one only says whether the next match should.
+                StartPages(
+                    ruleset: $ruleset,
+                    recordsToHealth: $recordsToHealth,
+                    onStart: start(servedBy:))
             }
         }
         .task { restore() }
+    }
+
+    /// The workout the match runs inside, which is no workout at all when the
+    /// switch is off.
+    ///
+    /// Turning it off is answered by handing over a `NoWorkout` rather than by
+    /// teaching `HealthKitWorkout` to do nothing: that is precisely what
+    /// `NoWorkout` is for, and the match screen goes on calling `start()` and
+    /// `end()` without being told which of the two it is holding.
+    ///
+    /// Read once, when the match screen is built. Nobody can reach the switch
+    /// while a match is running — the settings page is behind the start screen
+    /// — so there is no setting to honour mid-match.
+    private var workoutForThisMatch: any Workout {
+        recordsToHealth ? workout : NoWorkout()
     }
 
     /// The match begins here and will reach the store with its very first

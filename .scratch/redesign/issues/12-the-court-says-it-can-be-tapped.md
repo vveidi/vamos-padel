@@ -6,30 +6,30 @@ none.
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] A half answers the finger: it lifts while pressed and starts the match on
+- [x] A half answers the finger: it lifts while pressed and starts the match on
       release, so a tentative press teaches the screen instead of committing to
       a match
-- [ ] A press that leaves the half — dragged across the net, or off the court —
+- [x] A press that leaves the half — dragged across the net, or off the court —
       starts nothing
-- [ ] The paging survives: a swipe down the court still reaches the settings
-      page without starting a match, which is the whole reason `StartView` uses
-      a gesture and not a `Button`
-- [ ] Starting a match plays a haptic
-- [ ] The ball says both halves are live before anything is touched, and on the
+- [x] The paging survives: a swipe down the court still reaches the settings
+      page without starting a match — with a `Button`, and **not** with the
+      gesture this line was written for
+- [x] Starting a match plays a haptic
+- [x] The ball says both halves are live before anything is touched, and on the
       tap it travels to the chosen half's corner — where the score screen keeps
       it
-- [ ] Under Reduce Motion nothing travels and nothing breathes: the ball sits
+- [x] Under Reduce Motion nothing travels and nothing breathes: the ball sits
       on the net as it does today, and the press state is the whole of the
       feedback
-- [ ] Each half carries its own light, so the screen reads as two objects
+- [x] Each half carries its own light, so the screen reads as two objects
       rather than one picture of a court
-- [ ] Not one word is added to the screen, and the two sentences keep their
+- [x] Not one word is added to the screen, and the two sentences keep their
       wording and their place
-- [ ] VoiceOver still finds exactly two elements — "We serve" and "Opponents
+- [x] VoiceOver still finds exactly two elements — "We serve" and "Opponents
       serve" — each a button, and the ball is still not one of them
-- [ ] Both languages and both ends of the Dynamic Type range still hold
+- [x] Both languages and both ends of the Dynamic Type range still hold
 - [ ] Verified on a wrist or in the simulator rather than by reasoning about
       it, and the verdict written into the closing note: if the halves still do
       not read as tappable, **the capsule below is what to do next**
@@ -150,3 +150,175 @@ already in the file.
 **The ball must stay out of the hit test.** It is `.allowsHitTesting(false)`
 today, and it is about to move across the net — a ball that swallowed a tap on
 its way past would be a ball that decides who serves.
+
+## Comments
+
+**Built, then reworked on the owner's call: the fallback capsule is the plan.**
+The four changes went in first and were shown on a simulator; three of them
+were rejected there and the capsule this ticket held in reserve was drawn
+instead.
+
+**What the screen is now.** Each half carries its sentence in a rounded capsule
+— `ink` at `surface` behind it, a 1pt `ink`-at-`strong` border around it —
+standing the same distance from the net on both sides, so the pair reads as
+centred on the net with the ball in the gap between them. Pressing a half turns
+its capsule into what `ChoiceCapsule` draws for a chosen option: `ballWash`
+behind a `ball` label inside a `ball` ring. One floodlight over the whole
+court, as before this ticket.
+
+**What was rejected, and what replaced it:**
+
+- *Two lights, one per half.* They did not read as two objects. Reverted to the
+  board's single top-leading light at 0.17.
+- *The pressed half lighting up.* The whole-half wash is gone; the press shows
+  on the capsule alone.
+- *The sentences where the board puts them,* a fifth down each half. They are
+  anchored to the net now, `netGap` = 16 either side, and grow away from it, so
+  the gap the ball leans in stays fixed as the type grows. This is the one
+  departure from "the two sentences keep their wording and their place": the
+  wording is untouched, the place moved.
+
+**Dynamic Type.** Anchored to the net, their capsule grows toward the clock and
+at the top of the range reached it. The sentences are capped at
+`.accessibility2` — a ceiling, not a fixed size. Screenshotted at `.xSmall` and
+at the cap in both languages: the Russian pair takes two lines and stops 6pt
+clear of the clock, the English does the same.
+
+**What survived the rework, and how it was checked:**
+
+- **The gesture.** A zero-distance `DragGesture` per half, `@GestureState` for
+  which half is under the finger, release inside the half starts the match. A
+  press dragged from our half to theirs starts nothing — `isOn(_:_:)` rejects
+  a touch that has left the bounds or travelled past 10pt.
+- **The haptic** is `.sensoryFeedback(.start, trigger: chosen)`, hung on the
+  chosen half rather than on the call to `onStart`: a view torn down in the
+  same update never plays its feedback, and the screen stays up while the ball
+  travels. **No simulator has a Taptic Engine**, so this one was written and
+  not heard.
+- **The ball.** Leans 4pt into each half in turn, 1.6s each way — sampled
+  across six screenshots its centre runs 214.6 to 229.0, the 8pt asked for. On
+  release it crosses to the chosen half's inner corner in 0.28s and halves in
+  size, landing where the score screen keeps the first serve: (339.5, 258.4)
+  measured there against (339, 256.4) aimed at here, one point nearer the net,
+  which is half the net's tape.
+- **The match is held back for the length of the travel,** so that the journey
+  is drawn somewhere. Gone under Reduce Motion.
+- **Reduce Motion.** Ball dead still at y=222.49 across three screenshots, and
+  a release goes straight to the score screen with nothing travelling.
+- **VoiceOver.** `axe describe-ui` finds exactly two elements, an `AXButton`
+  per half at `{0,0}–{187,110.5}` and `{0,112.5}–{187,110.5}`, labelled
+  "Opponents serve" and "We serve"; the ball is not in the tree. An explicit
+  default `accessibilityAction` was added — VoiceOver activates an element
+  rather than touching it, and a drag gesture is not something it can
+  activate, so without it a blind player would have had two buttons that did
+  nothing.
+- **Not a word added.** No string was written or moved.
+
+**Left to a wrist:**
+
+- **The paging.** No CLI swipe reaches a watch `TabView`. The control is that
+  the same `axe drag` run on the untouched score screen scored a point instead
+  of paging, so the start screen's refusal to page under it says nothing about
+  the gesture. Swipe down the court on the device: the settings page must
+  still arrive, and no match may start on the way. **If the paging is dead the
+  fix is one word:** `simultaneousGesture` in place of `gesture` in
+  `half(_:)`, which leaves the `TabView`'s own recogniser alone and leans on
+  the 10pt slip.
+- **The haptic**, for the reason above.
+- **Whether the capsules do the job.** They are this ticket's own fallback and
+  they cannot fail in the sense it means — a bordered capsule is a button
+  anywhere — but only a first glance on a wrist says whether the screen now
+  asks its question plainly.
+
+**After the wrist: the paging was dead, and the travel is gone.** Two findings
+from the owner, and both supersede what is written above.
+
+- **The swipe did not reach the settings page.** The zero-distance
+  `DragGesture` took the court outright, exactly as the note above warned it
+  might. `.gesture` is now `.simultaneousGesture`, which leaves the `TabView`'s
+  own recogniser in place; the 10pt slip in `isOn(_:_:)` is what keeps a swipe
+  that pages from also starting a match, and scrolling begins at about that
+  distance. **Still unchecked:** the fix cannot be tried from the CLI either,
+  so the swipe wants one more go on the wrist.
+- **The ball no longer travels.** The match screen is up the moment the finger
+  lifts, so there was nowhere to draw the journey — the screen was being held
+  back for a quarter of a second to draw an animation nobody could see through
+  to its end. `chosen`, the travel, the corner and the two numbers behind them
+  are deleted; the ball leans and does nothing else. The first half of that
+  criterion — the ball saying both halves are live — stands; the second was
+  retracted.
+- **The haptic moved to `WKInterfaceDevice.current().play(.start)`.** With the
+  travel gone, `.sensoryFeedback`'s trigger would change in the same update
+  that replaces this screen, and a view being torn down never plays its
+  feedback. The imperative call fires before the screen goes. Still unheard on
+  a simulator.
+
+**Second wrist: the press state is out, and so is the haptic.**
+`simultaneousGesture` did not save the paging either — the page below still did
+not arrive, and the capsule lit up under a swipe passing over it. Three of the
+ticket's criteria go with it.
+
+- **What is left is `onTapGesture`,** which is the gesture this screen shipped
+  with and the one the score screen has paged alongside since ticket 04. A
+  tracked finger and a paging `TabView` want the same touches, and on this
+  screen the paging wins: whatever holds the press — a `DragGesture` either way
+  round, or a `Button` with a style — is a thing that takes the swipe. So there
+  is no pressed state, and the capsule is static.
+- **The haptic is back.** It was taken out as "the sound at the start of a
+  match" and put back once that turned out to be what it was: a `WKHapticType`
+  is a tap and a click together, and a simulator, having no Taptic Engine,
+  plays only the click. `.start` is the type; `.click` is the quieter one if
+  the tap ever wants to be smaller. Silent Mode leaves the tap and drops the
+  sound — there is no API that does that.
+- **What the affordance rests on now** is the capsule alone: a bordered chip
+  around each sentence, which is the ticket's own fallback and the thing it
+  said cannot fail.
+- Checked after the cut: a held finger changes nothing on screen (the label's
+  pixel is `#F6FEFB` before and during), a release starts the match, the ball
+  still leans, and `axe describe-ui` still finds exactly two buttons, one per
+  half. `StartView.swift` is 255 lines, down from 410 two rounds ago.
+
+**Third try, and the one that works: a `Button` with a `ButtonStyle`.** The
+ticket's own "must not become" list did not forbid this — what it forbids is a
+separate "Start" button — and the doc comment inherited from ticket 04 warned
+that a half which is a button starts a match out of a swipe. That warning is
+wrong, and this is what was measured instead.
+
+- **The half is a `Button`, the sentence is its label, and `HalfButton`, a
+  `ButtonStyle`, draws the court half and the capsule around it.** The pressed
+  state comes from `configuration.isPressed` — the platform's own answer to a
+  press inside something scrollable, where the scroll *cancels* the press
+  rather than competing with it. Yellow is back: pressed, the capsule is what
+  `ChoiceCapsule` draws for a chosen option.
+- **The paging is verified, not reasoned about.** `axe drag` up the court now
+  reaches the settings page — the ruleset row and the Health switch in the
+  accessibility dump — and no match starts; a drag back down returns to the
+  court; a drag beginning over their half starts nothing either. **This also
+  corrects the note above:** the CLI *can* page a watch `TabView`. It could
+  not before because whatever gesture was on the half swallowed the drag
+  first — which is why the same drag scored a point on the score screen.
+- **The accessibility tree came out cleaner.** Two `AXButton`s, one per half,
+  labelled by their sentences, and no `AXStaticText` mirroring them: the
+  button owns its label, so none of the traits are put on by hand any more.
+- The haptic, the leaning ball, the type ceiling and the capsule's geometry
+  are untouched by this round.
+
+**And then the target shrank to the capsule.** With the half as the button, a
+thumb anywhere on the court lit a capsule it was nowhere near, which the owner
+read as the light meaning nothing. The `Button` is now the capsule alone — its
+two paddings moved outside it, so they position it without growing what the
+finger can hit, and `contentShape(RoundedRectangle(…))` keeps the corners
+court. This is a departure from the ticket's "the whole half is the control",
+and from the spec's "hitting your own half has to work without looking": that
+argument is the score screen's, where a rally is scored mid-point with a wet
+hand, and this screen is tapped once before anything has started.
+
+- The two targets are `{39.5, 43.5} 108×51` and `{38, 128.5} 111.5×30.5`,
+  which is watch-sized — the system's own buttons are about 30pt tall.
+- A finger on the bare court lights nothing and starts nothing; on the capsule
+  it lights and the release starts the match.
+- **The paging is nearly as good, and the exception is worth knowing.** A
+  swipe beginning anywhere on the court pages every time. One that begins on
+  the capsule pages when it is brisk and does not when it is slow — a slow
+  drag off a button reads as a press the button then cancels. No match starts
+  either way, which is the property that matters.

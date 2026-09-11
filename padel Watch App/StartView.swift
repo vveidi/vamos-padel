@@ -1,6 +1,7 @@
 import PadelDesign
 import PadelScoring
 import SwiftUI
+import WatchKit
 
 /// The screen a match starts from: the court before anybody has played on it,
 /// and nothing else.
@@ -14,33 +15,27 @@ import SwiftUI
 /// none.
 ///
 /// So the two halves of the court *are* the control, and they are the whole of
-/// this page. The ball waits on the net between them. Everything that is not
-/// the one question — the rules, and whether the match goes to Health — is a
-/// scroll down, on ``StartPages``' second page: a setting asked before every
-/// match is a tax paid for something that happens twice a year.
+/// this page. Each carries its sentence in a capsule, which is what says the
+/// half is a button; the ball waits on the net between the two. Everything
+/// that is not the one question — the rules, and whether the match goes to
+/// Health — is a scroll down, on ``StartPages``' second page: a setting asked
+/// before every match is a tax paid for something that happens twice a year.
 struct StartView: View {
     /// Starts the match with the given first server.
     let onStart: (Side) -> Void
 
+    /// Which way the ball is leaning. Toggled once; the animation on it
+    /// reverses forever — see ``lean``.
+    @State private var leaning = false
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        // The whole page ignores the safe area, and the geometry is read for
-        // what it ignored: the clock stands in the top inset and the sentence
-        // on their half has to start below it.
-        GeometryReader { screen in
-            court(below: screen.safeAreaInsets.top)
-                // The light is over the whole court rather than over a half,
-                // which is what makes this board different from the score
-                // screen's: there the near half is lit and the far one is not,
-                // here one floodlight in the top left crosses the net and both
-                // halves. Drawn above the net, as the board draws it, and
-                // below the ball.
-                .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
-                .overlay { ball }
-                // Inside the reader rather than around it: the reader is laid
-                // out in the safe rect and so can say what it is, and the
-                // court is what runs past it to the glass.
-                .ignoresSafeArea()
-        }
+        court
+            // Above the net, as the board draws it, and below the ball.
+            .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
+            .overlay { ball }
+            .ignoresSafeArea()
     }
 
     // MARK: The court
@@ -52,17 +47,13 @@ struct StartView: View {
     /// Built out of ``PadelDesign/CourtHalf`` and ``PadelDesign/NetLine``
     /// rather than out of ``PadelDesign/Court``, because each half here is a
     /// button and `Court` takes no content.
-    ///
-    /// - Parameter clock: how much of the top of the screen the system's own
-    ///   clock stands in. Their sentence starts below it; ours is nowhere near
-    ///   it and is given nothing to clear.
-    private func court(below clock: CGFloat) -> some View {
+    private var court: some View {
         VStack(spacing: 0) {
-            half(.them, clearing: clock)
+            half(.them)
 
             NetLine().zIndex(1)
 
-            half(.us, clearing: 0)
+            half(.us)
         }
     }
 
@@ -72,60 +63,47 @@ struct StartView: View {
     /// screen and the same as on court: they are across the net, in front of
     /// us. The colors are the same too, so the half the player will be tapping
     /// for their own points all match is recognizable before the first rally.
-    /// **A tap gesture and not a `Button`**, for the reason `ScoreView` gives
-    /// for the same choice: this page lives inside a `TabView` whose next page
-    /// is a swipe down the court, and a half that is a button is a half that
-    /// starts a match out of the swipe on its way past. The score screen has
-    /// been two tap zones inside that same paging since ticket 04 without
-    /// scoring a point by accident.
+    /// **The capsule is the button, not the half around it.** The half was the
+    /// target at first, which meant a thumb anywhere on the court lit a
+    /// capsule it was nowhere near — a control has to light because it was
+    /// touched, or the light means nothing. The court is inert now.
     ///
-    /// Everything a button gave VoiceOver is put back by hand below.
-    private func half(_ side: Side, clearing obstruction: CGFloat) -> some View {
+    /// **A `Button`, after two gestures that were not.** A `DragGesture` gave
+    /// the pressed state and took the paging with it, attached plainly and
+    /// simultaneously alike. A button is the platform's own answer — the
+    /// scroll cancels its press rather than competing with it — so the pressed
+    /// state comes from a `ButtonStyle` rather than from anything this screen
+    /// tracks itself. It is also what gives VoiceOver its button back: no
+    /// traits are put on by hand here any more.
+    ///
+    /// The two paddings are outside the button on purpose. Inside the style
+    /// they would grow what the finger can hit, which is the whole of what
+    /// this screen just stopped doing.
+    private func half(_ side: Side) -> some View {
         CourtHalf(side: side)
-            .overlay { sentence(for: side, clearing: obstruction) }
-            // Otherwise the tap catches the painted surface but not the
-            // texture and the lines over it.
-            .contentShape(Rectangle())
-            .onTapGesture { onStart(side) }
-            .accessibilityElement(children: .ignore)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityLabel(Text(Self.serves(side)))
+            .overlay(alignment: side == .them ? .bottom : .top) {
+                Button {
+                    start(side)
+                } label: {
+                    Text(Self.serves(side))
+                }
+                .buttonStyle(ServeCapsule(side: side))
+                .padding(.horizontal, Board.capsuleInset)
+                .padding(side == .them ? .bottom : .top, Board.netGap)
+            }
     }
 
-    /// Whose serve it is, near the top of its own half rather than in the
-    /// middle of it.
+    /// Names the server and starts the match, with the app's one haptic under
+    /// it: a match starting is worth one, a rally scored is not.
     ///
-    /// The ball is centred on the net, so a sentence centred in its half would
-    /// sit against it. The board drops each sentence about a fifth into its
-    /// half, which reads as two different things and is why the two fractions
-    /// are not one: their half's top is the top of the screen, so theirs lands
-    /// under the clock, while ours counts from the net and lands just clear of
-    /// the ball.
-    private func sentence(for side: Side, clearing obstruction: CGFloat) -> some View {
-        GeometryReader { proxy in
-            let drop = max(obstruction, proxy.size.height * Board.sentenceDrop(side))
+    /// `WKInterfaceDevice` and not SwiftUI's `.sensoryFeedback`: that watches
+    /// a value, and the value would change in the same update that replaces
+    /// this screen with the match — a view being torn down never plays its
+    /// feedback.
+    private func start(_ side: Side) {
+        WKInterfaceDevice.current().play(.start)
 
-            Text(Self.serves(side))
-                .textStyle(.display)
-                .multilineTextAlignment(.center)
-                // Two lines are expected rather than tolerated — see
-                // `serves(_:)`. The scale factor and the room below it are for
-                // the far end of the Dynamic Type range, where the sentence
-                // shrinks into its own half rather than growing across the
-                // net.
-                .lineLimit(2)
-                .minimumScaleFactor(Board.sentenceMinimumScale)
-                .foregroundStyle(.courtInk(side))
-                .padding(.horizontal, Board.sentenceInset)
-                .frame(
-                    maxWidth: .infinity,
-                    maxHeight: max(0, proxy.size.height - drop),
-                    alignment: .top)
-                .padding(.top, drop)
-        }
-        // The sentence is what the button says; it must not be a second thing
-        // to hit inside it.
-        .allowsHitTesting(false)
+        onStart(side)
     }
 
     /// Whose serve it is, as a whole sentence per side rather than a side's
@@ -140,16 +118,84 @@ struct StartView: View {
         side == .us ? "We serve" : "Opponents serve"
     }
 
-    /// The ball, waiting on the net.
+    // MARK: The ball
+
+    /// The ball on the net, leaning toward one half and then the other.
     ///
     /// Centred in the court, which is the middle of the tape: the two halves
-    /// are equal and the net is between them, so the court's centre is the
-    /// net's. It means what it means everywhere else in the app — *this is
-    /// yours, or this is chosen* (ADR-0006) — and before a match nothing is
-    /// either, which is exactly why it is sitting still in the middle.
+    /// are equal and the net is between them. It means what it means
+    /// everywhere else in the app — *this is yours, or this is chosen*
+    /// (ADR-0006) — and before a match nothing is either, hence the lean
+    /// rather than a resting place in one half.
+    ///
+    /// It does not travel anywhere on the tap: the match screen is up by then.
+    ///
+    /// **It is never in the hit test**: a ball that swallowed a press would be
+    /// a ball that decided who serves.
     private var ball: some View {
         Ball(size: Board.ball)
+            .offset(y: lean)
+            .animation(
+                .easeInOut(duration: Board.leanPeriod).repeatForever(autoreverses: true),
+                value: lean)
             .allowsHitTesting(false)
+            .onAppear { leaning = true }
+    }
+
+    /// How far the ball is leaning, and which way. Toggled once, reversed
+    /// forever by the animation above; Reduce Motion pins it to the tape.
+    private var lean: CGFloat {
+        guard !reduceMotion else { return 0 }
+
+        return leaning ? Board.lean : -Board.lean
+    }
+}
+
+/// The sentence in the capsule that says the half can be tapped.
+///
+/// Both capsules stand the same distance from the net, so they read as a pair
+/// and the ball has the gap between them to itself. They are anchored to the
+/// net and grow away from it, which keeps that gap fixed as the type grows.
+///
+/// Pressed, the capsule is what ``PadelDesign/ChoiceCapsule`` draws for a
+/// chosen option — `ballWash` behind a `ball` label inside a `ball` ring.
+/// Choosing a half is what this button does, and the ball's yellow means
+/// exactly that (ADR-0006).
+private struct ServeCapsule: ButtonStyle {
+    let side: Side
+
+    func makeBody(configuration: Configuration) -> some View {
+        capsule(around: configuration.label, isPressed: configuration.isPressed)
+    }
+
+    private func capsule(around label: Configuration.Label, isPressed: Bool) -> some View {
+        label
+            .textStyle(.display)
+            .multilineTextAlignment(.center)
+            // Two lines are expected rather than tolerated — see `serves(_:)`.
+            .lineLimit(2)
+            .minimumScaleFactor(Board.sentenceMinimumScale)
+            // Left to itself, their capsule grows into the clock. The ceiling
+            // is where two lines of the longer language still stop short of
+            // it, measured on a 42mm — the least room of the sizes.
+            .dynamicTypeSize(...Board.largestType)
+            .foregroundStyle(isPressed ? Color.ball : .courtInk(side))
+            .padding(.horizontal, Board.capsulePadding)
+            .padding(.vertical, Board.capsulePaddingVertical)
+            .background {
+                RoundedRectangle(cornerRadius: .segment)
+                    .fill(isPressed ? Color.ballWash : .ink.weight(.surface))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: .segment)
+                            .strokeBorder(
+                                isPressed ? Color.ball : .ink.weight(.strong),
+                                lineWidth: Board.capsuleBorder)
+                    }
+            }
+            // The capsule and not its bounding box: the corners are court, and
+            // a finger on the court starts nothing.
+            .contentShape(RoundedRectangle(cornerRadius: .segment))
+            .animation(.easeOut(duration: Board.press), value: isPressed)
     }
 }
 
@@ -157,42 +203,55 @@ struct StartView: View {
 /// halved — the watch artboards are 2x (the spec's "Reading the boards").
 ///
 /// The court itself comes out of `PadelDesign` and is not here. What is left
-/// is the two things this board is the only board to draw: a ball resting on
-/// the net, and a sentence high in each half.
+/// is the ball resting on the net, the capsule each half carries, and the
+/// timings — which no board draws, a canvas holding one frame.
 private enum Board {
     /// The ball waiting on the net. 40px.
     static let ball: CGFloat = 20
 
-    /// How far down its own half a side's sentence starts, as a fraction of
-    /// the half.
-    ///
-    /// **Two numbers and not one drawn twice.** The board's 21% and 16% look
-    /// five hundredths apart and are measuring from opposite ends of the
-    /// court: a half's top is the top of the screen for them and the net for
-    /// us, so theirs puts a sentence near the outer edge and ours puts one
-    /// just under the ball — 8pt under it, on the board.
-    static func sentenceDrop(_ side: Side) -> CGFloat {
-        switch side {
-        case .them: 0.21
-        case .us: 0.16
-        }
-    }
-
-    /// Left and right of a sentence, so that the longer of the two languages
-    /// clears the outline painted round the half instead of running into it.
-    static let sentenceInset: CGFloat = 10
-
-    /// How far a sentence may shrink to stay inside its half.
+    /// How far a sentence may shrink to stay inside its capsule.
     ///
     /// Not a number off the board — the board is drawn at one Dynamic Type
     /// setting out of twelve and never meets this.
     static let sentenceMinimumScale: CGFloat = 0.6
 
-    /// How much light the corner spends.
-    ///
-    /// The board's 0.17, which is the top of the range `Floodlight` documents:
-    /// this is the one board whose light has a whole court to cross rather
-    /// than a half.
+    /// Between the net and the capsule nearest it, each side. It clears the
+    /// ball at rest — half the ball plus its lean — and is the same number on
+    /// both halves, which is what makes the pair read as centred on the net.
+    static let netGap: CGFloat = 16
+
+    /// Left and right of a sentence inside its capsule.
+    static let capsulePadding: CGFloat = 10
+
+    /// Above and below it.
+    static let capsulePaddingVertical: CGFloat = 5
+
+    /// Left and right of the capsule itself. Wide enough to clear the page
+    /// indicator at the trailing edge.
+    static let capsuleInset: CGFloat = 14
+
+    /// The line around it: 2px at the watch's 2x, which is what the boards
+    /// draw a border at.
+    static let capsuleBorder: CGFloat = 1
+
+    /// The largest type the sentences are set at — see `HalfButton` for why
+    /// there is a ceiling at all.
+    static let largestType: DynamicTypeSize = .accessibility2
+
+    /// How long the capsule takes to light under a finger and to go out.
+    static let press: TimeInterval = 0.12
+
+    /// How far the ball tips toward a half while neither has been chosen. Any
+    /// further and it stops reading as resting on the net.
+    static let lean: CGFloat = 4
+
+    /// How long one lean takes. Slow: the screen breathing, not the ball
+    /// bouncing.
+    static let leanPeriod: TimeInterval = 1.6
+
+    /// How much light the corner spends. The board's 0.17, the top of the
+    /// range `Floodlight` documents: this is the one board whose light has a
+    /// whole court to cross rather than a half.
     static let floodlight: Double = 0.17
 }
 
@@ -210,6 +269,9 @@ private func inRussian(_ view: some View) -> some View {
 private func atLargestType(_ view: some View) -> some View {
     view.environment(\.dynamicTypeSize, .accessibility5)
 }
+
+// Reduce Motion has no preview: `accessibilityReduceMotion` is read-only in
+// the environment. It is checked on a simulator with the setting on.
 
 private let court = StartView(onStart: { _ in })
 

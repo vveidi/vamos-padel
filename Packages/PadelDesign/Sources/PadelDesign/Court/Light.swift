@@ -42,6 +42,8 @@ public struct Floodlight: View {
         }
     }
 
+    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+
     private let corner: Corner
     private let strength: Double
 
@@ -64,6 +66,9 @@ public struct Floodlight: View {
             center: corner.unitPoint,
             startRadiusFraction: 0,
             endRadiusFraction: 1)
+            // Opacity rather than an `if`, so the view keeps its identity and
+            // the system's own crossfade is the only thing that animates.
+            .opacity(isLuminanceReduced ? 0 : 1)
             .allowsHitTesting(false)
     }
 }

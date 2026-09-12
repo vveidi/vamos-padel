@@ -28,6 +28,8 @@ public struct Ball: View {
         case cutOut
     }
 
+    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+
     private let size: CGFloat
     private let finish: Finish
 
@@ -42,7 +44,7 @@ public struct Ball: View {
             // is r 11 in a 24-unit box — which is what leaves the seams room
             // to run right to the ball's edge.
             Circle()
-                .fill(finish.felt)
+                .fill(Color.ballFelt(finish, dimmed: isLuminanceReduced))
                 .padding(size / Self.box)
 
             Seams()
@@ -55,8 +57,9 @@ public struct Ball: View {
         // corner and at 34pt on a phone, and a fixed shadow would be a halo
         // under one and invisible under the other. The fractions are the three
         // boards' shadows divided by the three boards' balls, which agree.
+        // A dimmed screen gets none: the lift is atmosphere, the corner is not.
         .shadow(
-            color: finish.castsShadow ? .shadow : .clear,
+            color: finish.castsShadow && !isLuminanceReduced ? .shadow : .clear,
             radius: size * 0.175,
             y: size * 0.15)
     }
@@ -67,14 +70,6 @@ public struct Ball: View {
 }
 
 extension Ball.Finish {
-    /// The cover.
-    var felt: Color {
-        switch self {
-        case .onCourt: .ball
-        case .cutOut: .onBall
-        }
-    }
-
     /// The two seams. Dark green on the court — emphatically not `onBall`,
     /// which is nearly black and turns the ball into a beach ball — and the
     /// ball's own yellow when the felt is the dark one.

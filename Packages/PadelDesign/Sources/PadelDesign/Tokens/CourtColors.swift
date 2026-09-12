@@ -18,6 +18,33 @@ public enum CourtLine: Sendable, CaseIterable {
     case outline
 }
 
+/// How far each part of the court falls when the screen's luminance is
+/// reduced.
+///
+/// A surface is opaque and goes darker, mixed toward ``SwiftUI/Color/night``;
+/// paint on a surface already carries a weight and goes thinner instead.
+/// Mixing paint would move its alpha along with its hue and leave both wrong.
+/// ADR-0006's consequences say why there is a dimmed court at all.
+enum CourtDimming {
+    /// How far the two half tints fall toward `night`.
+    ///
+    /// Settled by eye at watch size: at 0.72 the two halves measured 0.021
+    /// apart in luminance and read as one black rectangle.
+    static let surface = 0.55
+
+    /// How far the ball's felt falls toward `night`.
+    ///
+    /// Much less than the court, because the ball has to still read as yellow
+    /// once the court around it has gone dark.
+    static let felt = 0.15
+
+    /// What is left of a painted line's weight, and of the net's.
+    ///
+    /// Halved rather than dropped: a line's contrast against its surface rises
+    /// as the surface falls, which is what pays for thinning it.
+    static let paint = 0.5
+}
+
 /// The colors that belong to the court itself.
 ///
 /// They live here rather than in the court primitive (ticket 02) for the same
@@ -34,11 +61,17 @@ public enum CourtLine: Sendable, CaseIterable {
 /// answers the same way ``CourtTile`` picks its tint.
 extension Color {
     /// The surface of a half: glass blue for theirs, turf green for ours.
-    public static func courtSurface(_ side: Side) -> Color {
-        switch side {
-        case .them: .theirHalf
-        case .us: .ourHalf
-        }
+    ///
+    /// - Parameter dimmed: Whether the screen's luminance is reduced, in which
+    ///   case the tint falls most of the way to `night` — see ``CourtDimming``.
+    public static func courtSurface(_ side: Side, dimmed: Bool = false) -> Color {
+        let surface: Color =
+            switch side {
+            case .them: .theirHalf
+            case .us: .ourHalf
+            }
+
+        return dimmed ? surface.towardNight(CourtDimming.surface) : surface
     }
 
     /// The ink for text sitting *inside* a half, where the ground is no longer
@@ -72,14 +105,21 @@ extension Color {
     /// Ours is the brighter pair — the boards light the near half more, and
     /// the difference is small on purpose: two clearly different whites would
     /// read as two courts rather than as one seen from our end.
-    public static func courtLine(_ line: CourtLine, on side: Side) -> Color {
+    /// - Parameter dimmed: Whether the screen's luminance is reduced, in which
+    ///   case the paint goes thinner but never away — the lines are the
+    ///   geometry, and the geometry is what survives the dimming.
+    public static func courtLine(
+        _ line: CourtLine, on side: Side, dimmed: Bool = false
+    ) -> Color {
         let paint: Color =
             switch side {
             case .them: .lineTheirHalf
             case .us: .lineOurHalf
             }
 
-        return paint.opacity(lineOpacity(line, on: side))
+        let weight = lineOpacity(line, on: side)
+
+        return paint.opacity(dimmed ? weight * CourtDimming.paint : weight)
     }
 
     /// The court's weave — the faint diagonal texture over the surface.
@@ -87,11 +127,59 @@ extension Color {
     /// It is texture and not pattern: at a glance it must read as a surface,
     /// never as stripes, which is why it is thousandths of white and not
     /// hundredths.
-    public static func courtWeave(on side: Side) -> Color {
+    ///
+    /// - Parameter dimmed: Whether the screen's luminance is reduced, in which
+    ///   case there is no weave at all. It is the clearest case of atmosphere
+    ///   in the package: thousandths of white that say "surface" and nothing a
+    ///   glance could read.
+    public static func courtWeave(on side: Side, dimmed: Bool = false) -> Color {
+        guard !dimmed else { return .clear }
+
         switch side {
-        case .them: .white.opacity(0.028)
-        case .us: .white.opacity(0.032)
+        case .them: return .white.opacity(0.028)
+        case .us: return .white.opacity(0.032)
         }
+    }
+
+    /// The net's tape.
+    ///
+    /// - Parameter dimmed: Whether the screen's luminance is reduced, in which
+    ///   case the tape goes thinner but never away — the net is geometry, not
+    ///   atmosphere.
+    static func netTape(dimmed: Bool = false) -> Color {
+        dimmed ? .netTape.opacity(CourtDimming.paint) : .netTape
+    }
+
+    /// The post at each end of the tape.
+    ///
+    /// - Parameter dimmed: Whether the screen's luminance is reduced. Thinned
+    ///   by the same fraction as the tape, so the post stays the brighter of
+    ///   the two.
+    static func netPost(dimmed: Bool = false) -> Color {
+        dimmed ? .netPost.opacity(CourtDimming.paint) : .netPost
+    }
+
+    /// The ball's felt.
+    ///
+    /// Here rather than on ``Ball/Finish`` for the reason every other court
+    /// color is here: this file owns what the geometry is painted in.
+    ///
+    /// - Parameter dimmed: Whether the screen's luminance is reduced. Only the
+    ///   ball on the court answers to it. The cut-out is a hole in a button,
+    ///   and dimming it would leave half a control dark on a ground that is
+    ///   still full-strength `ball`.
+    static func ballFelt(_ finish: Ball.Finish, dimmed: Bool = false) -> Color {
+        switch finish {
+        case .onCourt: dimmed ? Color.ball.towardNight(CourtDimming.felt) : .ball
+        case .cutOut: .onBall
+        }
+    }
+
+    /// This color mixed `fraction` of the way into `night`.
+    ///
+    /// Only for the opaque surfaces — see ``CourtDimming``.
+    func towardNight(_ fraction: Double) -> Color {
+        mix(with: .night, by: fraction)
     }
 
     /// The line weights, off the boards.

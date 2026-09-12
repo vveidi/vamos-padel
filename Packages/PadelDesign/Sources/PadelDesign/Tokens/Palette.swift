@@ -103,8 +103,8 @@ extension Color {
 
     /// The white the lines on their half are painted in, before a weight.
     ///
-    /// Never spent at full strength — ``Color/courtLine(_:on:)`` is the only
-    /// way in, which is why this is `internal`.
+    /// Never spent at full strength — ``Color/courtLine(_:on:dimmed:)`` is the
+    /// only way in, which is why this is `internal`.
     static let lineTheirHalf = Color(hex: 0xB4_EB_DE)
 
     /// The white the lines on our half are painted in, before a weight. The
@@ -271,8 +271,14 @@ extension ShapeStyle where Self == Color {
     /// See ``SwiftUI/Color/floodlight``.
     public static var floodlight: Color { Color.floodlight }
 
-    /// See ``SwiftUI/Color/courtSurface(_:)``.
-    public static func courtSurface(_ side: Side) -> Color { Color.courtSurface(side) }
+    /// See ``SwiftUI/Color/courtSurface(_:dimmed:)``.
+    ///
+    /// The defaulted `dimmed:` is mirrored too, and not dropped. Without it
+    /// the concrete overload becomes the worse match for `courtSurface(side)`
+    /// alone, this one wins, and the forward below calls itself.
+    public static func courtSurface(_ side: Side, dimmed: Bool = false) -> Color {
+        Color.courtSurface(side, dimmed: dimmed)
+    }
 
     /// See ``SwiftUI/Color/courtInk(_:)-(Side)``.
     public static func courtInk(_ side: Side) -> Color { Color.courtInk(side) }
@@ -280,11 +286,15 @@ extension ShapeStyle where Self == Color {
     /// See ``SwiftUI/Color/courtInk(_:)-(MatchOutcome)``.
     public static func courtInk(_ outcome: MatchOutcome) -> Color { Color.courtInk(outcome) }
 
-    /// See ``SwiftUI/Color/courtLine(_:on:)``.
-    public static func courtLine(_ line: CourtLine, on side: Side) -> Color {
-        Color.courtLine(line, on: side)
+    /// See ``SwiftUI/Color/courtLine(_:on:dimmed:)``.
+    public static func courtLine(
+        _ line: CourtLine, on side: Side, dimmed: Bool = false
+    ) -> Color {
+        Color.courtLine(line, on: side, dimmed: dimmed)
     }
 
-    /// See ``SwiftUI/Color/courtWeave(on:)``.
-    public static func courtWeave(on side: Side) -> Color { Color.courtWeave(on: side) }
+    /// See ``SwiftUI/Color/courtWeave(on:dimmed:)``.
+    public static func courtWeave(on side: Side, dimmed: Bool = false) -> Color {
+        Color.courtWeave(on: side, dimmed: dimmed)
+    }
 }

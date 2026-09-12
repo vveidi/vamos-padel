@@ -17,6 +17,8 @@ import SwiftUI
 /// Nothing in it knows what a rally is. A screen lays its own content over the
 /// half with `.overlay`, which is why there is no content parameter here.
 public struct CourtHalf: View {
+    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+
     private let side: Side
 
     public init(side: Side) {
@@ -25,19 +27,19 @@ public struct CourtHalf: View {
 
     public var body: some View {
         Rectangle()
-            .fill(Color.courtSurface(side))
+            .fill(Color.courtSurface(side, dimmed: isLuminanceReduced))
             .overlay { weave }
             .overlay { lines }
     }
 
     /// The surface texture.
     ///
-    /// Its own layer, and so is the light a screen puts over it: ticket 10
-    /// switches both off for Always-On, and it can only do that without
-    /// unpicking the geometry if the geometry was never mixed into them.
+    /// Its own layer, and so is the light a screen puts over it: both go out
+    /// when the screen's luminance drops, and that could only be done without
+    /// unpicking the geometry because the geometry was never mixed into them.
     private var weave: some View {
         Weave(stripe: CourtMetrics.weave)
-            .fill(Color.courtWeave(on: side))
+            .fill(Color.courtWeave(on: side, dimmed: isLuminanceReduced))
             // The stripes are cut from a square large enough to still cover
             // the half once it is turned, so they run well past its edges.
             .clipped()
@@ -47,7 +49,7 @@ public struct CourtHalf: View {
         ZStack {
             ForEach(CourtLine.allCases, id: \.self) { line in
                 PaintedLine(line, on: side)
-                    .fill(Color.courtLine(line, on: side))
+                    .fill(Color.courtLine(line, on: side, dimmed: isLuminanceReduced))
             }
         }
     }
@@ -132,7 +134,7 @@ struct PaintedLine: Shape {
 ///
 /// Texture and not pattern. At a glance it has to read as a surface rather
 /// than as stripes, which is why the ink is thousandths of white and not
-/// hundredths — see ``SwiftUI/Color/courtWeave(on:)``.
+/// hundredths — see ``SwiftUI/Color/courtWeave(on:dimmed:)``.
 ///
 /// Drawn as one path of bars because SwiftUI has no repeating gradient. The
 /// boards' `repeating-linear-gradient(115deg, …)` runs its gradient at 115°,

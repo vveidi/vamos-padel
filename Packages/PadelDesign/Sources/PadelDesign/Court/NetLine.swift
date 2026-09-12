@@ -13,18 +13,21 @@ import SwiftUI
 /// meet on it exactly. A post that pushed the halves apart would open a seam
 /// down the middle of every screen.
 public struct NetLine: View {
+    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+
     public init() {}
 
     public var body: some View {
         Rectangle()
-            .fill(Color.netTape)
+            .fill(Color.netTape(dimmed: isLuminanceReduced))
             .frame(height: CourtMetrics.tape)
             .overlay(alignment: .leading) { post }
             .overlay(alignment: .trailing) { post }
             // Without it the net looks painted on the court rather than
-            // strung above it, which is the one thing the posts are for.
+            // strung above it, which is the one thing the posts are for. A
+            // dimmed screen gets none: being strung above is atmosphere.
             .shadow(
-                color: .shadow,
+                color: isLuminanceReduced ? .clear : .shadow,
                 radius: CourtMetrics.shadowRadius,
                 y: CourtMetrics.shadowOffset)
     }
@@ -36,7 +39,7 @@ public struct NetLine: View {
     /// directly overhead has no near end.
     private var post: some View {
         Rectangle()
-            .fill(Color.netPost)
+            .fill(Color.netPost(dimmed: isLuminanceReduced))
             .frame(width: CourtMetrics.tape, height: CourtMetrics.tape * 3)
     }
 }

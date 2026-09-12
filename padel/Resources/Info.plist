@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The launch screen, which is the one screen the app cannot draw.
+	     It is rendered before any of our code runs, so `.preferredColorScheme(.dark)`
+	     does not reach it and its default `systemBackground` follows the phone's
+	     own appearance: white, on a phone set to light, for the third of a second
+	     before a night court opens under it.
+
+	     `LaunchNight` is `Color.night` written a second time — the launch screen
+	     can name a colour in the asset catalog and nothing else (ADR-0006). -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchNight</string>
+	</dict>
+</dict>
+</plist>

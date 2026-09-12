@@ -1,4 +1,5 @@
 import os
+import PadelDesign
 import PadelScoring
 import PadelStorage
 import SwiftUI
@@ -8,6 +9,18 @@ import SwiftUI
 /// The whole of the phone's part in v1. The match is played on the watch and
 /// arrives here by itself (ticket 10); this screen is the shop window it ends
 /// up in.
+///
+/// It is `night` with a light on it, and the matches are tiles cut from the
+/// court — a win on turf, a defeat on glass, a match stopped early on neither.
+/// **That is the screen's argument: a season is readable by colour before a
+/// single number is.** Which is also why nothing here is a `List`: separators
+/// and chevrons would rule a table over the court, and the tiles already say
+/// where one match ends and the next begins.
+///
+/// The "New match" button the board draws at the foot is left out. It leads to
+/// phone-side match creation, which this feature does not build (the spec's
+/// "What is in, and what is not"), and the space it would take is left empty
+/// rather than filled with something else.
 struct HistoryView: View {
     private let store: any MatchStore
 
@@ -27,15 +40,13 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                switch history {
-                case .unknown: ProgressView()
-                case .known(let matches) where matches.isEmpty: empty
-                case .known(let matches): list(matches)
-                case .unreadable: unreadable
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                header.padding(.horizontal, Board.inset)
+
+                what
             }
-            .navigationTitle("History")
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background { ground }
         }
         .task(id: attempt) { await watch() }
     }
@@ -51,26 +62,121 @@ struct HistoryView: View {
         case unreadable
     }
 
-    /// Every row opens the match card: the list answers "how did it end", and
-    /// the card behind it "how did it come about" (ticket 12).
-    private func list(_ matches: [SavedMatch]) -> some View {
-        List(matches) { match in
-            NavigationLink {
-                MatchCard(match: match)
-            } label: {
-                MatchRow(match: match)
+    // MARK: The title
+
+    /// The screen's name, drawn as content.
+    ///
+    /// Not a `navigationTitle`: a bar is a shelf of system furniture across the
+    /// top of a court, and what it would hold is one word. The word is set in
+    /// the ramp's ``PadelDesign/TypeRamp/display`` like every other title in
+    /// the app, and it stays put while the tiles scroll under it — the count
+    /// beside it is about the whole history, not about what is on screen.
+    /// Beside the title while the two fit, under it when they stop — which at
+    /// the accessibility settings they do, in both languages. Neither may be
+    /// truncated: "Истор…" over "6 матч…" is a header that has given up.
+    private var header: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: Board.countGap) {
+                title
+
+                Spacer(minLength: 0)
+
+                count
+            }
+
+            VStack(alignment: .leading, spacing: Board.headerGap) {
+                title
+
+                count
             }
         }
+    }
+
+    private var title: some View {
+        Text("History")
+            .textStyle(.display)
+            .foregroundStyle(.ink)
+    }
+
+    /// How many matches the history holds.
+    ///
+    /// Declined rather than counted: "1 матч", "2 матча" and "5 матчей" are
+    /// three words for the same noun, and the catalog is what knows which
+    /// (ADR-0005). Only ever drawn for a history that has something in it — an
+    /// empty one says so in a sentence below instead, and "0 matches" beside
+    /// the title would say it twice.
+    @ViewBuilder private var count: some View {
+        if case .known(let matches) = history, !matches.isEmpty {
+            Text("\(matches.count) matches")
+                .textStyle(.caption)
+                .foregroundStyle(.ink.weight(.tertiary))
+        }
+    }
+
+    // MARK: What the screen has to say
+
+    @ViewBuilder private var what: some View {
+        switch history {
+        case .unknown: waiting
+        case .known(let matches) where matches.isEmpty: empty
+        case .known(let matches): tiles(matches)
+        case .unreadable: unreadable
+        }
+    }
+
+    /// Every match, and every one of them opens its card: the column answers
+    /// "how did it end", and the card behind it "how did it come about".
+    ///
+    /// A `LazyVStack` and not a `List`. What `List` was giving this screen was
+    /// scrolling, cell reuse and separators — losing the separators is the
+    /// point, and losing the reuse is not, which is what makes it lazy: a
+    /// season is a few hundred tiles and each one draws a weave and possibly a
+    /// glow.
+    private func tiles(_ matches: [SavedMatch]) -> some View {
+        ScrollView {
+            LazyVStack(spacing: Board.tileGap) {
+                ForEach(matches) { match in
+                    NavigationLink {
+                        MatchCard(match: match)
+                    } label: {
+                        CourtTile(outcome: match.match.state.outcome) {
+                            MatchRow(match: match)
+                        }
+                    }
+                    // Without it the link tints its own label and draws a
+                    // pressed state over the tile, which is the system's
+                    // furniture arriving by the back door.
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, Board.titleGap)
+            .padding(.horizontal, Board.inset)
+            .padding(.bottom, Board.inset)
+        }
+    }
+
+    /// The moment before the first list arrives, which on a database this size
+    /// is one frame.
+    private var waiting: some View {
+        ProgressView()
+            .tint(.ball)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     /// The first launch, and every launch until the first match is played out
     /// on the watch. Nothing is broken here and there is nothing for the owner
     /// to do — beyond going and playing, which is what the line says.
+    ///
+    /// The `figure.tennis` glyph it used to carry is gone with the rest of the
+    /// system view: a symbol at that size on this ground reads as a second
+    /// accent, and the app has one (ADR-0006).
     private var empty: some View {
-        ContentUnavailableView(
+        Notice(
             "No matches yet",
-            systemImage: "figure.tennis",
-            description: Text("A match played on your watch shows up here by itself"))
+            sentence: "A match played on your watch shows up here by itself"
+        ) {
+            EmptyView()
+        }
     }
 
     /// The database did not answer — the case the screen used to spend
@@ -81,17 +187,32 @@ struct HistoryView: View {
     /// the only thing there is to offer — the observation ends on its first
     /// failure and will not start again by itself — and it is honest about
     /// what it does: it tries again, it does not repair anything.
+    ///
+    /// Quiet and not `ball` yellow, for the same reason: the accent means
+    /// *this is yours, or this is chosen*, and a retry is neither.
     private var unreadable: some View {
-        ContentUnavailableView {
-            Label("Can't load your history", systemImage: "exclamationmark.triangle")
-        } description: {
-            Text("Your matches are still there, but the app couldn't read them")
-        } actions: {
-            Button("Try again") {
+        Notice(
+            "Can't load your history",
+            sentence: "Your matches are still there, but the app couldn't read them"
+        ) {
+            PillButton(Text("Try again"), variant: .quiet) {
                 history = .unknown
                 attempt += 1
             }
         }
+    }
+
+    // MARK: The ground
+
+    /// `night` with the history board's light in its top trailing corner.
+    ///
+    /// The light is what keeps a screen of `night` from being a black
+    /// rectangle with cards on it, and it comes in from the corner the tiles'
+    /// own glow hangs off, so the two read as one lamp.
+    private var ground: some View {
+        Color.night
+            .overlay { Floodlight(corner: .topTrailing, strength: Board.floodlight) }
+            .ignoresSafeArea()
     }
 
     /// Watches the history for as long as the screen is on.
@@ -125,46 +246,136 @@ struct HistoryView: View {
     }
 }
 
+/// What stands in the tiles' place when there are none: a line saying what is
+/// the matter, a sentence under it, and whatever there is to do about it.
+///
+/// The two states it draws have to stay clearly different from one another —
+/// "there are no matches yet" and "they could not be read" are the pair
+/// ``HistoryView``'s `History` exists to keep apart — so the words are the
+/// whole of the difference and the arrangement is deliberately the same. What
+/// separates them is that one of them has a button.
+private struct Notice<Action: View>: View {
+    private let title: LocalizedStringKey
+    private let sentence: LocalizedStringKey
+    private let action: Action
+
+    init(
+        _ title: LocalizedStringKey,
+        sentence: LocalizedStringKey,
+        @ViewBuilder action: () -> Action
+    ) {
+        self.title = title
+        self.sentence = sentence
+        self.action = action()
+    }
+
+    var body: some View {
+        VStack(spacing: Board.noticeGap) {
+            Text(title)
+                .textStyle(.display)
+                .foregroundStyle(.ink.weight(.control))
+
+            Text(sentence)
+                .textStyle(.body)
+                .foregroundStyle(.ink.weight(.secondary))
+
+            action.padding(.top, Board.noticeGap)
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, Board.noticeInset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// What `PhoneHistory.dc.html` draws around the tiles. The phone boards are 1x,
+/// so these are the board's pixels (the spec's "Reading the boards").
+private enum Board {
+    /// Left and right of the page, and under the last tile.
+    static let inset: CGFloat = 20
+
+    /// Between the title and the first tile.
+    static let titleGap: CGFloat = 22
+
+    /// Between the title and the count beside it, when the title is long
+    /// enough to reach it.
+    static let countGap: CGFloat = 12
+
+    /// Between the two once the count has dropped under the title.
+    static let headerGap: CGFloat = 4
+
+    /// Between one tile and the next.
+    static let tileGap: CGFloat = 10
+
+    /// How much light the corner spends. The board's 0.13.
+    static let floodlight: Double = 0.13
+
+    /// Between the lines of a notice, and again above its button.
+    static let noticeGap: CGFloat = 12
+
+    /// Left and right of a notice's sentence, so it wraps well short of the
+    /// screen's edges rather than at them.
+    static let noticeInset: CGFloat = 40
+}
+
 #if DEBUG
 
-#Preview("The history") {
-    HistoryView(store: filledStore)
+#Preview("The history") { HistoryView(store: PreviewMatchStore.filled) }
+
+#Preview("An empty history") { HistoryView(store: PreviewMatchStore.empty) }
+
+#Preview("An unreadable history") { HistoryView(store: PreviewMatchStore.unreadable) }
+
+/// The screen in the other language. All three states, because between them
+/// they hold every sentence this file says.
+#Preview("In Russian: the history") { inRussian(HistoryView(store: PreviewMatchStore.filled)) }
+
+#Preview("In Russian: an empty history") { inRussian(HistoryView(store: PreviewMatchStore.empty)) }
+
+#Preview("In Russian: an unreadable history") { inRussian(HistoryView(store: PreviewMatchStore.unreadable)) }
+
+/// The setting at which a tile's two columns stop fitting side by side and the
+/// notices find their second and third lines.
+#Preview("At the largest type") { atLargestType(HistoryView(store: PreviewMatchStore.filled)) }
+
+#Preview("In Russian, at the largest type") {
+    atLargestType(inRussian(HistoryView(store: PreviewMatchStore.filled)))
 }
 
-#Preview("An empty history") {
-    HistoryView(store: NoMatchStore())
+#Preview("In Russian, at the largest type: unreadable") {
+    atLargestType(inRussian(HistoryView(store: PreviewMatchStore.unreadable)))
 }
 
-/// The screen in the other language. The history and the empty state both:
-/// between them they hold every sentence this file says except the one about a
-/// database that did not answer, which no preview can bring about.
-#Preview("The history, in Russian") {
-    HistoryView(store: filledStore)
-        .environment(\.locale, Locale(identifier: "ru"))
+private func inRussian(_ view: some View) -> some View {
+    view.environment(\.locale, Locale(identifier: "ru"))
 }
 
-#Preview("An empty history, in Russian") {
-    HistoryView(store: NoMatchStore())
-        .environment(\.locale, Locale(identifier: "ru"))
+private func atLargestType(_ view: some View) -> some View {
+    view.environment(\.dynamicTypeSize, .accessibility5)
 }
 
-private var filledStore: PreviewMatchStore {
-    PreviewMatchStore([
-        .preview(classicWonBy: .us),
-        .preview(pointsTo: 16),
-        .preview(pointsTo: 21, abandonedAfter: 9),
-    ])
-}
-
-/// A few matches and nothing else — the store the preview of a filled history
-/// needs. The list arrives once and never changes: there is no watch on the
+/// A few matches and nothing else — or no matches, or a database that will not
+/// answer. The list arrives once and never changes: there is no watch on the
 /// other end of a preview to play another match.
 private struct PreviewMatchStore: MatchStore {
-    private let history: [SavedMatch]
+    let history: [SavedMatch]
 
-    init(_ history: [SavedMatch]) {
-        self.history = history
-    }
+    /// Whether the observation yields the list or fails on its first read,
+    /// which is the only way to reach the screen's third state.
+    let readable: Bool
+
+    static let filled = PreviewMatchStore(
+        history: [
+            .preview(classicWonBy: .us),
+            .preview(twoSetsWonBy: .them),
+            .preview(pointsTo: 16),
+            .preview(pointsTo: 21, abandonedAfter: 9),
+            .previewClassicAbandoned,
+        ],
+        readable: true)
+
+    static let empty = PreviewMatchStore(history: [], readable: true)
+
+    static let unreadable = PreviewMatchStore(history: [], readable: false)
 
     func save(_ match: SavedMatch) throws {}
 
@@ -178,6 +389,12 @@ private struct PreviewMatchStore: MatchStore {
 
     func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
         AsyncThrowingStream { continuation in
+            guard readable else {
+                continuation.finish(throwing: CocoaError(.fileReadCorruptFile))
+
+                return
+            }
+
             continuation.yield(history)
             continuation.finish()
         }

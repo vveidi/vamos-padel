@@ -91,6 +91,17 @@ struct PluralFormsTests {
         #expect(reading.matches(Catalog.text("\(reading.number) games", in: reading.language)))
     }
 
+    /// How many matches the history holds, beside its title.
+    ///
+    /// From one, and not from zero: an empty history says so in a sentence and
+    /// never draws a count. The range runs past the last two boundaries
+    /// Russian has — 21 and 31 — because a season is the one number here that
+    /// nothing caps.
+    @Test("N matches", arguments: Reading.matches)
+    func matches(_ reading: Reading) {
+        #expect(reading.matches(Catalog.text("\(reading.number) matches", in: reading.language)))
+    }
+
     // MARK: The genitive after "до"
 
     /// The case the hand-written table needed a second function for, and the
@@ -187,6 +198,19 @@ extension Reading {
             + spread(
                 .ru, 2...3,
                 { "Матч до \($0) выигранных сетов. Сет — 6 геймов, на 6:6 тай-брейк." })
+
+    static let matches: [Reading] =
+        spread(.en, 1...1, { "\($0) match" })
+            + spread(.en, 2...40, { "\($0) matches" })
+            + spread(.ru, 1...1, { "\($0) матч" })
+            + spread(.ru, 2...4, { "\($0) матча" })
+            + spread(.ru, 5...20, { "\($0) матчей" })
+            + spread(.ru, 21...21, { "\($0) матч" })
+            + spread(.ru, 22...24, { "\($0) матча" })
+            + spread(.ru, 25...30, { "\($0) матчей" })
+            + spread(.ru, 31...31, { "\($0) матч" })
+            + spread(.ru, 32...34, { "\($0) матча" })
+            + spread(.ru, 35...40, { "\($0) матчей" })
 
     static let games: [Reading] =
         spread(.en, 0...0, { "\($0) games" })

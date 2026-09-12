@@ -525,16 +525,6 @@
         }
       }
     },
-    "Opponents" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Соперники"
-          }
-        }
-      }
-    },
     "Opponents serve" : {
       "localizations" : {
         "ru" : {
@@ -887,16 +877,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "не доигран"
-          }
-        }
-      }
-    },
-    "Us" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мы"
           }
         }
       }

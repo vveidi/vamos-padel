@@ -100,22 +100,10 @@ struct MatchRow: View {
         Text(state.finalScore.written)
             .textStyle(.tileScore)
             .monospacedDigit()
-            .foregroundStyle(Self.ink(state.outcome))
+            // The court's own ink, on a tile that is a half of it — the same
+            // three-way answer the match card's score is set in.
+            .foregroundStyle(Color.courtInk(state.outcome))
             .accessibilityLabel(Text(state.finalScore.spoken))
-    }
-
-    /// The ink the score is set in: the court's own, on a tile that is a half
-    /// of it.
-    ///
-    /// A won tile is turf and a lost one is glass, and text inside a half is
-    /// what ``PadelDesign/SwiftUI/Color/courtInk(_:)`` exists for. A match with
-    /// no winner is on `night` instead, where the ink is the weight this app
-    /// sets a title in — the same three-way answer the watch's outcome screen
-    /// gives.
-    private static func ink(_ outcome: MatchOutcome) -> Color {
-        guard let winner = outcome.winner else { return .ink.weight(.control) }
-
-        return .courtInk(winner)
     }
 
     /// The mark that has to be caught by the eye without reading the row.

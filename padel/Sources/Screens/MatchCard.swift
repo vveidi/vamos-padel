@@ -1,3 +1,4 @@
+import PadelDesign
 import PadelScoring
 import PadelStorage
 import SwiftUI
@@ -9,6 +10,12 @@ import SwiftUI
 /// that counted the match on the watch — that is what the journal is stored
 /// for instead of the final score (ADR-0001), and what the engine lives in a
 /// shared package for.
+///
+/// It is the tile it was opened from, opened out: the same `night` under the
+/// same light, and the summary standing on a ``PadelDesign/CourtTile`` of the
+/// same tint and the same radius. Nothing here is a `List` — the course of the
+/// score runs down the page as bands cut from the half that took each step,
+/// which is the same colour vocabulary the history's column is read by.
 struct MatchCard: View {
     let match: SavedMatch
 
@@ -19,13 +26,26 @@ struct MatchCard: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        List {
-            Section { summary }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                day
 
-            course
+                summary.padding(.top, Board.dayGap)
+
+                course.padding(.top, Board.courseGap)
+            }
+            .padding(.horizontal, Board.inset)
+            .padding(.bottom, Board.inset)
         }
-        .navigationTitle(match.day(in: locale))
-        .navigationBarTitleDisplayMode(.inline)
+        .background { ground }
+        // The court runs to the top of the screen and under the bar. What is
+        // left of the bar is the chevron — see ``day`` for why the day is not
+        // in it — and the chevron floats over whatever is scrolling past with
+        // nothing behind it, which is what the scrim is for.
+        .overlay(alignment: .top) {
+            NightScrim(edge: .top, depth: Board.barScrim).ignoresSafeArea(edges: .top)
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     /// The score and the outcome are asked of the engine every time rather
@@ -34,31 +54,67 @@ struct MatchCard: View {
     /// disagree with the journal.
     private var state: MatchState { match.match.state }
 
+    // MARK: When it was played
+
+    /// The day the match was played, drawn as content rather than as the
+    /// navigation bar's title.
+    ///
+    /// The bar keeps its chevron and loses everything else: a pushed screen
+    /// with no chevron has taken away the one way back every reader knows, and
+    /// a title in it would put this screen's one piece of information in the
+    /// system's type on a shelf over the court. It scrolls, unlike the
+    /// history's title — a date wraps to two lines at the largest settings,
+    /// and pinned it would hold a quarter of the screen for the whole reading.
+    private var day: some View {
+        Text(match.day(in: locale))
+            .textStyle(.display)
+            .foregroundStyle(.ink)
+    }
+
     // MARK: How it ended
 
+    /// The summary, on a tile of the outcome's tint — the same three tints the
+    /// history's column is read by, at the same radius, so that opening a tile
+    /// enlarges it rather than replacing it with a screen.
     private var summary: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(headline)
-                .font(.headline)
-                .foregroundStyle(state.outcome.winner == .us ? ourSideColor : Color.secondary)
+        CourtTile(outcome: state.outcome) {
+            VStack(alignment: .leading, spacing: Board.lineGap) {
+                Text(headline)
+                    .textStyle(.control)
+                    .foregroundStyle(headlineInk)
 
-            // Our side first, the same as in the history's row: the card is
-            // opened from that row, and a score that swapped sides on the way
-            // in would have to be read twice.
-            Text(state.finalScore.written)
-                .font(.system(size: 44, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .accessibilityLabel(Text(state.finalScore.spoken))
+                // Our side first, the same as in the history's row: the card is
+                // opened from that row, and a score that swapped sides on the
+                // way in would have to be read twice.
+                score
 
-            Text(match.match.ruleset.name)
-                .font(.subheadline)
+                Text(match.match.ruleset.name)
+                    .textStyle(.body)
+                    .foregroundStyle(.ink.weight(.secondary))
 
-            footnote
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                footnote
+                    .textStyle(.caption)
+                    .foregroundStyle(.ink.weight(.tertiary))
+            }
         }
-        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+    }
+
+    /// The final score at the size the app sets a score at.
+    ///
+    /// The ramp's largest entry, shrunk to whatever the tile's width leaves —
+    /// "2 : 1" gets all of it and "16 : 14" gets about three quarters, which is
+    /// still the largest thing on the card by a long way. The watch's outcome
+    /// screen fits its score the same way and for the same reason: the number
+    /// of digits is the match's to decide, not the screen's.
+    private var score: some View {
+        Text(state.finalScore.written)
+            .textStyle(.score)
+            .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.3)
+            .foregroundStyle(Color.courtInk(state.outcome))
+            .accessibilityLabel(Text(state.finalScore.spoken))
     }
 
     /// What the match was played by, when it started and how long it went on —
@@ -87,43 +143,63 @@ struct MatchCard: View {
         }
     }
 
-    // MARK: How it came about
-
-    private var course: some View {
-        sections(of: match.match.course)
+    /// The ink the sentence is set in: the accent on a win, and the app's own
+    /// ink on the two outcomes that are not one.
+    ///
+    /// The ball marks what is yours (ADR-0006), and a win is the one outcome
+    /// that is. What the tile is tinted with does not come into it — the line
+    /// is a label above the score, and it takes the weight the lines under it
+    /// take, not the half's ink the score itself is set in.
+    private var headlineInk: Color {
+        state.outcome.winner == .us ? .ball : .ink.weight(.strong)
     }
 
-    /// Handed the course rather than reading it again: it is a walk over the
-    /// journal, and every section asking for a copy of its own would be asking
-    /// the engine the same question five times over.
-    @ViewBuilder private func sections(of course: MatchCourse) -> some View {
+    // MARK: How it came about
+
+    /// The course of the score, read down the page.
+    ///
+    /// Handed the course once rather than reading it again per section: it is a
+    /// walk over the journal, and every set asking for a copy of its own would
+    /// be asking the engine the same question five times over.
+    @ViewBuilder private var course: some View {
+        let course = match.match.course
+
         if course.isEmpty {
-            Section("How it went") { nothingPlayed }
+            block(titled: "How it went") { nothingPlayed }
         } else {
             switch course {
             case .points(let steps):
-                Section("How it went") { ScoreStrip(steps: steps, step: .rally) }
+                block(titled: "How it went") { rallies(steps) }
 
             case .sets(let sets):
-                ForEach(Array(sets.enumerated()), id: \.offset) { number, set in
-                    Section {
-                        // A set stopped in before its first game has no games
-                        // to draw, and the line below is the whole of what
-                        // happened in it.
-                        if !set.games.isEmpty { ScoreStrip(steps: set.games, step: .game) }
-
-                        if let tieBreak = set.tieBreak { self.tieBreak(tieBreak) }
-
-                        // What was left unfinished belongs to the set it was
-                        // left in, and that is the last set of the course: a
-                        // set played in is part of it from its first rally,
-                        // whether or not a game in it was carried to its end.
-                        if number == sets.count - 1, wasStoppedMidGame { unfinishedGame }
-                    } header: {
-                        header(of: set, number: number + 1)
+                VStack(alignment: .leading, spacing: Board.blockGap) {
+                    ForEach(Array(sets.enumerated()), id: \.offset) { number, set in
+                        block(heading: heading(of: set, number: number + 1)) {
+                            games(of: set, isLast: number == sets.count - 1)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    /// A heading and whatever runs under it.
+    private func block<Content: View>(
+        titled title: LocalizedStringKey,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        block(heading: heading(title, score: nil), content: content)
+    }
+
+    /// The same, for a heading the caller has already built.
+    private func block<Content: View>(
+        heading: some View,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Board.headingGap) {
+            heading
+
+            content()
         }
     }
 
@@ -135,30 +211,191 @@ struct MatchCard: View {
     /// this is, is the ruleset's answer and not the count of the sets played:
     /// a match to two sets stopped inside its first one is still a match of
     /// two, and saying otherwise would hide the set it was stopped in.
-    private func header(of set: SetCourse, number: Int) -> some View {
+    private func heading(of set: SetCourse, number: Int) -> some View {
         let numbered = match.match.ruleset.isMultiSet
-        let title: LocalizedStringKey = numbered ? "Set \(number)" : "How it went"
 
-        return HStack {
+        return heading(
+            numbered ? "Set \(number)" : "How it went", score: numbered ? set.score : nil)
+    }
+
+    /// What a block of the course is called, with the score it ended on at the
+    /// trailing edge when there is one worth saying.
+    private func heading(_ title: LocalizedStringKey, score: SideCounts?) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Board.headingGap) {
             Text(title)
+                .foregroundStyle(.ink.weight(.secondary))
 
-            if numbered {
-                Spacer()
+            if let score {
+                Spacer(minLength: 0)
 
-                Text(set.score.written)
+                Text(score.written)
                     .monospacedDigit()
-                    .accessibilityLabel(Text(set.score.spoken))
+                    .foregroundStyle(.ink.weight(.strong))
+                    .accessibilityLabel(Text(score.spoken))
+            }
+        }
+        .textStyle(.control)
+    }
+
+    /// The games of a set, the tiebreak that decided it, and whatever was left
+    /// unfinished in it.
+    ///
+    /// - Parameter isLast: Whether this is the set the match was left standing
+    ///   in. What was left unfinished belongs to that set and no other: a set
+    ///   played in is part of the course from its first rally, whether or not a
+    ///   game in it was carried to its end.
+    private func games(of set: SetCourse, isLast: Bool) -> some View {
+        VStack(spacing: Board.stepGap) {
+            // A set stopped in before its first game has no games to draw, and
+            // the lines below are the whole of what happened in it.
+            ForEach(Array(set.games.enumerated()), id: \.offset) { number, game in
+                band(game, named: .game(number + 1))
+            }
+
+            if let tieBreak = set.tieBreak {
+                note("Tiebreak", written: tieBreak.written, spoken: tieBreak.spoken)
+            }
+
+            if isLast, wasStoppedMidGame {
+                note(unfinishedTitle, written: state.points.written, spoken: state.points.spoken)
             }
         }
     }
 
-    /// The tiebreak's points, which the set's own score hides: "7 : 6" says
-    /// that a tiebreak happened and nothing at all about how it went.
-    private func tieBreak(_ points: SideCounts) -> some View {
-        LabeledContent("Tiebreak", value: points.written)
-            .font(.subheadline)
+    /// Every rally of a match to N points, grouped into the runs one side
+    /// served.
+    ///
+    /// The gap between two runs is where the serve changed hands. It says
+    /// *when* and not *who*, which is what a gap can honestly say, and the
+    /// footnote above it has already given the number it counts by.
+    private func rallies(_ steps: [ScoreStep]) -> some View {
+        VStack(spacing: Board.runGap) {
+            ForEach(serveRuns(over: steps.count), id: \.lowerBound) { run in
+                VStack(spacing: Board.stepGap) {
+                    ForEach(run, id: \.self) { number in
+                        band(steps[number], named: .rally(number + 1))
+                    }
+                }
+            }
+        }
+    }
+
+    /// The rallies split at every change of serve.
+    private func serveRuns(over rallies: Int) -> [Range<Int>] {
+        // Classic scoring does not reach here — its steps are games, and a
+        // game is already one side's serve — so it takes the one undivided run
+        // rather than a number that would be a guess.
+        guard case .pointsTo(_, let serveChangesEvery) = match.match.ruleset else {
+            return rallies > 0 ? [0..<rallies] : []
+        }
+
+        // The floor is the engine's own: `PointsToReplay` counts the changes of
+        // serve by the same number and refuses a zero for the same reason.
+        let run = max(serveChangesEvery, 1)
+
+        return stride(from: 0, to: rallies, by: run).map { $0..<min($0 + run, rallies) }
+    }
+
+    /// One step of the course: what the score became, on the half that took it.
+    ///
+    /// The score after the step and not the name of whoever took it, because
+    /// the question the card is opened with is "was it close" — and a column of
+    /// names answers it only by being counted up in the reader's head. Who took
+    /// the step is the band's own colour, ours the turf and theirs the glass,
+    /// so a run of three is read off the page without reading a number; which
+    /// of the two numbers moved is the one left at full strength.
+    private func band(_ step: ScoreStep, named name: StepName) -> some View {
+        counts(step.score, taken: step.winner)
+            .textStyle(.control)
             .monospacedDigit()
-            .accessibilityLabel(Text("Tiebreak") + Text(verbatim: ": ") + Text(points.spoken))
+            .padding(.horizontal, Board.bandPadding)
+            .frame(maxWidth: .infinity, minHeight: Board.bandHeight, alignment: .leading)
+            .background(
+                Color.courtSurface(step.winner),
+                in: RoundedRectangle(cornerRadius: Board.bandRadius))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(name.spoken)
+            .accessibilityValue(
+                Text(step.score.spoken) + Text(verbatim: ", ") + won(by: step.winner))
+    }
+
+    /// The two numbers, ours first, with the one that just moved at full
+    /// strength.
+    private func counts(_ score: SideCounts, taken: Side) -> Text {
+        numeral(score[.us], lit: taken == .us, on: taken)
+            + Text(verbatim: " : ").foregroundStyle(Color.courtInk(taken).weight(.tertiary))
+            + numeral(score[.them], lit: taken == .them, on: taken)
+    }
+
+    /// One side's count, lit if it is the one that just moved.
+    ///
+    /// Verbatim: a numeral standing on its own is not a sentence, and a catalog
+    /// that carried a key of "%lld" would be carrying nothing.
+    private func numeral(_ count: Int, lit: Bool, on half: Side) -> Text {
+        Text(verbatim: "\(count)")
+            .foregroundStyle(Color.courtInk(half).weight(lit ? .primary : .secondary))
+    }
+
+    /// A line that is not a step of the course: the tiebreak's points, or where
+    /// inside a game the match was stopped.
+    ///
+    /// Neither of them is a half taking something, so neither stands on a half.
+    /// They are the surface the app puts a panel on, which is what keeps them
+    /// legible as asides to the column of bands above them.
+    ///
+    /// - Parameters:
+    ///   - written: The score as it is drawn. Handed in rather than taken as a
+    ///     value, because the two askers hold two types — a set's tiebreak is
+    ///     `SideCounts` and an unfinished game is `Points`, and the only thing
+    ///     they have in common is that the phone knows how to write both.
+    ///   - spoken: The same score for VoiceOver, where the order alone says
+    ///     nothing about whose number is whose.
+    private func note(_ title: LocalizedStringKey, written: String, spoken: LocalizedStringKey)
+        -> some View
+    {
+        HStack(alignment: .firstTextBaseline, spacing: Board.headingGap) {
+            Text(title)
+                .textStyle(.body)
+                .foregroundStyle(.ink.weight(.secondary))
+
+            Spacer(minLength: 0)
+
+            Text(written)
+                .textStyle(.control)
+                .monospacedDigit()
+                .foregroundStyle(.ink.weight(.strong))
+        }
+        .padding(.horizontal, Board.bandPadding)
+        .frame(maxWidth: .infinity, minHeight: Board.bandHeight, alignment: .leading)
+        .background(
+            .ink.weight(.surfaceQuiet), in: RoundedRectangle(cornerRadius: Board.bandRadius))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text(spoken))
+    }
+
+    /// Which step of the course a band is, for the only reader who is told:
+    /// on screen the bands are told apart by the heading they run under.
+    ///
+    /// A whole sentence per kind of step, because English puts the number after
+    /// the noun and there is no promise the next language will.
+    private enum StepName {
+        case game(Int)
+        case rally(Int)
+
+        var spoken: Text {
+            switch self {
+            case .game(let number): Text("Game \(number)")
+            case .rally(let number): Text("Rally \(number)")
+            }
+        }
+    }
+
+    /// Who took the step, as a clause and not as a name: "we won" and "the
+    /// opponents" cannot be told apart by a frame, because English puts the
+    /// side before the verb and Russian after it.
+    private func won(by side: Side) -> Text {
+        side == .us ? Text("we won") : Text("opponents won")
     }
 
     /// Where inside a game the match was stopped.
@@ -171,14 +408,6 @@ struct MatchCard: View {
     /// Nothing to say in a match played out to the end: its last rally closes
     /// a game, so no points are left over.
     private var wasStoppedMidGame: Bool { !state.points.isEmpty }
-
-    private var unfinishedGame: some View {
-        LabeledContent(unfinishedTitle, value: state.points.written)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .accessibilityLabel(
-                Text(unfinishedTitle) + Text(verbatim: ": ") + Text(state.points.spoken))
-    }
 
     /// What exactly was left unfinished.
     ///
@@ -195,133 +424,87 @@ struct MatchCard: View {
     }
 
     /// A match with an empty journal. It has no business on the phone — the
-    /// watch does not send one (ticket 10) — but a card that drew a blank
-    /// section instead of saying so would hide the arrival of one.
+    /// watch does not send one — but a card that drew a blank block instead of
+    /// saying so would hide the arrival of one.
     private var nothingPlayed: some View {
         Text("No rallies played")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            .textStyle(.body)
+            .foregroundStyle(.ink.weight(.secondary))
+    }
+
+    // MARK: The ground
+
+    /// `night` with the history's light in the same corner, so that the card
+    /// reads as the tile it was opened from rather than as somewhere else.
+    private var ground: some View {
+        Color.night
+            .overlay { Floodlight(corner: .topTrailing, strength: Board.floodlight) }
+            .ignoresSafeArea()
     }
 }
 
-/// Our side's color — the one the watch marks our half of the score screen
-/// with. The score screen owns that decision on the watch and this file owns it
-/// here: two targets with no shared home for a color, and the same meaning on
-/// both.
-private let ourSideColor = Color(red: 0.188, green: 0.820, blue: 0.345)
-
-/// The fills of a step that was won. Our side is named by the color it is
-/// named by everywhere else; the opponents get no color of their own — being
-/// filled at all is what says they took the step.
-private let ourSideFill = ourSideColor.opacity(0.3)
-
-private let theirSideFill = Color.secondary.opacity(0.18)
-
-/// The course of the score as a scoreboard: a column per step, our row above
-/// the opponents'.
+/// The card's own spacing. This screen has no board (the spec's "What is in,
+/// and what is not"), so the page's numbers are the history board's — the
+/// screen it is opened from — and the bands' are its tiles' brought down to the
+/// size of a line.
 ///
-/// The score after every step and not the winner of it, because the question
-/// the card is opened with is "was it close" — and a row of names of winners
-/// answers it only by being counted up in the reader's head. The step just
-/// taken is the one filled in, so the alternation can be read off without
-/// reading a single number.
-private struct ScoreStrip: View {
-    let steps: [ScoreStep]
+/// What the tile, the light and the type are drawn out of comes from
+/// `PadelDesign`, and none of it is here.
+private enum Board {
+    /// Left and right of the page, and under the last band. The history
+    /// board's.
+    static let inset: CGFloat = 20
 
-    /// What one step is called here — a game or a rally. Only VoiceOver ever
-    /// hears it: on screen the columns are told apart by the set they stand
-    /// under.
+    /// Between the day and the summary — the history board's gap between its
+    /// title and its first tile.
+    static let dayGap: CGFloat = 22
+
+    /// Between the summary and the first heading of the course. The page's one
+    /// real break, with how it ended above and how it came about below.
+    static let courseGap: CGFloat = 28
+
+    /// Between one set's block and the next.
+    static let blockGap: CGFloat = 22
+
+    /// Between a heading and what runs under it, and between the two halves of
+    /// a heading.
+    static let headingGap: CGFloat = 10
+
+    /// Between the lines of the summary.
+    static let lineGap: CGFloat = 6
+
+    /// Between one step of the course and the next. Small enough that a run of
+    /// bands reads as a run rather than as a list of cards.
+    static let stepGap: CGFloat = 3
+
+    /// Between two runs of serve — a break wide enough to be seen in a column
+    /// of `stepGap`, and no wider.
+    static let runGap: CGFloat = 12
+
+    /// A band's height, and a minimum like every height in the app: turn
+    /// Dynamic Type up and the score inside it grows past this.
+    static let bandHeight: CGFloat = 34
+
+    /// Left and right of what a band holds.
+    static let bandPadding: CGFloat = 14
+
+    /// A band's corner. The history tile's 24 is a radius for something the
+    /// size of a card; at a band's height it would be a capsule.
+    static let bandRadius: CGFloat = 10
+
+    /// How much light the corner spends. The history board's 0.13, because it
+    /// is the same lamp.
+    static let floodlight: Double = 0.13
+
+    /// How far the night under the bar reaches, measured from the top of the
+    /// screen: a tall phone's status bar and the bar under it, and no further.
     ///
-    /// Which of the two, rather than the word for it: the word and the number
-    /// after it are one sentence in the catalog, and a noun handed in to be
-    /// dropped into a frame is the thing the two languages disagree about.
-    let step: Step
-
-    enum Step {
-        case game
-        case rally
-    }
-
-    /// The cells grow with the reader's type size instead of clipping the
-    /// digits inside them. A set then stops fitting the width at some point
-    /// and starts scrolling, which is the same thing a long match does anyway.
-    @ScaledMetric(relativeTo: .caption) private var height: CGFloat = 22
-
-    @ScaledMetric(relativeTo: .caption) private var width: CGFloat = 18
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: Self.spacing) {
-                side("Us")
-                side("Opponents")
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-
-            // The columns are sized so that the longest set there is — six
-            // games each and a tiebreak, thirteen columns — fits the width
-            // without scrolling. A match to twenty-one points does not fit and
-            // scrolls, and cutting it short instead would lose exactly the end
-            // everyone reads first.
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Self.spacing) {
-                    ForEach(Array(steps.enumerated()), id: \.offset) { number, step in
-                        column(step, number: number + 1)
-                    }
-                }
-            }
-            .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
-        }
-        .padding(.vertical, 2)
-    }
-
-    private func side(_ name: LocalizedStringKey) -> some View {
-        Text(name)
-            .frame(height: height, alignment: .leading)
-    }
-
-    private func column(_ step: ScoreStep, number: Int) -> some View {
-        VStack(spacing: Self.spacing) {
-            cell(step.score[.us], won: step.winner == .us, isOurs: true)
-            cell(step.score[.them], won: step.winner == .them, isOurs: false)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(name(of: number))
-        .accessibilityValue(Text(step.score.spoken) + Text(verbatim: ", ") + won(by: step.winner))
-    }
-
-    /// Which step of the course this column is — a whole sentence per kind of
-    /// step, because English puts the number after the noun and there is no
-    /// promise the next language will.
-    private func name(of number: Int) -> Text {
-        switch step {
-        case .game: Text("Game \(number)")
-        case .rally: Text("Rally \(number)")
-        }
-    }
-
-    /// Who took the step, as a clause and not as a name: "we won" and "the
-    /// opponents" cannot be told apart by a frame, because English puts the
-    /// side before the verb and Russian after it.
-    private func won(by side: Side) -> Text {
-        side == .us ? Text("we won") : Text("opponents won")
-    }
-
-    private func cell(_ score: Int, won: Bool, isOurs: Bool) -> some View {
-        // Verbatim: a numeral standing on its own is not a sentence, and a
-        // catalog that carried a key of "%lld" would be carrying nothing.
-        Text(verbatim: "\(score)")
-            .font(.caption.weight(won ? .semibold : .regular))
-            .monospacedDigit()
-            .foregroundStyle(won ? .primary : .secondary)
-            .frame(minWidth: width, minHeight: height)
-            .background(
-                won ? (isOurs ? ourSideFill : theirSideFill) : .clear,
-                in: RoundedRectangle(cornerRadius: 5))
-    }
-
-    private static let spacing: CGFloat = 2
+    /// Short of ``PadelDesign/NightScrim/depth``, which is drawn for a 64pt
+    /// button standing over a court. What has to stay legible here is a
+    /// chevron in a bar, and a fade carrying on past it would be dimming the
+    /// card rather than the bar — which at the largest type settings is where
+    /// the day itself is standing.
+    static let barScrim: CGFloat = 104
 }
 
 #if DEBUG
@@ -341,7 +524,17 @@ private func card(_ match: SavedMatch) -> some View {
 /// one set and two, a match to N points, the three ways a match is left
 /// unfinished, and a journal with nothing in it at all.
 private func cardInRussian(_ match: SavedMatch) -> some View {
-    card(match).environment(\.locale, Locale(identifier: "ru"))
+    inRussian(card(match))
+}
+
+private func inRussian(_ view: some View) -> some View {
+    view.environment(\.locale, Locale(identifier: "ru"))
+}
+
+/// The largest of the twelve Dynamic Type settings, which is where the score
+/// shrinks to fit the tile and a heading's two halves stop fitting one line.
+private func atLargestType(_ view: some View) -> some View {
+    view.environment(\.dynamicTypeSize, .accessibility5)
 }
 
 #Preview("A win") { card(.preview(classicWonBy: .us)) }
@@ -385,5 +578,17 @@ private func cardInRussian(_ match: SavedMatch) -> some View {
 #Preview("Nothing played") { card(.previewNothingPlayed) }
 
 #Preview("In Russian: nothing played") { cardInRussian(.previewNothingPlayed) }
+
+/// The far end of the type range, on the two cards it is hardest on: the score
+/// with the most digits, and the longest heading in the longer language.
+#Preview("At the largest type") { atLargestType(card(.preview(pointsTo: 16))) }
+
+#Preview("In Russian, at the largest type") {
+    atLargestType(cardInRussian(.preview(twoSetsWonBy: .us)))
+}
+
+#Preview("In Russian, at the largest type: stopped early") {
+    atLargestType(cardInRussian(.previewAbandonedInTieBreak))
+}
 
 #endif

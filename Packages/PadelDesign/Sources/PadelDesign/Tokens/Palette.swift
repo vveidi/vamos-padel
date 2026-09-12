@@ -274,8 +274,11 @@ extension ShapeStyle where Self == Color {
     /// See ``SwiftUI/Color/courtSurface(_:)``.
     public static func courtSurface(_ side: Side) -> Color { Color.courtSurface(side) }
 
-    /// See ``SwiftUI/Color/courtInk(_:)``.
+    /// See ``SwiftUI/Color/courtInk(_:)-(Side)``.
     public static func courtInk(_ side: Side) -> Color { Color.courtInk(side) }
+
+    /// See ``SwiftUI/Color/courtInk(_:)-(MatchOutcome)``.
+    public static func courtInk(_ outcome: MatchOutcome) -> Color { Color.courtInk(outcome) }
 
     /// See ``SwiftUI/Color/courtLine(_:on:)``.
     public static func courtLine(_ line: CourtLine, on side: Side) -> Color {

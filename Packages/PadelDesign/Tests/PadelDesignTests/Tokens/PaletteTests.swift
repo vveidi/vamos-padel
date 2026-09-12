@@ -116,6 +116,23 @@ struct PaletteTests {
         #expect(Self.resolved(.courtWeave(on: .us)) != Self.resolved(.courtWeave(on: .them)))
     }
 
+    /// The ink that goes with a ``CourtTile``'s tint. The tile draws a won
+    /// match on turf and a lost one on glass, so the ink has to be that half's
+    /// and not one answer for both; a match that finished on neither half is
+    /// on `night`, and takes the ink the app sets a title in.
+    @Test("A tile's ink follows the half its tint came from")
+    func theOutcomesInkFollowsTheTint() {
+        #expect(Self.resolved(.courtInk(.finished(winner: .us))) == Self.resolved(.courtInk(.us)))
+        #expect(
+            Self.resolved(.courtInk(.finished(winner: .them))) == Self.resolved(.courtInk(.them)))
+
+        for outcome in [MatchOutcome.abandoned, .inProgress] {
+            #expect(
+                Self.resolved(.courtInk(outcome)) == Self.resolved(.ink.weight(.control)),
+                "\(outcome) stands on night and does not take a half's ink")
+        }
+    }
+
     @Test(
         "The service line is read first and the outline last",
         arguments: Side.allCases)

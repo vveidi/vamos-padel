@@ -25,11 +25,13 @@ public enum CourtLine: Sendable, CaseIterable {
 /// color that gets redrawn slightly differently the second time. Ticket 02
 /// owns the geometry; this file owns what the geometry is painted in.
 ///
-/// All four take a ``PadelScoring/Side`` because the two halves are not one
+/// They take a ``PadelScoring/Side`` because the two halves are not one
 /// surface tinted twice — they are cool glass and warm turf, and their lines,
 /// their ink and their weave all differ. Taking the domain's `Side` rather
 /// than inventing a local `CourtSide` is ADR-0006's decision: `CONTEXT.md`
-/// has already named this thing and already listed what not to call it.
+/// has already named this thing and already listed what not to call it. The
+/// one that takes a ``PadelScoring/MatchOutcome`` instead is the tile's, and
+/// answers the same way ``CourtTile`` picks its tint.
 extension Color {
     /// The surface of a half: glass blue for theirs, turf green for ours.
     public static func courtSurface(_ side: Side) -> Color {
@@ -46,6 +48,23 @@ extension Color {
         case .them: .inkTheirHalf
         case .us: .inkOurHalf
         }
+    }
+
+    /// The ink for text standing on a tile tinted by a match's outcome.
+    ///
+    /// ``CourtTile`` takes the same ``PadelScoring/MatchOutcome`` to choose the
+    /// tint, and this is the other half of that answer: a won tile is turf and
+    /// a lost one is glass, so the ink on it is that half's. A match that
+    /// finished on neither half stands on `night`, where the ink is the weight
+    /// this app sets a title in.
+    ///
+    /// Here rather than at a call site because two screens read a match off a
+    /// tile — the history's row and the match card — and an answer written in
+    /// both is an answer that drifts in one.
+    public static func courtInk(_ outcome: MatchOutcome) -> Color {
+        guard let winner = outcome.winner else { return .ink.weight(.control) }
+
+        return courtInk(winner)
     }
 
     /// A painted line on a half.

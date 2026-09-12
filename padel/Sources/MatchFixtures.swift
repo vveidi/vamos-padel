@@ -26,7 +26,7 @@ extension SavedMatch {
                 rallyWonBy: winner, at: start.addingTimeInterval(TimeInterval(played) * 60))
         }
 
-        if abandoned { saved.match.abandon() }
+        if abandoned { saved.abandon() }
 
         return saved
     }

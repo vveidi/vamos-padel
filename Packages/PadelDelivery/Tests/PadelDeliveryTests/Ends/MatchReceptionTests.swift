@@ -46,7 +46,7 @@ struct MatchReceptionTests {
         _ = MatchReception(store: store, receiver: transport)
         transport.deliver(saved)
 
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
         transport.deliver(saved)

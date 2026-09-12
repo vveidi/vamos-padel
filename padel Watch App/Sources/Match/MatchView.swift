@@ -109,7 +109,7 @@ struct MatchView: View {
     }
 
     private func undo() {
-        saved.match.undo()
+        saved.undo(at: .now)
 
         persist()
     }
@@ -121,7 +121,7 @@ struct MatchView: View {
     /// The confirmation is asked for by the control page, not by this method:
     /// what arrives here is already decided.
     private func abandon() {
-        saved.match.abandon()
+        saved.abandon()
 
         persist()
     }

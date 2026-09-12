@@ -84,8 +84,8 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .us, .them, .them])
         try store.save(saved)
 
-        saved.match.undo()
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
+        saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
 
         #expect(try store.matchInProgress()?.match.journal.rallies == [Rally(wonBy: .us), Rally(wonBy: .us)])
@@ -102,8 +102,8 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .them])
 
         try store.save(saved)
-        saved.match.undo()
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
+        saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
 
         #expect(try store.matchInProgress()?.match.journal.isEmpty == true)
@@ -192,7 +192,7 @@ struct MatchStoreTests {
 
         #expect(try store.matchInProgress() == saved)
 
-        saved.match.abandon()
+        saved.abandon()
         try store.save(saved)
 
         #expect(saved.match.state.outcome == .abandoned)
@@ -208,7 +208,7 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .them, .us])
         try store.save(saved)
 
-        saved.match.abandon()
+        saved.abandon()
         try store.save(saved)
 
         let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
@@ -237,7 +237,7 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .them, .us, .us], ruleset: ruleset)
         try store.save(saved)
 
-        saved.match.abandon()
+        saved.abandon()
         try store.save(saved)
 
         let restored = try #require(try store.match(id: saved.id))
@@ -416,8 +416,8 @@ struct MatchStoreTests {
         var saved = SavedMatch.played([.us, .us, .us])
         try store.save(saved)
 
-        saved.match.undo()
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
+        saved.undo(at: aMoment.addingTimeInterval(30))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
 
@@ -456,7 +456,7 @@ struct MatchStoreTests {
     func anAbandonedMatchAwaitsDelivery() throws {
         let store = try SQLiteMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them])
-        saved.match.abandon()
+        saved.abandon()
 
         try store.save(saved)
 
@@ -485,7 +485,7 @@ struct MatchStoreTests {
         try store.save(saved)
         try store.markDelivered(saved)
 
-        saved.match.abandon()
+        saved.abandon()
         try store.save(saved)
 
         #expect(try store.matchesAwaitingDelivery() == [saved])
@@ -498,7 +498,7 @@ struct MatchStoreTests {
     func aMatchWithoutRalliesAwaitsNothing() throws {
         let store = try SQLiteMatchStore.inMemory()
         var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
-        empty.match.abandon()
+        empty.abandon()
 
         try store.save(empty)
 
@@ -517,7 +517,7 @@ struct MatchStoreTests {
         try store.save(saved)
 
         let delivered = saved
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
         try store.save(saved)

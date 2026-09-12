@@ -16,12 +16,17 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
     /// (ticket 10).
     public let id: UUID
 
-    public var match: Match
+    /// The match itself.
+    ///
+    /// Mutated only through this type, so that every change to the journal
+    /// keeps the two moments below true.
+    public private(set) var match: Match
 
     /// The moment of the first rally.
     public var startedAt: Date
 
-    /// The moment of the last rally.
+    /// The moment the match was last played to: the last rally, or the undo
+    /// that took one back.
     public var lastRallyAt: Date
 
     /// How long the match lasted.
@@ -29,7 +34,7 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
     /// Computed from the two moments rather than stored as a third number, for
     /// the same reason the score is not stored (ADR-0001): a value somebody has
     /// to keep up to date will one day be forgotten. The end of the match here
-    /// is the last rally, not "now": a match cut short by a dead battery lasted
+    /// is its last play, not "now": a match cut short by a dead battery lasted
     /// until its last point, not until the moment it was opened again.
     public var duration: TimeInterval { lastRallyAt.timeIntervalSince(startedAt) }
 
@@ -65,5 +70,29 @@ extension SavedMatch {
 
         if journalBefore.isEmpty { startedAt = moment }
         lastRallyAt = moment
+    }
+
+    /// Takes the last rally back and ends the match at the undo.
+    ///
+    /// At the undo, and not at the rally now last: rallies carry no time
+    /// (ADR-0001), so that moment is written down nowhere. An undo the engine
+    /// refuses — an abandoned match, an empty journal — moves neither moment,
+    /// and emptying the journal returns the match to zero duration.
+    public mutating func undo(at moment: Date) {
+        let journalBefore = match.journal
+
+        match.undo()
+
+        guard match.journal != journalBefore else { return }
+
+        lastRallyAt = match.journal.isEmpty ? startedAt : moment
+    }
+
+    /// Stops the match early, leaving both moments where they are.
+    ///
+    /// Stopping appends no rally: the match lasted until its last point, not
+    /// until the moment it was stopped.
+    public mutating func abandon() {
+        match.abandon()
     }
 }

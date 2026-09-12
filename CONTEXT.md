@@ -99,7 +99,10 @@ _Avoid_: dropped, canceled, interrupted
 The time from the first rally to the last. Counted neither from the app
 launching — between "opened it on court" and "served" there is a warm-up — nor
 up to "now": a match cut short by a dead battery lasted until its last point,
-not until the moment it was opened again.
+not until the moment it was opened again. A taken-back rally ends the match at
+the undo instead — rallies carry no time, so the moment of the rally now last
+is not written down anywhere; undoing the last one left returns the match to no
+duration at all.
 _Avoid_: match time, length of play
 
 **Match state**:

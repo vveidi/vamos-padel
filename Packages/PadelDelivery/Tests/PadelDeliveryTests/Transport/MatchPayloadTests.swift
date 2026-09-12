@@ -37,7 +37,7 @@ struct MatchPayloadTests {
     @Test("An abandoned match arrives abandoned")
     func anAbandonedMatchArrivesAbandoned() throws {
         var saved = SavedMatch.played([.us, .them])
-        saved.match.abandon()
+        saved.abandon()
 
         guard case .match(let arrived) = try MatchPayload.decode(MatchPayload.encode(.match(saved)))
         else {

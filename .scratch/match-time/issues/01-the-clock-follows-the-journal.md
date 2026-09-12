@@ -14,16 +14,16 @@ remember it. See the spec for why rallies are not given dates.
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `SavedMatch.undo(at:)` exists and moves `lastRallyAt` to the moment of the undo
-- [ ] Undoing the last remaining rally returns the match to zero duration, so a journal with nothing in it never reports time
-- [ ] An undo the engine refuses — an abandoned match, an empty journal — leaves the saved match exactly as it was, both moments included
-- [ ] `SavedMatch.abandon()` exists and moves neither moment
-- [ ] `SavedMatch.match` is `private(set)`, and nothing outside the type mutates the match
-- [ ] The three call sites are converted: `MatchView.swift` undo and abandon, and `MatchFixtures.swift` abandon
-- [ ] `CONTEXT.md`'s **Match duration** entry says what a taken-back rally does to the end of a match
-- [ ] The five cases below are in `SavedMatchTests`, and the package suite is green
+- [x] `SavedMatch.undo(at:)` exists and moves `lastRallyAt` to the moment of the undo
+- [x] Undoing the last remaining rally returns the match to zero duration, so a journal with nothing in it never reports time
+- [x] An undo the engine refuses — an abandoned match, an empty journal — leaves the saved match exactly as it was, both moments included
+- [x] `SavedMatch.abandon()` exists and moves neither moment
+- [x] `SavedMatch.match` is `private(set)`, and nothing outside the type mutates the match
+- [x] The three call sites are converted: `MatchView.swift` undo and abandon, and `MatchFixtures.swift` abandon
+- [x] `CONTEXT.md`'s **Match duration** entry says what a taken-back rally does to the end of a match
+- [x] The five cases below are in `SavedMatchTests`, and the package suite is green
 
 ## The rule
 
@@ -75,3 +75,49 @@ durations in `SavedMatchTests` and in `MatchFixtures.preview` assertable at all.
 **On what is not here.** `Match.record(rallyWonBy:)` still returns `Void`, so
 `SavedMatch.record` still copies the journal to learn whether the engine took
 the rally. That is ticket 02 and this ticket does not wait for it.
+
+## Comments
+
+**Done.** The rule went in as written, and the seam closed harder than the
+ticket's three call sites suggested.
+
+- **`private(set)` costs more than three call sites.** The ticket counts the
+  three in the apps, and those are the three that matter. But `private(set)`
+  is not lifted by `@testable`, so ten more in `MatchStoreTests`,
+  `MatchDeliveryTests`, `MatchReceptionTests` and `MatchPayloadTests` stopped
+  compiling as well. All ten are mechanical — `saved.match.abandon()` becomes
+  `saved.abandon()`, `saved.match.undo()` becomes `saved.undo(at:)` — and went
+  through two `ast-grep` rules rather than by hand. The undos there are all
+  followed by a replay to a later moment, so none of them asserts on a
+  duration the new clock would change.
+- **Driven on the watch, and read back out of the database.** A match played
+  to three rallies, undone to two, to one, to none: the row came back with
+  `startedAt == lastRallyAt` and no rallies — the zero-duration case the
+  ticket exists for. A fourth undo on the empty journal changed nothing. Two
+  fresh rallies, then stopping 38 seconds after the second: `lastRallyAt`
+  stayed on the rally, not on the stop. And a set played out 6:0 and then
+  undone from the outcome screen moved `lastRallyAt` 23 seconds forward, onto
+  the undo, bringing the match back into play at 40, 5 games.
+- **The doc comments above the field had to move with it.** `lastRallyAt` said
+  "the moment of the last rally" and `duration` said the end of the match "is
+  the last rally" — both false the moment an undo can write into that field.
+  They now say "the last play", and `lastRallyAt` names the undo as the other
+  thing it can hold. `CONTEXT.md` was already in the ticket; these two were
+  the same sentence in a third place.
+
+**Left for the owner.** Two judgment calls the review raised and this ticket
+did not settle:
+
+- **`lastRallyAt` is now a slightly wrong name** — after an undo it holds no
+  rally's moment. Renaming it reaches the column in `match`, the payload and
+  the store, so it is not a rename to slip into this ticket.
+- **`record` and `undo(at:)` are the same four lines twice** — snapshot the
+  journal, mutate, compare, move the clock. Ticket 02 changes `record`'s half
+  of that shape, so any extraction is better judged after it.
+
+**Found while driving, not fixed here.** `SQLiteMatchStore.save` treats
+`startedAt` as immutable on update — "set on the first rally and immutable
+after that". That is no longer true of a match whose journal is emptied and
+then played again: `SavedMatch` moves `startedAt` to the new first rally, the
+row keeps the old one, and the stored match reports a start earlier than its
+first rally. The divergence predates this ticket and is not in its criteria.

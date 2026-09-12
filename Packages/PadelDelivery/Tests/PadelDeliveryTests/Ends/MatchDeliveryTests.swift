@@ -34,7 +34,7 @@ struct MatchDeliveryTests {
             firstServer: .them)
 
         var abandoned = saved
-        abandoned.match.abandon()
+        abandoned.abandon()
 
         try store.save(abandoned)
         MatchDelivery(queue: store, sender: transport).deliverPending()
@@ -149,7 +149,7 @@ struct MatchDeliveryTests {
 
         // The last point was a mistake: it is undone, and the match is played
         // out again.
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
@@ -178,7 +178,7 @@ struct MatchDeliveryTests {
 
         // While the receipt was traveling, the last point was undone and the
         // match played out again.
-        saved.match.undo()
+        saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90))
@@ -201,7 +201,7 @@ struct MatchDeliveryTests {
         let transport = FakeTransport()
 
         var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
-        empty.match.abandon()
+        empty.abandon()
 
         try store.save(empty)
         MatchDelivery(queue: store, sender: transport).deliverPending()

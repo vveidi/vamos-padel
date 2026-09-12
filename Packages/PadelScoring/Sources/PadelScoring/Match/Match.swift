@@ -64,10 +64,16 @@ public struct Match: Equatable, Sendable {
     /// rally must neither change the score nor push undo (ticket 05) further
     /// away by extra presses. A match stopped early is the same case: play in
     /// it has ended, even though there is no winner.
-    public mutating func record(rallyWonBy side: Side) {
-        guard !state.outcome.isOver else { return }
+    ///
+    /// - Returns: `true` if the rally went into the journal, `false` if play
+    ///   had already ended and nothing changed.
+    @discardableResult
+    public mutating func record(rallyWonBy side: Side) -> Bool {
+        guard !state.outcome.isOver else { return false }
 
         journal.append(wonBy: side)
+
+        return true
     }
 
     /// Undoes the last rally.
@@ -86,10 +92,14 @@ public struct Match: Equatable, Sendable {
     /// Stopping is guarded against a stray tap by a confirmation, not by undo.
     ///
     /// Does nothing on an empty journal.
-    public mutating func undo() {
-        guard !isAbandoned else { return }
+    ///
+    /// - Returns: `true` if a rally came off the journal, `false` if the match
+    ///   was abandoned or had no rallies to take back.
+    @discardableResult
+    public mutating func undo() -> Bool {
+        guard !isAbandoned else { return false }
 
-        journal.removeLast()
+        return journal.removeLast() != nil
     }
 
     /// Stops the match early: the court time ran out, it started raining,

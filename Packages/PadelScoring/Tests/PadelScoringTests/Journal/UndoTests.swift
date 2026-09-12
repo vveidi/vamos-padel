@@ -181,6 +181,25 @@ struct UndoTests {
         match.record(rallyWonBy: .them)
         #expect(match.state.points.label(for: .them) == "15")
     }
+
+    @Test("Undo reports whether it took a rally back")
+    func undoReportsWhetherItTookARallyBack() {
+        var match = Match(ruleset: .defaultClassic)
+        let onAnEmptyJournal = match.undo()
+
+        match.record(rallyWonBy: .us)
+        let onTheOneRally = match.undo()
+        let onTheEmptyJournalAgain = match.undo()
+
+        match.record(rallyWonBy: .us)
+        match.abandon()
+        let onAnAbandonedMatch = match.undo()
+
+        #expect(onAnEmptyJournal == false)
+        #expect(onTheOneRally)
+        #expect(onTheEmptyJournalAgain == false)
+        #expect(onAnAbandonedMatch == false)
+    }
 }
 
 // MARK: - Building journals

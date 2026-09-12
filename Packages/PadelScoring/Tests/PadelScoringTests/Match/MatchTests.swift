@@ -36,6 +36,26 @@ struct MatchTests {
         #expect(match.state.outcome == .finished(winner: .us))
     }
 
+    @Test("Recording reports whether the rally was taken")
+    func recordingReportsWhetherTheRallyWasTaken() {
+        var match = Match(ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
+
+        let first = match.record(rallyWonBy: .us)
+        let winning = match.record(rallyWonBy: .us)
+        let afterTheEnd = match.record(rallyWonBy: .us)
+
+        #expect(first)
+        #expect(winning)
+        #expect(afterTheEnd == false)
+
+        var abandoned = Match(ruleset: .defaultPointsTo)
+        abandoned.record(rallyWonBy: .us)
+        abandoned.abandon()
+        let afterStopping = abandoned.record(rallyWonBy: .us)
+
+        #expect(afterStopping == false)
+    }
+
     @Test("A match stopped early is marked abandoned")
     func abandoningMarksTheMatchUnfinished() {
         var match = Match(ruleset: .defaultPointsTo)

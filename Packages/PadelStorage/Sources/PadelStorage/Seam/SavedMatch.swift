@@ -62,13 +62,11 @@ extension SavedMatch {
     /// move the time either: otherwise a tap out of habit would lengthen a
     /// finished match.
     public mutating func record(rallyWonBy side: Side, at moment: Date) {
-        let journalBefore = match.journal
+        let wasFirstRally = match.journal.isEmpty
 
-        match.record(rallyWonBy: side)
+        guard match.record(rallyWonBy: side) else { return }
 
-        guard match.journal != journalBefore else { return }
-
-        if journalBefore.isEmpty { startedAt = moment }
+        if wasFirstRally { startedAt = moment }
         lastRallyAt = moment
     }
 
@@ -79,11 +77,7 @@ extension SavedMatch {
     /// refuses — an abandoned match, an empty journal — moves neither moment,
     /// and emptying the journal returns the match to zero duration.
     public mutating func undo(at moment: Date) {
-        let journalBefore = match.journal
-
-        match.undo()
-
-        guard match.journal != journalBefore else { return }
+        guard match.undo() else { return }
 
         lastRallyAt = match.journal.isEmpty ? startedAt : moment
     }

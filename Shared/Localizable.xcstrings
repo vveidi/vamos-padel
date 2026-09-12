@@ -819,6 +819,16 @@
         }
       }
     },
+    "Undo the rally" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить розыгрыш"
+          }
+        }
+      }
+    },
     "unfinished" : {
       "localizations" : {
         "ru" : {

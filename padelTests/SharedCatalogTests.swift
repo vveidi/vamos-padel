@@ -32,12 +32,20 @@ struct SharedCatalogTests {
         #expect(Catalog.text("Serve changes every", in: .en) == "Serve changes every")
     }
 
-    /// A VoiceOver action on two of the watch's screens, and a second key from
-    /// a different file: one shared key could be an accident of a single
+    /// A VoiceOver action on the watch's score screen, and a second key from a
+    /// different file: one shared key could be an accident of a single
     /// sentence, two are the file.
-    @Test("The watch's undo action is in the phone's bundle")
+    ///
+    /// The outcome screen says the shorter of the two on a button rather than
+    /// in an action — three lines of Russian is taller than the button it
+    /// stands under. Both are pinned, because a sentence that lost the word
+    /// they differ by would leave the app saying the same thing twice and
+    /// nothing would notice.
+    @Test("The watch's undo is in the phone's bundle, in both its lengths")
     func theWatchsUndoAction() {
         #expect(Catalog.text("Undo the last rally", in: .ru) == "Отменить последний розыгрыш")
+        #expect(Catalog.text("Undo the rally", in: .en) == "Undo the rally")
+        #expect(Catalog.text("Undo the rally", in: .ru) == "Отменить розыгрыш")
     }
 
     /// The half the serve comes from, as VoiceOver says it on the score

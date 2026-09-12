@@ -28,9 +28,7 @@ struct MatchCard: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                day
-
-                summary.padding(.top, Board.dayGap)
+                summary.padding(.top, Board.titleGap)
 
                 course.padding(.top, Board.courseGap)
             }
@@ -38,14 +36,7 @@ struct MatchCard: View {
             .padding(.bottom, Board.inset)
         }
         .background { ground }
-        // The court runs to the top of the screen and under the bar. What is
-        // left of the bar is the chevron — see ``day`` for why the day is not
-        // in it — and the chevron floats over whatever is scrolling past with
-        // nothing behind it, which is what the scrim is for.
-        .overlay(alignment: .top) {
-            NightScrim(edge: .top, depth: Board.barScrim).ignoresSafeArea(edges: .top)
-        }
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationTitle(day)
     }
 
     /// The score and the outcome are asked of the engine every time rather
@@ -56,20 +47,12 @@ struct MatchCard: View {
 
     // MARK: When it was played
 
-    /// The day the match was played, drawn as content rather than as the
-    /// navigation bar's title.
+    /// The day the match was played, which is the card's title.
     ///
-    /// The bar keeps its chevron and loses everything else: a pushed screen
-    /// with no chevron has taken away the one way back every reader knows, and
-    /// a title in it would put this screen's one piece of information in the
-    /// system's type on a shelf over the court. It scrolls, unlike the
-    /// history's title — a date wraps to two lines at the largest settings,
-    /// and pinned it would hold a quarter of the screen for the whole reading.
-    private var day: some View {
-        Text(match.day(in: locale))
-            .textStyle(.display)
-            .foregroundStyle(.ink)
-    }
+    /// A large title like the history's, so it scrolls away rather than
+    /// holding a quarter of the screen for the whole reading — a date is long
+    /// enough in Russian to need the room back.
+    private var day: String { match.day(in: locale) }
 
     // MARK: How it ended
 
@@ -455,9 +438,9 @@ private enum Board {
     /// board's.
     static let inset: CGFloat = 20
 
-    /// Between the day and the summary — the history board's gap between its
-    /// title and its first tile.
-    static let dayGap: CGFloat = 22
+    /// Between the navigation bar and the summary. The history's own gap under
+    /// its title, because the two screens carry the same bar.
+    static let titleGap: CGFloat = 8
 
     /// Between the summary and the first heading of the course. The page's one
     /// real break, with how it ended above and how it came about below.
@@ -495,16 +478,6 @@ private enum Board {
     /// How much light the corner spends. The history board's 0.13, because it
     /// is the same lamp.
     static let floodlight: Double = 0.13
-
-    /// How far the night under the bar reaches, measured from the top of the
-    /// screen: a tall phone's status bar and the bar under it, and no further.
-    ///
-    /// Short of ``PadelDesign/NightScrim/depth``, which is drawn for a 64pt
-    /// button standing over a court. What has to stay legible here is a
-    /// chevron in a bar, and a fade carrying on past it would be dimming the
-    /// card rather than the bar — which at the largest type settings is where
-    /// the day itself is standing.
-    static let barScrim: CGFloat = 104
 }
 
 #if DEBUG

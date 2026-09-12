@@ -17,13 +17,14 @@ import SwiftUI
 /// list pushed by a rules row covers the paging instead of being pushed
 /// underneath the page indicator.
 ///
-/// **Nothing here hides the navigation bar, and nothing draws one.** Neither
-/// page has a title, which is all it takes: watchOS reserves no room for a bar
-/// it has nothing to put in. Hiding it by hand looked identical and cost the
-/// stack its bar model — see the comment on the `TabView`. What is pushed
-/// keeps its bar, because the bar is where the Back button is and the edge
-/// swipe does not answer for it; that is what the rules screen found out, and
-/// ``RulesetSettings`` is what it turned into.
+/// **Nothing here hides the navigation bar.** The court has no title, which is
+/// all it takes for watchOS to reserve no room for one — the court runs to the
+/// glass. The settings page names itself and gets the bar, which is where a
+/// page's name belongs. Hiding the bar by hand looked identical to having none
+/// and cost the stack its bar model — see the comment on the `TabView`. What
+/// is pushed keeps its bar, because the bar is where the Back button is and
+/// the edge swipe does not answer for it; that is what the rules screen found
+/// out, and ``RulesetSettings`` is what it turned into.
 struct StartPages: View {
     /// The ruleset the match will start with. The rules on the settings page
     /// change it and the store remembers it: it arrives here from the previous
@@ -51,10 +52,9 @@ struct StartPages: View {
             // that a finger does not.
             .tabViewStyle(.verticalPage)
             // The bar is *not* hidden here, and that is the fix rather than an
-            // omission. Neither page has a title, so watchOS draws no bar and
-            // reserves nothing for one — the court runs to the glass either
-            // way. Hiding it explicitly left the stack with no bar to push
-            // from, and every push logged
+            // omission. It is drawn per page: the court names nothing and gets
+            // no bar, so it still runs to the glass. Hiding it explicitly left
+            // the stack with no bar to push from, and every push logged
             // "Transitioning bar did not exist during transition" and
             // "the navigation controller is likely in a bad state" from
             // SaltUICore. The same bad state is what the rules screen's
@@ -84,15 +84,6 @@ private struct StartSettings: View {
         // back to the court.
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // The board's 0.8, which is `control` to two hundredths.
-                // Borrowing a control's name for a title is the ink
-                // vocabulary's gap rather than this page's — `ScoreView` says
-                // the same about the sets digit it draws at the same weight.
-                Text("Settings")
-                    .textStyle(.display)
-                    .foregroundStyle(.ink.weight(.control))
-                    .lineLimit(1)
-
                 RulesetSettings(ruleset: $ruleset).padding(.top, Board.titleGap)
 
                 // A card of its own, under the sentence rather than among the
@@ -111,6 +102,7 @@ private struct StartSettings: View {
                 .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
                 .ignoresSafeArea()
         }
+        .navigationTitle("Settings")
     }
 
     /// Whether the match is written to Health.
@@ -151,8 +143,8 @@ private enum Board {
     /// Left and right of the page, and under the last card. The board's 16px.
     static let inset: CGFloat = 8
 
-    /// Between the title and the card under it. The rules board gives the
-    /// title a 46px band and starts the controls under it.
+    /// Between the navigation bar and the first card. The rules board gives
+    /// the title a 46px band and starts the controls under it.
     static let titleGap: CGFloat = 10
 
     /// Between one card and the next. The board's 12px, which is also the gap

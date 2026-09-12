@@ -40,13 +40,22 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
-                header.padding(.horizontal, Board.inset)
-
-                what
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background { ground }
+            what
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background { ground }
+                .navigationTitle("History")
+                .toolbar {
+                    // Bare, because it is a label and not a control: iOS 26
+                    // stands every bar item on a glass capsule, and a count
+                    // wearing one reads as a button that does nothing when it
+                    // is tapped.
+                    if #available(iOS 26.0, *) {
+                        ToolbarItem(placement: .topBarTrailing) { count }
+                            .sharedBackgroundVisibility(.hidden)
+                    } else {
+                        ToolbarItem(placement: .topBarTrailing) { count }
+                    }
+                }
         }
         .task(id: attempt) { await watch() }
     }
@@ -62,49 +71,15 @@ struct HistoryView: View {
         case unreadable
     }
 
-    // MARK: The title
+    // MARK: The count
 
-    /// The screen's name, drawn as content.
-    ///
-    /// Not a `navigationTitle`: a bar is a shelf of system furniture across the
-    /// top of a court, and what it would hold is one word. The word is set in
-    /// the ramp's ``PadelDesign/TypeRamp/display`` like every other title in
-    /// the app, and it stays put while the tiles scroll under it — the count
-    /// beside it is about the whole history, not about what is on screen.
-    /// Beside the title while the two fit, under it when they stop — which at
-    /// the accessibility settings they do, in both languages. Neither may be
-    /// truncated: "Истор…" over "6 матч…" is a header that has given up.
-    private var header: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .firstTextBaseline, spacing: Board.countGap) {
-                title
-
-                Spacer(minLength: 0)
-
-                count
-            }
-
-            VStack(alignment: .leading, spacing: Board.headerGap) {
-                title
-
-                count
-            }
-        }
-    }
-
-    private var title: some View {
-        Text("History")
-            .textStyle(.display)
-            .foregroundStyle(.ink)
-    }
-
-    /// How many matches the history holds.
+    /// How many matches the history holds, at the bar's trailing edge.
     ///
     /// Declined rather than counted: "1 матч", "2 матча" and "5 матчей" are
     /// three words for the same noun, and the catalog is what knows which
     /// (ADR-0005). Only ever drawn for a history that has something in it — an
-    /// empty one says so in a sentence below instead, and "0 matches" beside
-    /// the title would say it twice.
+    /// empty one says so in a sentence below instead, and "0 matches" in the
+    /// bar above it would say it twice.
     @ViewBuilder private var count: some View {
         if case .known(let matches) = history, !matches.isEmpty {
             Text("\(matches.count) matches")
@@ -293,15 +268,9 @@ private enum Board {
     /// Left and right of the page, and under the last tile.
     static let inset: CGFloat = 20
 
-    /// Between the title and the first tile.
-    static let titleGap: CGFloat = 22
-
-    /// Between the title and the count beside it, when the title is long
-    /// enough to reach it.
-    static let countGap: CGFloat = 12
-
-    /// Between the two once the count has dropped under the title.
-    static let headerGap: CGFloat = 4
+    /// Between the navigation bar and the first tile. Short of the board's 22
+    /// because the large title brings its own baseline-to-content gap with it.
+    static let titleGap: CGFloat = 8
 
     /// Between one tile and the next.
     static let tileGap: CGFloat = 10

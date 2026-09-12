@@ -151,8 +151,6 @@ struct CourtTileTests {
         let playing = try Self.tile(.inProgress)
         let stopped = try Self.tile(.abandoned)
 
-        #expect(
-            playing.meanLuminance(columns: 20..<80, rows: 60..<80)
-                == stopped.meanLuminance(columns: 20..<80, rows: 60..<80))
+        #expect(playing.patch(columns: 20..<80, rows: 60..<80, matches: stopped))
     }
 }

@@ -135,6 +135,24 @@ struct Raster {
         return total / Double(columns.count * rows.count)
     }
 
+    /// Whether a patch of this raster is painted the same as the same patch of
+    /// `other`.
+    ///
+    /// Rendering one view twice is not bit-exact — antialiasing can land a
+    /// pixel a step of 1/255 either side — so two drawings of one paint are
+    /// equal to within a step rather than equal. The margin is one whole step
+    /// per pixel, which is still far finer than any two grounds in the palette
+    /// are apart.
+    func patch(
+        columns: Range<Int>, rows: Range<Int>, matches other: Raster,
+        tolerance: Double = 1 / 255
+    ) -> Bool {
+        let mine = meanLuminance(columns: columns, rows: rows)
+        let theirs = other.meanLuminance(columns: columns, rows: rows)
+
+        return abs(mine - theirs) < tolerance
+    }
+
     /// How many pixels of one row were drawn on.
     ///
     /// How a round shape's width is measured. The threshold sits above the

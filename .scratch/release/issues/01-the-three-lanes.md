@@ -142,8 +142,12 @@ failed on `Packages/PadelDesign/Tests/PadelDesignTests/Controls/TileTests.swift:
 rendered rasters' mean luminance with `==`, and under the load of four test
 runs back to back they came out `0.1585819026143783` vs `0.15857676928104492`.
 Five further runs of that package alone were green. It is a float-equality
-assertion on a render, it belongs to `.scratch/redesign/`, and it was left
-alone — but it will fail a `beta` at random, which is worth a ticket there.
+assertion on a render: two drawings of one paint are equal to within a step of
+1/255, not equal. It was going to fail a `beta` at random, so it was fixed
+here rather than left for another feature's ticket —
+`Raster.patch(columns:rows:matches:)` now makes the comparison a tolerance, in
+the harness next to `pixel(_:_:isCloseTo:)`, which treats color the same way
+for the same reason.
 
 **The review.** `code-review`'s two sub-agents both died on an API session
 limit, so the two axes were run inline instead of in parallel sub-agents. The

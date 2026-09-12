@@ -23,6 +23,9 @@ Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/
 runs `code-review` over it and commits it — then stops, because the review
 between two tickets is the owner's. See `.claude/skills/next-ticket/SKILL.md`.
 
+`/status [feature]` reads the board — `.scratch/status.sh` — and says what is
+takeable, what is blocked and on what. See `.claude/skills/status/SKILL.md`.
+
 ## Building and testing
 
 Pipe `xcodebuild` and `swift test` through `xcbeautify --quiet`. It cuts the log

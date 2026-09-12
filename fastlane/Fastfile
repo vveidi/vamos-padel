@@ -1,0 +1,139 @@
+require "json"
+require "shellwords"
+
+opt_out_usage
+skip_docs
+
+default_platform(:ios)
+
+ROOT = File.expand_path("..", FastlaneCore::FastlaneFolder.path)
+PROJECT = "padel.xcodeproj"
+SCHEME = "padel"
+PACKAGES = %w[PadelScoring PadelStorage PadelDelivery PadelDesign].freeze
+
+platform :ios do
+  desc "Runs the four packages' tests, then the project's on a simulator"
+  lane :test do
+    PACKAGES.each do |package|
+      sh("swift", "test", "--package-path", File.join(ROOT, "Packages", package))
+    end
+
+    simulator = newest_iphone
+    UI.message("Running padelTests on #{simulator['name']}")
+
+    run_tests(
+      project: PROJECT,
+      scheme: SCHEME,
+      destination: "platform=iOS Simulator,id=#{simulator['udid']}",
+      # scan resolves its own device for this, and would tidy the keyboard
+      # settings of a simulator the lane is not running on.
+      disable_slide_to_type: false,
+      output_directory: File.join(ROOT, "fastlane", "test_output"),
+      xcodebuild_formatter: "xcbeautify --quiet"
+    )
+  end
+
+  desc "Archives a signed Release .ipa, and uploads nothing"
+  lane :build do
+    key = connect_key
+    signing = signing_xcargs(key)
+
+    # The archive carries the number TestFlight does not have yet, passed as a
+    # build setting so that nothing writes to project.pbxproj.
+    number = latest_testflight_build_number(
+      api_key: connect_api_key(key),
+      initial_build_number: 0
+    ) + 1
+
+    build_app(
+      project: PROJECT,
+      scheme: SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      xcargs: "CURRENT_PROJECT_VERSION=#{number} #{signing}",
+      export_xcargs: signing,
+      output_directory: File.join(ROOT, "build"),
+      output_name: "padel.ipa",
+      xcodebuild_formatter: "xcbeautify --quiet"
+    )
+  end
+
+  desc "Runs test, then build, then puts the .ipa on TestFlight for internal testers"
+  lane :beta do |options|
+    ensure_git_status_clean
+    notes = options[:notes] || sh("git", "-C", ROOT, "log", "-1", "--pretty=%s", log: false).strip
+
+    test
+    build
+
+    upload_to_testflight(
+      api_key: connect_api_key(connect_key),
+      distribute_external: false,
+      changelog: notes
+    )
+  end
+end
+
+# The App Store Connect key: two ids from the environment, and the `.p8` at the
+# path Apple's own tools read.
+#
+# `fastlane/.env.default` supplies the ids and is gitignored; the `.p8` is the
+# secret and never comes near the repo. Both are checked here so that a missing
+# one fails in a second rather than three minutes into an archive.
+def connect_key
+  key_id = ENV["ASC_KEY_ID"].to_s
+  issuer_id = ENV["ASC_ISSUER_ID"].to_s
+  if key_id.empty? || issuer_id.empty?
+    UI.user_error!("Set ASC_KEY_ID and ASC_ISSUER_ID in fastlane/.env.default — see docs/adr/0007-automatic-signing-and-no-match.md")
+  end
+
+  path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{key_id}.p8")
+  unless File.exist?(path)
+    UI.user_error!("No App Store Connect key at #{path} — the .p8 downloads exactly once, so a lost one has to be regenerated.")
+  end
+
+  { key_id: key_id, issuer_id: issuer_id, path: path }
+end
+
+# The same key in the shape fastlane's App Store Connect actions want.
+def connect_api_key(key)
+  app_store_connect_api_key(
+    key_id: key[:key_id],
+    issuer_id: key[:issuer_id],
+    key_filepath: key[:path]
+  )
+end
+
+# The xcodebuild flags that let Automatic signing create what it is missing.
+#
+# `-allowProvisioningUpdates` needs an authenticated session of its own: gym
+# passes no key through to xcodebuild, so the three flags go in by hand.
+def signing_xcargs(key)
+  [
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath #{key[:path].shellescape}",
+    "-authenticationKeyID #{key[:key_id]}",
+    "-authenticationKeyIssuerID #{key[:issuer_id]}"
+  ].join(" ")
+end
+
+# The newest available iPhone simulator, resolved now rather than pinned to a
+# name Xcode will drop.
+#
+# Highest model number wins, and between an "iPhone 17" and an "iPhone 17 Pro
+# Max" the plain one does — the tests read strings, not pixels.
+def newest_iphone
+  runtimes = JSON.parse(sh("xcrun", "simctl", "list", "devices", "available", "--json", log: false))["devices"]
+
+  runtime = runtimes.keys
+                    .select { |name| name.include?("SimRuntime.iOS-") }
+                    .max_by { |name| name.split("iOS-").last.split("-").map(&:to_i) }
+  UI.user_error!("No iOS simulator runtime is installed.") if runtime.nil?
+
+  phone = runtimes[runtime]
+          .select { |device| device["name"].start_with?("iPhone") }
+          .max_by { |device| [device["name"][/\d+/].to_i, -device["name"].length] }
+  UI.user_error!("No iPhone simulator is available on #{runtime}.") if phone.nil?
+
+  phone
+end

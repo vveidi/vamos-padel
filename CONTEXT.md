@@ -1,7 +1,10 @@
 # Vamos
 
-An Apple Watch app that scores a padel match right on the court and saves what
-was played. The phone serves as the shop window for the history.
+A padel scorer that runs on a phone and a watch at once. The match lives on the
+phone: the journal is written there, the history is read there, and the
+scoreboard the four players read from the bench is there. The watch is the
+remote on the wrist — it shows the match and awards the rallies, and keeps
+nothing (ADR-0009). Neither device scores a match on its own.
 
 ## Written language
 
@@ -126,20 +129,45 @@ abandoned.
 _Avoid_: result, status, completeness
 
 **Workout**:
-The record of the match in Health — what the match pretends to be so that the
-watch can live through an hour and a half of play. While the workout is running
-the system does not unload the app, keeps the score screen in Always-On and
-returns to it when the wrist is raised; heart rate, calories and activity rings
-come as a side effect. It starts and ends with the match and is not a separate
-entity of the domain: neither the score nor the rally journal knows about it.
+The record of the match in Health — what the match pretends to be so that both
+apps can live through an hour and a half of play. It belongs to the watch, which
+has the sensors, and the phone mirrors it: while the workout runs the system
+does not unload either app, the watch keeps its screen in Always-On and returns
+to it when the wrist is raised, and the phone is allowed to go on holding the
+match in the background (ADR-0010). Heart rate, calories and activity rings come
+as a side effect. It starts and ends with the match, and neither the score nor
+the rally journal knows about it.
 _Avoid_: session (the glossary already keeps that word away from "match")
 
-**Match delivery**:
-The journey of a finished match from the watch to the phone, where it becomes
-history. It happens by itself, without the player, and at whatever moment the
-phone becomes reachable — during play it is not needed. A match counts as
-delivered when the phone has signed for having written it down, not when the
-watch sent it: until the receipt, the watch is the only place the match exists
-(ADR-0002). The same match may arrive twice — the phone recognizes it by its
-identifier and does not create a second one.
-_Avoid_: synchronization, sync (this is not a two-way exchange)
+**Live link**:
+The conversation between the phone and the watch while a match runs: the journal
+goes out to the watch after every change, intents come back from it. It is not a
+hand-off and not a backup — there is one match, in one place, and the link is
+how the other device sees it and reaches it. Lose the link and the match stands
+still: the watch says so and stops taking taps, and what is played in the
+meantime is recorded nowhere.
+_Avoid_: synchronization, sync, delivery (there is nothing to deliver any more)
+
+**Intent**:
+A request from the watch to change the match — a rally to a side, an undo, an
+end, a start. It is not a rally until the phone records it, and the phone is the
+only judge: an intent is refused when the match is over, when there is no match,
+and when the journal it was formed against is no longer the journal the phone
+holds. The watch draws nothing until the journal comes back.
+_Avoid_: command, event, action, message
+
+**Scoreboard**:
+The phone's landscape screen showing the running match: the court across the
+long axis, a half per side, both of them tapped to award a rally. It is what the
+players on the bench read, and it is the phone's screen alone — the watch's is
+the score screen, which is a different size and a different argument.
+_Avoid_: score screen (that is the watch's), display, board
+
+**Mirroring the board**:
+Swapping which half of the scoreboard is drawn on which side, so that a phone
+lying on a bench can be read from where the players happen to be standing. A
+setting of one screen and nothing else: the sides keep their identity and their
+colors, and nothing is written down. It is emphatically not the change of ends
+that padel has after odd games — the app does not know which end anybody is
+standing at.
+_Avoid_: swap sides, change of ends, switching sides

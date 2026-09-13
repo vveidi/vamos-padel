@@ -1,5 +1,9 @@
 # The delivery queue lives in the store, not beside it
 
+> **Superseded by ADR-0009.** A match born on the phone has nowhere to be
+> delivered to. The queue, the delivery mark and the receipt are removed; this
+> ADR is kept for why the mark was never a second copy of anything.
+
 A match waiting to be sent to the phone is not copied into a separate list: the queue is the store it already lies in. The `match` table carries a delivery mark, and the "queue" is a query for the matches without one. The alternative — a table or file of its own holding the identifiers of what was sent — creates a second copy of the same knowledge, and two copies diverge sooner or later: a match left in the queue after it was deleted from the store, or the other way round.
 
 As a consequence the queue gets for free what ADR-0002 demands of it: it survives the app being unloaded and the watch being restarted, because it survives them along with the matches.

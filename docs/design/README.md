@@ -5,12 +5,16 @@ from. They came out of the redesign, which shipped; that feature's tickets are
 gone and these outlived them, because two of the boards had never been built
 and the rest are still what the built screens answer to.
 
+They live in `docs/` rather than under `.scratch/` for that reason: the tracker
+holds work in flight and is emptied as features close, while this is what the
+repo keeps.
+
     Main.dc.html            watch · start
     WatchRules.dc.html      watch · rules
     WatchScore.dc.html      watch · score
     PhoneHistory.dc.html    phone · history
-    PhoneScore.dc.html      phone · score      — ticket 07 builds this
-    PhoneNewMatch.dc.html   phone · new match  — ticket 06 builds this
+    PhoneScore.dc.html      phone · score      — phone-scoring ticket 07
+    PhoneNewMatch.dc.html   phone · new match  — phone-scoring ticket 06
 
 `padel-night-court.html` renders the whole canvas and is not in git: it is the
 seeded payload, regenerable from the `.dc.html` sources beside it.
@@ -37,10 +41,10 @@ score, 13–15pt supporting text — but they go through the ramp too.
 ## What the boards say that the app does not do
 
 `PhoneScore.dc.html` is portrait, with the net horizontal and the halves
-stacked. The scoreboard this feature builds is landscape, with the net vertical
-and the halves side by side. Both follow one rule — the net crosses the long
-axis — and the board is the reference for everything else on it: the scrim, the
-top strip, the corner ball, the bottom controls.
+stacked. The scoreboard `phone-scoring` builds is landscape, with the net
+vertical and the halves side by side. Both follow one rule — the net crosses the
+long axis — and the board is the reference for everything else on it: the scrim,
+the top strip, the corner ball, the bottom controls.
 
 The board also draws an **Undo** and an **End** in that bottom bar. They were
 out of scope when it was drawn, because there was no phone scoring to undo. They

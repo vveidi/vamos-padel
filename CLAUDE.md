@@ -17,6 +17,14 @@ ticket up again. See `docs/agents/triage-labels.md`.
 
 Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+### Design boards
+
+The artboards the app is drawn from live in `docs/design/`, not in the tracker:
+a feature's folder is emptied when it closes, and the boards outlive the
+features. `docs/design/README.md` carries the one rule the doc comments in
+`PadelDesign` and both apps cite by name — layout transfers off a board, type
+sizes do not.
+
 ### Working a backlog
 
 `/next-ticket [feature]` takes one ticket, builds it, drives it on a simulator,

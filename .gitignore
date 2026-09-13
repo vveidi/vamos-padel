@@ -51,4 +51,4 @@ fastlane/test_output
 .scratch/*/references/
 
 # Design canvases — the seeded payload, regenerable from the .dc.html sources
-.scratch/*/design/padel-*.html
+docs/design/padel-*.html

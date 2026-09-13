@@ -27,6 +27,13 @@ let package = Package(
                 .product(name: "PadelScoring", package: "PadelScoring"),
                 .product(name: "PadelStorage", package: "PadelStorage"),
             ]),
-        .testTarget(name: "PadelDeliveryTests", dependencies: ["PadelDelivery"]),
+        // The link itself knows only the seam; its tests need a real store to
+        // deliver out of, and that is the one in SQLite.
+        .testTarget(
+            name: "PadelDeliveryTests",
+            dependencies: [
+                "PadelDelivery",
+                .product(name: "PadelStorageSQLite", package: "PadelStorage"),
+            ]),
     ]
 )

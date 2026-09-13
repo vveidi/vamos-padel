@@ -3,6 +3,7 @@ import PadelScoring
 import Testing
 
 @testable import PadelStorage
+@testable import PadelStorageSQLite
 
 @Suite("Match store")
 struct MatchStoreTests {

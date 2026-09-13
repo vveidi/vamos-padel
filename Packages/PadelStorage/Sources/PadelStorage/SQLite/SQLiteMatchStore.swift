@@ -1,6 +1,7 @@
 import Foundation
 import GRDB
 import PadelScoring
+import PadelStorage
 
 /// The match store on SQLite through GRDB (ADR-0003).
 ///

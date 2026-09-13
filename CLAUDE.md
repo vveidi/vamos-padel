@@ -92,8 +92,20 @@ What is *not* in a folder is deliberate: a package's shared test harness and
 its isolation test sit at the test target's root, and `Logging.swift` sits at
 `PadelDelivery`'s, because they belong to no one subsystem.
 
+`PadelStorage` is the one package whose two folders are two targets, and
+therefore two products. `PadelStorage` is `Seam/` alone and links no database;
+`PadelStorageSQLite` is `SQLite/` and depends on it and on GRDB. The tests stay
+one target, named `PadelStorageTests` and mirroring both folders.
+
+The split exists so that the watch can name a `SavedMatch` on the wire without
+linking GRDB. It does not do that yet: both apps link both products today,
+because the watch still opens a store of its own. It drops to the seam alone
+when the store leaves it.
+
 Adding a folder needs no manifest edit — SwiftPM compiles everything under the
-target's directory.
+target's directory. `PadelStorage` is the exception, and for the same reason:
+each of its targets names its half with a `path:`, so a third folder there
+belongs to neither until the manifest says which.
 
 ## Where things live in the two apps
 

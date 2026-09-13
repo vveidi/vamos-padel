@@ -1,6 +1,7 @@
 import os
 import PadelDelivery
 import PadelStorage
+import PadelStorageSQLite
 import SwiftUI
 
 @main
@@ -22,6 +23,8 @@ struct PadelWatchApp: App {
 
     init() {
         do {
+            // TODO: Drop the store, and PadelStorageSQLite with it, from the watch
+            // (.scratch/phone-scoring/issues/10-the-delivery-is-removed.md)
             store = try SQLiteMatchStore.inApplicationSupport()
         } catch {
             logger.error("the store did not open: \(error.localizedDescription)")

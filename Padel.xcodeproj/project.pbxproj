@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA01A000000000000000000D /* padel Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA01A0000000000000000001 /* padel Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA01A000000000000000000D /* Padel Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA01A0000000000000000001 /* Padel Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AA01A000000000000000002D /* PadelDelivery in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002C /* PadelDelivery */; };
 		AA01A000000000000000002E /* PadelDelivery in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002B /* PadelDelivery */; };
 		AA01A000000000000000003D /* PadelDesign in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000003C /* PadelDesign */; };
@@ -24,14 +24,14 @@
 			containerPortal = DDFEE2D93045B80C00C7278D /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = AA01A0000000000000000003;
-			remoteInfo = "padel Watch App";
+			remoteInfo = "Padel Watch App";
 		};
 		AA01A000000000000000004A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DDFEE2D93045B80C00C7278D /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = DDFEE2E03045B80C00C7278D;
-			remoteInfo = padel;
+			remoteInfo = Padel;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -42,7 +42,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				AA01A000000000000000000D /* padel Watch App.app in Embed Watch Content */,
+				AA01A000000000000000000D /* Padel Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,35 +50,35 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AA01A0000000000000000001 /* padel Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "padel Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA01A0000000000000000045 /* padelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = padelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DDFEE2E13045B80C00C7278D /* padel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = padel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA01A0000000000000000001 /* Padel Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Padel Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA01A0000000000000000045 /* PadelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PadelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDFEE2E13045B80C00C7278D /* Padel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Padel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AA01A0000000000000000020 /* Exceptions for "padel Watch App" folder in "padel Watch App" target */ = {
+		AA01A0000000000000000020 /* Exceptions for "Padel Watch App" folder in "Padel Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
 			);
-			target = AA01A0000000000000000003 /* padel Watch App */;
+			target = AA01A0000000000000000003 /* Padel Watch App */;
 		};
-		AA01A0000000000000000021 /* Exceptions for "padel" folder in "padel" target */ = {
+		AA01A0000000000000000021 /* Exceptions for "Padel" folder in "Padel" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
 			);
-			target = DDFEE2E03045B80C00C7278D /* padel */;
+			target = DDFEE2E03045B80C00C7278D /* Padel */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		AA01A0000000000000000002 /* padel Watch App */ = {
+		AA01A0000000000000000002 /* Padel Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AA01A0000000000000000020 /* Exceptions for "padel Watch App" folder in "padel Watch App" target */,
+				AA01A0000000000000000020 /* Exceptions for "Padel Watch App" folder in "Padel Watch App" target */,
 			);
-			path = "padel Watch App";
+			path = "Padel Watch App";
 			sourceTree = "<group>";
 		};
 		AA01A0000000000000000030 /* Shared */ = {
@@ -86,17 +86,17 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		AA01A0000000000000000040 /* padelTests */ = {
+		AA01A0000000000000000040 /* PadelTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = padelTests;
+			path = PadelTests;
 			sourceTree = "<group>";
 		};
-		DDFEE2E33045B80C00C7278D /* padel */ = {
+		DDFEE2E33045B80C00C7278D /* Padel */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AA01A0000000000000000021 /* Exceptions for "padel" folder in "padel" target */,
+				AA01A0000000000000000021 /* Exceptions for "Padel" folder in "Padel" target */,
 			);
-			path = padel;
+			path = Padel;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -138,9 +138,9 @@
 			isa = PBXGroup;
 			children = (
 				AA01A0000000000000000030 /* Shared */,
-				DDFEE2E33045B80C00C7278D /* padel */,
-				AA01A0000000000000000002 /* padel Watch App */,
-				AA01A0000000000000000040 /* padelTests */,
+				DDFEE2E33045B80C00C7278D /* Padel */,
+				AA01A0000000000000000002 /* Padel Watch App */,
+				AA01A0000000000000000040 /* PadelTests */,
 				DDFEE2E23045B80C00C7278D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -148,9 +148,9 @@
 		DDFEE2E23045B80C00C7278D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DDFEE2E13045B80C00C7278D /* padel.app */,
-				AA01A0000000000000000001 /* padel Watch App.app */,
-				AA01A0000000000000000045 /* padelTests.xctest */,
+				DDFEE2E13045B80C00C7278D /* Padel.app */,
+				AA01A0000000000000000001 /* Padel Watch App.app */,
+				AA01A0000000000000000045 /* PadelTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -158,9 +158,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA01A0000000000000000003 /* padel Watch App */ = {
+		AA01A0000000000000000003 /* Padel Watch App */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA01A0000000000000000007 /* Build configuration list for PBXNativeTarget "padel Watch App" */;
+			buildConfigurationList = AA01A0000000000000000007 /* Build configuration list for PBXNativeTarget "Padel Watch App" */;
 			buildPhases = (
 				AA01A0000000000000000004 /* Sources */,
 				AA01A0000000000000000005 /* Frameworks */,
@@ -171,23 +171,23 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				AA01A0000000000000000002 /* padel Watch App */,
+				AA01A0000000000000000002 /* Padel Watch App */,
 				AA01A0000000000000000030 /* Shared */,
 			);
-			name = "padel Watch App";
+			name = "Padel Watch App";
 			packageProductDependencies = (
 				AA01A000000000000000000C /* PadelScoring */,
 				AA01A000000000000000001C /* PadelStorage */,
 				AA01A000000000000000002C /* PadelDelivery */,
 				AA01A000000000000000003C /* PadelDesign */,
 			);
-			productName = "padel Watch App";
-			productReference = AA01A0000000000000000001 /* padel Watch App.app */;
+			productName = "Padel Watch App";
+			productReference = AA01A0000000000000000001 /* Padel Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AA01A0000000000000000041 /* padelTests */ = {
+		AA01A0000000000000000041 /* PadelTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA01A0000000000000000046 /* Build configuration list for PBXNativeTarget "padelTests" */;
+			buildConfigurationList = AA01A0000000000000000046 /* Build configuration list for PBXNativeTarget "PadelTests" */;
 			buildPhases = (
 				AA01A0000000000000000042 /* Sources */,
 				AA01A0000000000000000043 /* Frameworks */,
@@ -199,18 +199,18 @@
 				AA01A0000000000000000049 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				AA01A0000000000000000040 /* padelTests */,
+				AA01A0000000000000000040 /* PadelTests */,
 			);
-			name = padelTests;
+			name = PadelTests;
 			packageProductDependencies = (
 			);
-			productName = padelTests;
-			productReference = AA01A0000000000000000045 /* padelTests.xctest */;
+			productName = PadelTests;
+			productReference = AA01A0000000000000000045 /* PadelTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		DDFEE2E03045B80C00C7278D /* padel */ = {
+		DDFEE2E03045B80C00C7278D /* Padel */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DDFEE2EC3045B80D00C7278D /* Build configuration list for PBXNativeTarget "padel" */;
+			buildConfigurationList = DDFEE2EC3045B80D00C7278D /* Build configuration list for PBXNativeTarget "Padel" */;
 			buildPhases = (
 				DDFEE2DD3045B80C00C7278D /* Sources */,
 				DDFEE2DE3045B80C00C7278D /* Frameworks */,
@@ -224,17 +224,17 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AA01A0000000000000000030 /* Shared */,
-				DDFEE2E33045B80C00C7278D /* padel */,
+				DDFEE2E33045B80C00C7278D /* Padel */,
 			);
-			name = padel;
+			name = Padel;
 			packageProductDependencies = (
 				AA01A000000000000000000B /* PadelScoring */,
 				AA01A000000000000000001B /* PadelStorage */,
 				AA01A000000000000000002B /* PadelDelivery */,
 				AA01A000000000000000003B /* PadelDesign */,
 			);
-			productName = padel;
-			productReference = DDFEE2E13045B80C00C7278D /* padel.app */;
+			productName = Padel;
+			productReference = DDFEE2E13045B80C00C7278D /* Padel.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -259,7 +259,7 @@
 					};
 				};
 			};
-			buildConfigurationList = DDFEE2DC3045B80C00C7278D /* Build configuration list for PBXProject "padel" */;
+			buildConfigurationList = DDFEE2DC3045B80C00C7278D /* Build configuration list for PBXProject "Padel" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -280,9 +280,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DDFEE2E03045B80C00C7278D /* padel */,
-				AA01A0000000000000000003 /* padel Watch App */,
-				AA01A0000000000000000041 /* padelTests */,
+				DDFEE2E03045B80C00C7278D /* Padel */,
+				AA01A0000000000000000003 /* Padel Watch App */,
+				AA01A0000000000000000041 /* PadelTests */,
 			);
 		};
 /* End PBXProject section */
@@ -338,12 +338,12 @@
 /* Begin PBXTargetDependency section */
 		AA01A0000000000000000010 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = AA01A0000000000000000003 /* padel Watch App */;
+			target = AA01A0000000000000000003 /* Padel Watch App */;
 			targetProxy = AA01A000000000000000000F /* PBXContainerItemProxy */;
 		};
 		AA01A0000000000000000049 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DDFEE2E03045B80C00C7278D /* padel */;
+			target = DDFEE2E03045B80C00C7278D /* Padel */;
 			targetProxy = AA01A000000000000000004A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -354,13 +354,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "padel Watch App/padel Watch App.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Padel Watch App/Padel Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "padel Watch App/Resources/Info.plist";
+				INFOPLIST_FILE = "Padel Watch App/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Vamos;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Vamos reads your heart rate and calories during a match to record it as a workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Vamos saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings.";
@@ -387,13 +387,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "padel Watch App/padel Watch App.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Padel Watch App/Padel Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "padel Watch App/Resources/Info.plist";
+				INFOPLIST_FILE = "Padel Watch App/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Vamos;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Vamos reads your heart rate and calories during a match to record it as a workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Vamos saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings.";
@@ -428,7 +428,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/padel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/padel";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Padel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Padel";
 			};
 			name = Debug;
 		};
@@ -445,7 +445,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/padel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/padel";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Padel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Padel";
 			};
 			name = Release;
 		};
@@ -580,7 +580,7 @@
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = padel/Resources/Info.plist;
+				INFOPLIST_FILE = Padel/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vamos;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -613,7 +613,7 @@
 				DEVELOPMENT_TEAM = FDT69Y2CLT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = padel/Resources/Info.plist;
+				INFOPLIST_FILE = Padel/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vamos;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -639,7 +639,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA01A0000000000000000007 /* Build configuration list for PBXNativeTarget "padel Watch App" */ = {
+		AA01A0000000000000000007 /* Build configuration list for PBXNativeTarget "Padel Watch App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA01A0000000000000000008 /* Debug */,
@@ -648,7 +648,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA01A0000000000000000046 /* Build configuration list for PBXNativeTarget "padelTests" */ = {
+		AA01A0000000000000000046 /* Build configuration list for PBXNativeTarget "PadelTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA01A0000000000000000047 /* Debug */,
@@ -657,7 +657,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DDFEE2DC3045B80C00C7278D /* Build configuration list for PBXProject "padel" */ = {
+		DDFEE2DC3045B80C00C7278D /* Build configuration list for PBXProject "Padel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DDFEE2EA3045B80D00C7278D /* Debug */,
@@ -666,7 +666,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DDFEE2EC3045B80D00C7278D /* Build configuration list for PBXNativeTarget "padel" */ = {
+		DDFEE2EC3045B80D00C7278D /* Build configuration list for PBXNativeTarget "Padel" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DDFEE2ED3045B80D00C7278D /* Debug */,

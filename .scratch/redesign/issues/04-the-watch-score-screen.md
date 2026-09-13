@@ -15,7 +15,7 @@ serving half's corner.
       the sets `.scoreAside` at the trailing edge — no `.system(size:)` left
 - [x] The ball is `PadelDesign.Ball`, yellow, at the size the dot has today
 - [x] `serveAlignment(for:from:)` is **unchanged** — same six cases, same doc
-      comment, still file-private in `padel Watch App/`
+      comment, still file-private in `Padel Watch App/`
 - [x] The fade sequence in `ServeIndicator` is unchanged, including
       `.animation(nil, value: corner)`
 - [x] `ScoreView.ourColor` is deleted; nothing outside `PadelDesign` names a

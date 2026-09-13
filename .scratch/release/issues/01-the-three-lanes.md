@@ -10,9 +10,9 @@ an *Apple Distribution* certificate, and the API key is what creates one.
 **Status:** ready-for-agent
 
 - [x] `fastlane test` runs the four packages' `swift test` and then
-      `padelTests` on an iOS simulator, and fails the lane when any of them
+      `PadelTests` on an iOS simulator, and fails the lane when any of them
       fails
-- [ ] `fastlane build` produces a signed `.ipa` from the `padel` scheme and
+- [ ] `fastlane build` produces a signed `.ipa` from the `Padel` scheme and
       uploads nothing
 - [ ] `fastlane beta` runs `test`, then `build`, then uploads to TestFlight for
       internal testers only
@@ -86,7 +86,7 @@ added to `.gitignore`, and `docs/adr/0007-automatic-signing-and-no-match.md`.
 
 What was verified by running it:
 
-- **`fastlane test` — green.** Four packages' `swift test`, then `padelTests`
+- **`fastlane test` — green.** Four packages' `swift test`, then `PadelTests`
   on iPhone 17 (iOS 26.5), resolved at run time by `newest_iphone`: newest
   runtime, highest model number, plain model over Pro Max. 53s for the project
   half. It also failed correctly once — see the flake below.
@@ -108,15 +108,15 @@ intended failure and not a lane bug.
 So the half the ticket calls "the half that goes wrong" was exercised by hand
 instead, with the same `xcodebuild` the lane runs:
 
-    xcodebuild -project padel.xcodeproj -scheme padel -configuration Release \
+    xcodebuild -project Padel.xcodeproj -scheme Padel -configuration Release \
       -destination 'generic/platform=iOS' -archivePath … \
       CURRENT_PROJECT_VERSION=42 archive        → Archive Succeeded
     xcodebuild -exportArchive … (method: development)  → EXPORT SUCCEEDED
 
 and the results say:
 
-- **One archive, watch inside.** `padel.app/Watch/padel Watch App.app`, and in
-  the `.ipa`, `Payload/padel.app/Watch/padel Watch App.app`. Both signed, each
+- **One archive, watch inside.** `Padel.app/Watch/Padel Watch App.app`, and in
+  the `.ipa`, `Payload/Padel.app/Watch/Padel Watch App.app`. Both signed, each
   against its own profile.
 - **The build number rides in as a build setting.** `CURRENT_PROJECT_VERSION=42`
   on the command line reached `CFBundleVersion = 42` in *both* Info.plists;

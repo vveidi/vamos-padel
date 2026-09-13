@@ -122,4 +122,4 @@ and the abandoned match only the primary; undo from the loss screen came back
 to 40, 5 games. Relaunched with
 `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`
 and played the loss again: the page scrolls, both pills are whole and
-reachable, and nothing clips. `padelTests` passes, 13 cases.
+reachable, and nothing clips. `PadelTests` passes, 13 cases.

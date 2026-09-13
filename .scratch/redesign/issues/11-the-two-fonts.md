@@ -31,7 +31,7 @@ is that the package is the whole look — import one thing, get the design. The
 cost is a registration step that fails silently and leaves the app in its
 fallback face with nothing to show for it.
 
-**(b) Bundle in the app targets.** Font files in `padel/` and `padel Watch
+**(b) Bundle in the app targets.** Font files in `Padel/` and `Padel Watch
 App/`, `UIAppFonts` in each `Info.plist`, and `PadelDesign` holds only the
 names. System-blessed and simple; the files are duplicated and the package
 stops being self-contained.

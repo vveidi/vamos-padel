@@ -42,7 +42,7 @@ Three lanes in `fastlane/Fastfile`:
 
 | Lane | What it does |
 | --- | --- |
-| `test` | the four `swift test` packages, then `padelTests` on an iOS simulator |
+| `test` | the four `swift test` packages, then `PadelTests` on an iOS simulator |
 | `build` | Release archive → a signed `.ipa`, and stops |
 | `beta` | `test`, then `build`, then upload to TestFlight for internal testers |
 

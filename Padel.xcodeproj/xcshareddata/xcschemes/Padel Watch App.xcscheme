@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA01A0000000000000000003"
-               BuildableName = "padel Watch App.app"
-               BlueprintName = "padel Watch App"
-               ReferencedContainer = "container:padel.xcodeproj">
+               BuildableName = "Padel Watch App.app"
+               BlueprintName = "Padel Watch App"
+               ReferencedContainer = "container:Padel.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA01A0000000000000000003"
-            BuildableName = "padel Watch App.app"
-            BlueprintName = "padel Watch App"
-            ReferencedContainer = "container:padel.xcodeproj">
+            BuildableName = "Padel Watch App.app"
+            BlueprintName = "Padel Watch App"
+            ReferencedContainer = "container:Padel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -61,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA01A0000000000000000003"
-            BuildableName = "padel Watch App.app"
-            BlueprintName = "padel Watch App"
-            ReferencedContainer = "container:padel.xcodeproj">
+            BuildableName = "Padel Watch App.app"
+            BlueprintName = "Padel Watch App"
+            ReferencedContainer = "container:Padel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

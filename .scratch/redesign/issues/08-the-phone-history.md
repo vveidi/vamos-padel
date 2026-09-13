@@ -134,7 +134,7 @@ of a second the app takes to open. Recorded off the simulator frame by frame,
 which is the only way to see it.
 
 There is no build setting for the sub-key, so the target has a real
-`Info.plist` now — `padel/Resources/Info.plist`, carrying `UILaunchScreen` and
+`Info.plist` now — `Padel/Resources/Info.plist`, carrying `UILaunchScreen` and
 nothing else, with `GENERATE_INFOPLIST_FILE` still merging everything else on
 top of it the way the watch target already does. Its path is written once in
 `INFOPLIST_FILE` (both configurations) and once in the target's membership
@@ -166,5 +166,5 @@ tiles stack, the mark keeps its own line, nothing truncates. Emptied the store
 and looked at the empty state in English. Recorded the launch on a light-mode
 phone before and after the `Info.plist`: white, then `night`.
 
-`padelTests` passes, 14 cases. The watch app still builds — the catalog is a
+`PadelTests` passes, 14 cases. The watch app still builds — the catalog is a
 member of both targets.

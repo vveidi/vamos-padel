@@ -1,4 +1,4 @@
-# padel
+# Padel
 
 ## Agent skills
 
@@ -36,15 +36,15 @@ them; `swift test` adds a line per suite on top of that. A hand-picked
 Open the pipe with `set -o pipefail`, which makes the shell report the build's
 exit code instead of `xcbeautify`'s. Without it a failing build reports success:
 
-    set -o pipefail; xcodebuild -project padel.xcodeproj -scheme "padel Watch App" \
+    set -o pipefail; xcodebuild -project Padel.xcodeproj -scheme "Padel Watch App" \
       -destination 'platform=watchOS Simulator,id=<uuid>' build 2>&1 | xcbeautify --quiet
 
-`xcodebuild -list -project padel.xcodeproj` names the schemes; a failed
+`xcodebuild -list -project Padel.xcodeproj` names the schemes; a failed
 `-destination` prints every simulator UUID the scheme accepts.
 
 Most of the tests are the packages' and run under `swift test`. One target's
-tests are the project's: `padelTests`, hosted by the phone app, which reads the
-strings out of the built `padel.app`. It runs under the `padel` scheme's test
+tests are the project's: `PadelTests`, hosted by the phone app, which reads the
+strings out of the built `Padel.app`. It runs under the `Padel` scheme's test
 action on an iOS simulator, and `xcbeautify --quiet` prints a passing suite as
 one line — `xcrun xcresulttool get test-results summary --path <.xcresult>`
 counts the cases behind it.
@@ -86,15 +86,15 @@ target's directory.
 Both app targets split the same way — `Sources/` and `Resources/` — and the
 sources are grouped by what the player is doing at the time:
 
-    padel Watch App/Sources/   App/       the entry point and the root's one question
+    Padel Watch App/Sources/   App/       the entry point and the root's one question
                                Start/     the court before the match, its settings and its rules
                                Match/     the match while it runs, and how it ends
                                Workout/   the workout the match runs inside
 
-    padel/Sources/             App/       the entry point, the store and reception
+    Padel/Sources/             App/       the entry point, the store and reception
                                Screens/   the history, its rows and the match card
 
-`MatchWording.swift` and `MatchFixtures.swift` sit at `padel/Sources/`'s root
+`MatchWording.swift` and `MatchFixtures.swift` sit at `Padel/Sources/`'s root
 because they belong to both screens rather than to either.
 
 `Resources/` holds the asset catalog, and on the watch the `Info.plist` and the
@@ -113,7 +113,7 @@ fifteen lines where `cat` spends 1,200 tokens on it, and `goToDefinition` and
 `hover` answer "what is this" without opening anything.
 
 Semantic operations resolve only inside `Packages/*`, which build through SwiftPM
-and carry an index. The Xcode targets — `padel/` and `padel Watch App/` — have no
+and carry an index. The Xcode targets — `Padel/` and `Padel Watch App/` — have no
 compile database, so sourcekit-lsp reports `No such module` there and `hover` and
 `goToDefinition` come back empty; `documentSymbol` is syntactic and still works.
 `findReferences` names the right files and the wrong lines: it answers from the
@@ -187,7 +187,7 @@ rewording a comment convention — write one `ast-grep` rule instead of editing
 each file. It parses Swift through tree-sitter, so it matches structure and
 leaves lookalike text inside strings alone:
 
-    ast-grep --lang swift -p '<pattern>' -r '<rewrite>' Packages "padel Watch App"
+    ast-grep --lang swift -p '<pattern>' -r '<rewrite>' Packages "Padel Watch App"
 
 It prints a diff and writes nothing until you add `-U`.
 

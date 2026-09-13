@@ -33,7 +33,7 @@ built by gluing words together get rewritten as whole clauses.
 
 ### The catalog
 
-`Shared/Localizable.xcstrings`, member of `padel` and `padel Watch App` both.
+`Shared/Localizable.xcstrings`, member of `Padel` and `Padel Watch App` both.
 Neither target owns it, so it lives in neither target's folder. `knownRegions`
 gains `ru`; `developmentRegion` is already `en`.
 

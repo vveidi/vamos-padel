@@ -140,7 +140,7 @@ is not self-evident. Keep it in reserve behind even the capsule.
 
 ## Notes
 
-**Where the code is.** `padel Watch App/StartView.swift` — `half(_:clearing:)`
+**Where the code is.** `Padel Watch App/StartView.swift` — `half(_:clearing:)`
 for the gesture and the light, `ball` for the ball, `Board` for whatever new
 numbers this needs. The court primitives it draws with are
 `PadelDesign/Court/`: `CourtHalf`, `NetLine`, `Ball`, `Floodlight`.

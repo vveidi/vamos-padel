@@ -8,7 +8,7 @@ import Testing
 /// test target of its own, and this suite is the only thing that checks it
 /// rather than assuming it.
 ///
-/// The keys below are the watch's alone: nothing in `padel/` says them. Found
+/// The keys below are the watch's alone: nothing in `Padel/` says them. Found
 /// in the phone's own bundle, they can only have come from the shared file.
 @Suite("The shared catalog")
 struct SharedCatalogTests {

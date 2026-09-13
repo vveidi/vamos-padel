@@ -156,7 +156,7 @@ Two things came with it, deliberately:
 ### How each criterion was checked
 
 `swift test` green in `PadelDesign` (the new "The ball switch" suite included),
-`padelTests` green on the iPhone 17 Pro — 13 cases, the two new ones among
+`PadelTests` green on the iPhone 17 Pro — 13 cases, the two new ones among
 them. `swiftformat --lint` and `swiftlint` clean on everything touched; the
 switch's tests are their own file because the suite took `ControlsTests` past
 400 lines.

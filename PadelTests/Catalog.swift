@@ -13,7 +13,7 @@ import Foundation
 enum Catalog {
     /// What the app says for a key in a language.
     ///
-    /// The words come out of `padel.app` itself — `Bundle.main`, because these
+    /// The words come out of `Padel.app` itself — `Bundle.main`, because these
     /// tests are hosted by the app and run inside it. That is what makes the
     /// assertions statements about the app rather than about a second copy of
     /// the catalog: the strings are the ones compiled into the build, in the
@@ -42,8 +42,8 @@ enum Language: String, CaseIterable, Sendable {
               let bundle = Bundle(path: path)
         else {
             fatalError(
-                "padel.app carries no \(rawValue).lproj. "
-                    + "Is Shared/Localizable.xcstrings still a member of the padel target?"
+                "Padel.app carries no \(rawValue).lproj. "
+                    + "Is Shared/Localizable.xcstrings still a member of the Padel target?"
             )
         }
 

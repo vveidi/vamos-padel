@@ -10,7 +10,7 @@ Because the catalog is shared between the two targets, this one target reaches t
 
 **Status:** done
 
-- [x] The project has a test target for `padel`, and it runs in the ordinary test action
+- [x] The project has a test target for `Padel`, and it runs in the ordinary test action
 - [x] Every plural-bearing key resolves correctly for every number the rules screen offers — sets 1 to 3, X 1 to 6, and N across its whole range — in both Russian and English
 - [x] The genitive after "до" is pinned by a test: "до 21 очка" and "до 22 очков" are different forms, and the test says which is which
 - [x] At least one key belonging to the watch is resolved from this target, so that the shared catalog is proven shared rather than assumed to be
@@ -25,15 +25,15 @@ Because the catalog is shared between the two targets, this one target reaches t
 **Done.** One test target, 117 assertions, and a check that the two apps really
 do read one file.
 
-- **`padelTests`, hosted by `padel`.** A unit test bundle with
+- **`PadelTests`, hosted by `Padel`.** A unit test bundle with
   `TEST_HOST`/`BUNDLE_LOADER` pointing at the app, so the tests are injected
-  into it and run inside it. The folder is a synchronized group like `padel/`
-  and `padel Watch App/` are, so a new test file needs no edit to the project.
-  It is listed in the `padel` scheme's test action, which is what "the ordinary
-  test action" means here: `xcodebuild -scheme padel … test` on an iOS
+  into it and run inside it. The folder is a synchronized group like `Padel/`
+  and `Padel Watch App/` are, so a new test file needs no edit to the project.
+  It is listed in the `Padel` scheme's test action, which is what "the ordinary
+  test action" means here: `xcodebuild -scheme Padel … test` on an iOS
   simulator runs it, and nothing else has to be named.
 - **The host is the point, not a convenience.** The strings are read out of
-  `Bundle.main`, which inside a hosted test is `padel.app` itself — the build
+  `Bundle.main`, which inside a hosted test is `Padel.app` itself — the build
   the App Store would get, `.lproj` folders and all. A test bundle carrying its
   own copy of the catalog would have proved something about a copy.
 - **Two things have to be said to read a key in a language the process is not
@@ -61,7 +61,7 @@ do read one file.
   after "до" the noun goes into the genitive and 21 takes the singular *очка*
   while 22 takes the plural *очков*. The shorter word belongs to the larger
   number, which is exactly the pair a careless edit swaps.
-- **The shared catalog is checked, not assumed.** Two keys nothing in `padel/`
+- **The shared catalog is checked, not assumed.** Two keys nothing in `Padel/`
   says — `"Match to N points"` from the watch's start screen and
   `"Undo the last rally"` from two of its screens — are resolved from the
   phone's own bundle. The Russian is what carries the proof: English is the
@@ -90,7 +90,7 @@ do read one file.
   Nothing cheap closes that — the build's own `.stringsdata` comparison
   (ticket 02) is the tool for it, and it is run by hand.
 
-Two files changed outside the target: `.swiftlint.yml` gained `padelTests` among
+Two files changed outside the target: `.swiftlint.yml` gained `PadelTests` among
 its included paths, and `CLAUDE.md`'s testing section now says the project has
 tests of its own and how to run them — it had said only `swift test` and the
 packages.

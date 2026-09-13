@@ -13,7 +13,7 @@ screen changes in this ticket — it is the floor the other ten stand on.
       reason `PadelScoring` carries it, so the package builds and tests without
       a simulator
 - [x] It depends on `PadelScoring` and on nothing else
-- [x] Registered in `padel.xcodeproj` as an `XCLocalSwiftPackageReference` and
+- [x] Registered in `Padel.xcodeproj` as an `XCLocalSwiftPackageReference` and
       linked into **both** app targets, the way the three existing packages are
 - [x] Every color from the boards is a named token, and no screen in the repo
       is left holding a literal color after tickets 04–09
@@ -91,7 +91,7 @@ have to move together when type scales.
 Ticket 11 decides whether Unbounded and Golos Text ship. Whatever it decides,
 it should be able to change **one file** — the ramp's mapping — and no screen.
 That is only true if the screens never name a face. Hence: after tickets 04–09,
-`grep -rn "\.system(size:" padel "padel Watch App"` returns nothing, and
+`grep -rn "\.system(size:" Padel "Padel Watch App"` returns nothing, and
 `ScoreView`'s `size: 64` and `MatchCard`'s `size: 44` are gone.
 
 ## Notes

@@ -69,7 +69,11 @@ to, and the only one where being watch-first is the differentiator.
 ## What the rename touched
 
 `INFOPLIST_KEY_CFBundleDisplayName` on both targets — the phone had none at all
-and was showing `padel` off `PRODUCT_NAME` — and the two Health usage
-descriptions, which name the app to the player. `CFBundleName` stays `padel`:
-it follows the target name, almost nothing displays it, and changing it renames
-the built `.app`.
+and was showing its target name off `PRODUCT_NAME` — and the two Health usage
+descriptions, which name the app to the player.
+
+`CFBundleName` is not the display name and was left to follow `PRODUCT_NAME`,
+which is the target name. The targets were recapitalized in the same breath as
+this rename — `Padel`, `Padel Watch App`, `PadelTests`, in a project called
+`Padel.xcodeproj` — so it reads `Padel` now. That is the project's name, not
+the app's: the project keeps the sport, the app is Vamos.

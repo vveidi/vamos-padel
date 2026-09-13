@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "DDFEE2E03045B80C00C7278D"
-               BuildableName = "padel.app"
-               BlueprintName = "padel"
-               ReferencedContainer = "container:padel.xcodeproj">
+               BuildableName = "Padel.app"
+               BlueprintName = "Padel"
+               ReferencedContainer = "container:Padel.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA01A0000000000000000041"
-               BuildableName = "padelTests.xctest"
-               BlueprintName = "padelTests"
-               ReferencedContainer = "container:padel.xcodeproj">
+               BuildableName = "PadelTests.xctest"
+               BlueprintName = "PadelTests"
+               ReferencedContainer = "container:Padel.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DDFEE2E03045B80C00C7278D"
-            BuildableName = "padel.app"
-            BlueprintName = "padel"
-            ReferencedContainer = "container:padel.xcodeproj">
+            BuildableName = "Padel.app"
+            BlueprintName = "Padel"
+            ReferencedContainer = "container:Padel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -73,9 +73,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DDFEE2E03045B80C00C7278D"
-            BuildableName = "padel.app"
-            BlueprintName = "padel"
-            ReferencedContainer = "container:padel.xcodeproj">
+            BuildableName = "Padel.app"
+            BlueprintName = "Padel"
+            ReferencedContainer = "container:Padel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -7,8 +7,8 @@ skip_docs
 default_platform(:ios)
 
 ROOT = File.expand_path("..", FastlaneCore::FastlaneFolder.path)
-PROJECT = "padel.xcodeproj"
-SCHEME = "padel"
+PROJECT = "Padel.xcodeproj"
+SCHEME = "Padel"
 PACKAGES = %w[PadelScoring PadelStorage PadelDelivery PadelDesign].freeze
 
 platform :ios do
@@ -19,7 +19,7 @@ platform :ios do
     end
 
     simulator = newest_iphone
-    UI.message("Running padelTests on #{simulator['name']}")
+    UI.message("Running PadelTests on #{simulator['name']}")
 
     run_tests(
       project: PROJECT,
@@ -53,7 +53,7 @@ platform :ios do
       xcargs: "CURRENT_PROJECT_VERSION=#{number} #{signing}",
       export_xcargs: signing,
       output_directory: File.join(ROOT, "build"),
-      output_name: "padel.ipa",
+      output_name: "Padel.ipa",
       xcodebuild_formatter: "xcbeautify --quiet"
     )
   end

@@ -24,7 +24,7 @@ else. The rules and whether the match goes to Health are a page below it.
       means no workout is started at all
 - [x] Both halves' labels are whole sentences per side, not a name in a frame
 - [x] The new strings are in `Localizable.xcstrings` in both languages and
-      pinned in `padelTests`
+      pinned in `PadelTests`
 - [x] Previews in both languages, at the largest type, for both rulesets
 
 **The last six criteria were rewritten mid-ticket**, on the owner's call: the
@@ -173,7 +173,7 @@ refusal, that method is four lines and is in this file's history.
 
 ### How each criterion was checked
 
-Built for watchOS; `padelTests` green — 11 cases on the iPhone 17 Pro, including
+Built for watchOS; `PadelTests` green — 11 cases on the iPhone 17 Pro, including
 the new `Record to Health` in both languages.
 
 Run on the 46mm Series 11 (Russian), the 44mm SE 3 (English) and the 40mm SE 3:

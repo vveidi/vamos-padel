@@ -72,5 +72,5 @@ puzzled out, and takes the vertical the digits were the point of.
 
 **On the digit's size.** The half is roughly 426×393pt; the ceiling is the eye,
 not the glyph. Take the `.score` ramp entry and let `minimumScaleFactor` handle
-"AD" and a three-digit count; do not hand-write a point size — `redesign/01`
-removed the last of those on purpose.
+"AD" and a three-digit count; do not hand-write a point size — the redesign
+removed the last of those on purpose, and ADR-0006 says why the ramp is a seam.

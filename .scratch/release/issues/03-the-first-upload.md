@@ -16,17 +16,20 @@ a build that leaves the machine, finishes processing, and appears on a wrist.
 - [ ] The build number is one higher than whatever TestFlight already had
 - [ ] The app installs from TestFlight onto a phone, and the watch app arrives
       with it rather than needing a second install
-- [ ] A match played on the watch reaches the phone's history on the installed
-      build — the one thing no simulator has ever proved
+- [ ] A match played on the pair reaches the phone's history on the installed
+      build — the one thing no simulator has ever proved. `phone-scoring`
+      rewrites what that sentence means: the match is recorded on the phone as
+      it is played, and nothing is delivered afterwards. Take this criterion
+      from that feature's ticket 11, not from the delivery this line was
+      written for
 - [ ] Anything that had to be done by hand is written into the closing note, so
       that the second upload does not rediscover it
 
 ## The icon
 
-`.scratch/redesign/` ticket 13 draws it. App Store Connect rejects a build with
-no icon during processing, so this ticket cannot pass until that one is done —
-it is not written into `Blocked by` because it belongs to another feature, and
-the criterion above is where it bites.
+Drawn, and in both catalogs. It was the blocker this ticket could not fix
+itself; it is not one any more, and the criterion above is now just a check
+that processing accepts what is there.
 
 ## Why "a match reaches the phone" is a criterion here
 

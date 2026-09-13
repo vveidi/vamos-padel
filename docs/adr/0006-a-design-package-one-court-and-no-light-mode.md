@@ -75,3 +75,9 @@ unless somebody says it was chosen.
 - **The type ramp is a seam of its own.** Screens name ramp entries, never
   faces, so the two custom faces the design was drawn in can arrive — or be
   declined — by changing one file.
+- **They were declined.** The boards are set in Unbounded and Golos Text; the
+  app ships on SF Rounded for the numbers and titles and SF for the rest. The
+  court, the colors and the ball carry the design, and two families with
+  Cyrillic in several weights are weight on a watch app for a difference the
+  built screens did not show. The ramp is where this would be reversed, and it
+  is still one file.

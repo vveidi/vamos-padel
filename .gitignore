@@ -48,7 +48,7 @@ fastlane/test_output
 *~.nib
 
 # Design references — other apps' screenshots, kept out of git
-.scratch/redesign/references/
+.scratch/*/references/
 
 # Design canvases — the seeded payload, regenerable from the .dc.html sources
-.scratch/redesign/*/padel-*.html
+.scratch/*/design/padel-*.html

@@ -12,16 +12,16 @@ the numbers that shape it, and one button that starts the match.
       match"
 - [ ] The ruleset is chosen with `SegmentedChoice`, the numbers with
       `StepperRow`, the golden point with the switch — the three controls that
-      have been sitting in `PadelDesign` unused and unavailable on watchOS since
-      `redesign/03`
+      have been sitting in `PadelDesign` unused and unavailable on watchOS —
+      the redesign built them for a screen that did not exist yet
 - [ ] The summary sentence under the controls reads the ruleset back in words,
       in both languages
 - [ ] The previous match's ruleset is filled in from `lastRuleset()` — asked of
       the store, never kept beside it
 - [ ] "Start match" starts it through the host (ticket 03) and opens the
       scoreboard
-- [ ] Reached from the history: the "New match" button the redesign left out
-      because it led nowhere (`redesign/spec.md`, "What is in, and what is not")
+- [ ] Reached from the history: the "New match" button the redesign drew and
+      left out, because it led to this screen and this screen did not exist
 - [ ] It is not offered while a match is running — the live tile stands there
       instead (ticket 08)
 - [ ] Works in both orientations, and at the largest Dynamic Type setting

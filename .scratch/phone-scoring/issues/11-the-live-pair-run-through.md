@@ -26,8 +26,8 @@ or sink the release.
       ADR-0010's fallback channel is needed
 - [ ] **Ninety minutes of scoreboard.** Battery drawn on both devices, and how
       warm the phone gets with the idle timer disabled
-- [ ] **Always-On on the watch** still does what `redesign/10` built, now that
-      the score arrives from outside
+- [ ] **Always-On on the watch** still dims the court the way the redesign
+      built it to, now that the score arrives from outside
 - [ ] **Health.** The workout lands in Health with the switch on, and does not
       with it off; the match runs either way
 - [ ] **Refusing Health authorization** leaves a match that works while the

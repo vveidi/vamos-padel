@@ -49,7 +49,8 @@ Not in:
   session gives it — so it is cheap *after* this, and it is not in this.
 - **A second scoreboard layout in portrait.** The scoreboard is landscape and
   forces the rotation; the rest of the app is free in both orientations.
-- **Light mode** (ADR-0006) and the **two custom fonts** (`redesign/11`).
+- **Light mode** and the **two custom fonts** — both declined, both recorded in
+  ADR-0006.
 
 ## The design, in words
 

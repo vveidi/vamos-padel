@@ -105,22 +105,20 @@ typed twice. `fastlane beta notes:"…"` overrides it. English only: it is a not
 to the only person who will read it, and ADR-0005's two languages are about
 what a player reads.
 
-## The blocker this feature does not own
+## The blocker this feature did not own, and no longer has
 
-**Both `AppIcon.appiconset`s are empty** — `Contents.json` and nothing else.
-App Store Connect rejects a build with no icon during processing, so the first
-upload cannot land until there is one. The icon is a drawing job and every
-argument it needs is already written in `.scratch/redesign/spec.md` — one
-accent, the ball as the app's one character, dark only — so it is
-`.scratch/redesign/`'s ticket 13, and ticket 03 here is blocked on it.
+**Both `AppIcon.appiconset`s used to be empty**, and App Store Connect rejects
+a build with no icon during processing. The redesign drew the icon and both
+catalogs now carry it, so ticket 03 waits on nothing outside this feature.
 
-The lanes are still worth building before it exists. `build` will say whether
-the archive and the signing work, which is the half that goes wrong.
+What it does wait on is `phone-scoring`: that feature moves the match onto the
+phone and removes delivery, which is what ticket 03's last criterion is written
+against.
 
 ## The tickets
 
 ```
 01  the three lanes, and the key they sign with
 02  what App Store Connect asks for before it will take a build
-03  the first upload                        (blocked on redesign/13)
+03  the first upload                        (and on phone-scoring landing)
 ```

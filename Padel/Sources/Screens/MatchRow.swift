@@ -153,8 +153,11 @@ struct MatchRow: View {
     }
 }
 
-/// What `PhoneHistory.dc.html` draws inside a tile. The phone boards are 1x, so
-/// these are the board's pixels (the spec's "Reading the boards").
+/// What the history board drew inside a tile.
+///
+/// The phone boards are 1x, so these are its pixels — `docs/design/README.md`,
+/// "Reading the boards". The board itself was deleted when this screen
+/// shipped; these numbers are what is left of it.
 ///
 /// The tile's own padding, its radius and its tints come out of `PadelDesign`.
 /// What is left is the spacing between the things the row carries.

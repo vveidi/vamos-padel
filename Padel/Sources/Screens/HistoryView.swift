@@ -262,8 +262,11 @@ private struct Notice<Action: View>: View {
     }
 }
 
-/// What `PhoneHistory.dc.html` draws around the tiles. The phone boards are 1x,
-/// so these are the board's pixels (the spec's "Reading the boards").
+/// What the history board drew around the tiles.
+///
+/// The phone boards are 1x, so these are its pixels — `docs/design/README.md`,
+/// "Reading the boards". The board itself was deleted when this screen
+/// shipped; these numbers are what is left of it.
 private enum Board {
     /// Left and right of the page, and under the last tile.
     static let inset: CGFloat = 20

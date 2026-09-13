@@ -1,7 +1,7 @@
 import PadelScoring
 import SwiftUI
 
-/// The app's colors, read off the `canvas-court/` boards.
+/// The app's colors, read off the redesign's boards (`docs/design/`).
 ///
 /// There is one palette and no light variant: a court at noon is a second
 /// design nobody has drawn (ADR-0006). The phone pins `.dark`; the watch is

@@ -133,9 +133,10 @@ private struct StartSettings: View {
     }
 }
 
-/// What `Main.dc.html` and `WatchRules.dc.html` draw on a settings page that no
-/// token covers, with the board's pixels halved — the watch artboards are 2x
-/// (the spec's "Reading the boards").
+/// What the start and rules boards drew on a settings page that no token
+/// covers, with their pixels halved — the watch artboards were 2x
+/// (`docs/design/README.md`, "Reading the boards"). Both were deleted when
+/// these screens shipped.
 ///
 /// The card, its radius and its dividers come out of `PadelDesign`, and the
 /// rules bring their own gap. What is left is the page's own margins.
@@ -143,8 +144,8 @@ private enum Board {
     /// Left and right of the page, and under the last card. The board's 16px.
     static let inset: CGFloat = 8
 
-    /// Between the navigation bar and the first card. The rules board gives
-    /// the title a 46px band and starts the controls under it.
+    /// Between the navigation bar and the first card. The rules board gave
+    /// the title a 46px band and started the controls under it.
     static let titleGap: CGFloat = 10
 
     /// Between one card and the next. The board's 12px, which is also the gap

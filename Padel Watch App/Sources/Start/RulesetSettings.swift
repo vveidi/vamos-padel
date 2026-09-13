@@ -214,9 +214,9 @@ struct RulesetSettings: View {
     /// The one gap this section owns. The card, the rows and the switch come
     /// out of `PadelDesign`, and the page's margins belong to the page.
     private enum Board {
-        /// Between the card and the sentence about it. `WatchRules.dc.html`'s
-        /// 12px, halved — the watch artboards are 2x (the spec's "Reading the
-        /// boards").
+        /// Between the card and the sentence about it. The rules board's 12px,
+        /// halved — the watch artboards were 2x (`docs/design/README.md`,
+        /// "Reading the boards").
         static let sentenceGap: CGFloat = 6
     }
 }

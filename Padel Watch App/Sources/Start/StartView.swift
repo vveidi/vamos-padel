@@ -185,12 +185,13 @@ private struct ServeCapsule: ButtonStyle {
     }
 }
 
-/// What `Main.dc.html` draws that no token covers, with the board's pixels
-/// halved — the watch artboards are 2x (the spec's "Reading the boards").
+/// What the start board drew that no token covers, with its pixels halved —
+/// the watch artboards were 2x (`docs/design/README.md`, "Reading the
+/// boards"). The board was deleted when this screen shipped.
 ///
 /// The court itself comes out of `PadelDesign` and is not here. What is left
 /// is the ball resting on the net, the capsule each half carries, and the
-/// timings — which no board draws, a canvas holding one frame.
+/// timings — which no board drew, a canvas holding one frame.
 private enum Board {
     /// The ball waiting on the net. 40px.
     static let ball: CGFloat = 20

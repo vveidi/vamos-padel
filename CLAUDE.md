@@ -19,11 +19,17 @@ Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/
 
 ### Design boards
 
-The artboards the app is drawn from live in `docs/design/`, not in the tracker:
-a feature's folder is emptied when it closes, and the boards outlive the
-features. `docs/design/README.md` carries the one rule the doc comments in
-`PadelDesign` and both apps cite by name — layout transfers off a board, type
-sizes do not.
+The artboards live in `docs/design/`, not in the tracker: a feature's folder is
+emptied when it closes, and a board outlives the ticket that reads it.
+
+**Only screens that have not been built have a board.** A board is deleted once
+its screen ships — after that the screen is the design, and a second drawing of
+it is a second source of truth that goes stale without anyone noticing. Two are
+left, both waiting on `phone-scoring`.
+
+`docs/design/README.md` carries the one rule the doc comments in `PadelDesign`
+and both apps cite by name — layout transfers off a board, type sizes and
+typefaces do not.
 
 ### Working a backlog
 

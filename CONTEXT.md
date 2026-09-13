@@ -1,4 +1,4 @@
-# Padel
+# Vamos
 
 An Apple Watch app that scores a padel match right on the court and saves what
 was played. The phone serves as the shop window for the history.

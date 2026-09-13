@@ -8,7 +8,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Padel"
+            "value" : "Vamos"
           }
         }
       },
@@ -34,7 +34,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Padel reads your heart rate and calories during a match to record it as a workout."
+            "value" : "Vamos reads your heart rate and calories during a match to record it as a workout."
           }
         },
         "ru" : {
@@ -52,7 +52,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Padel saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings."
+            "value" : "Vamos saves each match to Health as a workout. Without it the watch won't keep the score on screen for the whole game, and padel won't count toward your activity rings."
           }
         },
         "ru" : {

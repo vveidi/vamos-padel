@@ -45,7 +45,9 @@ without it.
      do not quietly drop it.
 6. **Close the ticket.** Tick the acceptance criteria, write the closing note
    under `## Comments`, and commit in the repo's style: an imperative subject,
-   then prose saying what changed and what argued for it.
+   then prose saying what changed and what argued for it. Push the commit to
+   `origin/main` — no branch, straight onto `main` — so the diff is on GitHub
+   for a phone or any machine that isn't this one.
 7. **Stop and hand back in under ten lines**: what the screen is now, anything
    that went differently from what the ticket asked, what the review raised
    and what you did with each finding, and what to look at first. The user

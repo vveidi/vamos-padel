@@ -12,6 +12,9 @@ They live in `docs/` rather than under `.scratch/` because the tracker holds
 work in flight and is emptied as features close, while a board outlives the
 ticket that reads it.
 
+Beside them sits one **study** — a page that is not an artboard and is not in
+the canvas. See "The studies" below.
+
 `padel-night-court.html` renders the canvas and is not in git: it is the seeded
 payload, regenerable from the `.dc.html` sources beside it.
 
@@ -62,3 +65,23 @@ from the digit the board is being read for.
 
 The **Undo** and **End** it draws in the bottom bar were out of scope when it was
 drawn, because there was no phone scoring to undo. They are in scope now.
+
+## The studies
+
+    RallyMark.html   the rally mark, and the four candidates it beat — ADR-0011
+
+A study is not a board. A board draws a screen that has not been built and is
+deleted the day it ships; a study answers one question that several screens will
+be built against, and it survives because the **alternatives** are the thing
+worth keeping. A decision with its rejected options thrown away is not a
+decision, it is an assertion, and the next person to ask "why not green?" has
+nowhere to read the answer.
+
+`RallyMark.html` fires five candidate marks across four court surfaces — the
+night court that ships and three themes that do not exist yet — and keeps the
+rejected undo beside them, because the reason it was rejected is only visible by
+pressing it. ADR-0011 states what was decided and what it costs; this is where it
+can be seen.
+
+Studies are not in `canvas.json` — they are pages to open, not artboards to lay
+out — and they are not drawn 1x or 2x, because they draw no screen.

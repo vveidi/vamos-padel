@@ -1,0 +1,1131 @@
+<title>Five Ways to Mark a Rally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+  /* The app is dark-only by decision, not omission (ADR-0006): a court at noon
+     is a second design nobody has drawn. This page commits to the same one
+     world and paints every colour explicitly. */
+  :root {
+    --night: #04181F;
+    --panel: #07222B;
+    --panel-2: #0A2A34;
+    --ink: #EEF7F5;
+    --ball: #DDF35C;
+    --floodlight: #FFF8D6;
+    --hair: rgba(238, 247, 245, 0.12);
+    --hair-soft: rgba(238, 247, 245, 0.07);
+
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --cond: "Barlow Condensed", "IBM Plex Sans", ui-sans-serif, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+    --round: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 64px) clamp(18px, 4vw, 40px) 96px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(36px, 5vw, 60px);
+  }
+
+  /* ── Type ───────────────────────────────────────────────────────────── */
+
+  .eyebrow {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ball);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: clamp(42px, 8vw, 78px);
+    line-height: 0.94;
+    letter-spacing: -0.005em;
+    margin: 10px 0 0;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .standfirst {
+    max-width: 64ch;
+    margin: 18px 0 0;
+    color: rgba(238, 247, 245, 0.72);
+  }
+
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    color: var(--ball);
+  }
+
+  /* ── Section shell ──────────────────────────────────────────────────── */
+
+  section { display: flex; flex-direction: column; gap: 20px; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--hair);
+    padding-top: 16px;
+  }
+
+  .section-head p {
+    margin: 0;
+    color: rgba(238, 247, 245, 0.55);
+    font-size: 14px;
+    max-width: 58ch;
+  }
+
+  /* ── Controls ───────────────────────────────────────────────────────── */
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px 32px;
+    align-items: flex-start;
+  }
+
+  .group { display: flex; flex-direction: column; gap: 8px; }
+
+  .group > span {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(238, 247, 245, 0.45);
+  }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .pill {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    padding: 7px 14px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--hair);
+    background: rgba(238, 247, 245, 0.04);
+    color: rgba(238, 247, 245, 0.62);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .pill:hover { color: var(--ink); border-color: rgba(238, 247, 245, 0.28); }
+
+  .pill[aria-pressed="true"] {
+    background: rgba(221, 243, 92, 0.14);
+    border-color: rgba(221, 243, 92, 0.55);
+    color: var(--ball);
+  }
+
+  .act {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 9px 18px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(221, 243, 92, 0.4);
+    background: rgba(221, 243, 92, 0.1);
+    color: var(--ball);
+  }
+
+  .act:hover { background: rgba(221, 243, 92, 0.2); }
+
+  .act.quiet {
+    border-color: var(--hair);
+    background: rgba(238, 247, 245, 0.04);
+    color: rgba(238, 247, 245, 0.66);
+  }
+
+  .act.quiet:hover { background: rgba(238, 247, 245, 0.1); color: var(--ink); }
+
+  :focus-visible { outline: 2px solid var(--ball); outline-offset: 2px; }
+
+  input[type="range"] { accent-color: var(--ball); width: 150px; }
+
+  .readout {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(238, 247, 245, 0.5);
+  }
+
+  /* ── The court ──────────────────────────────────────────────────────── */
+
+  .court {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--ground);
+    isolation: isolate;
+  }
+
+  .court[data-theme="night"] {
+    --ground: #04181F; --them: #0E3D4C; --us: #12564F;
+    --line-them: #B4EBDE; --line-us: #BEF5E4;
+    --ink-them: #DCEFE9; --ink-us: #F4FFFB;
+  }
+
+  .court[data-theme="clay"] {
+    --ground: #190C06; --them: #6E3826; --us: #8C4A30;
+    --line-them: #F2E3D6; --line-us: #F9EDE2;
+    --ink-them: #F3E2D6; --ink-us: #FDF0E5;
+  }
+
+  .court[data-theme="grass"] {
+    --ground: #0B180E; --them: #2A5233; --us: #37683E;
+    --line-them: #EDF6E6; --line-us: #F4FBEF;
+    --ink-them: #E6F2E2; --ink-us: #F3FBF0;
+  }
+
+  .court[data-theme="hard"] {
+    --ground: #08131F; --them: #17406F; --us: #215687;
+    --line-them: #E6EEF8; --line-us: #EFF5FC;
+    --ink-them: #DCE8F6; --ink-us: #EDF4FD;
+  }
+
+  .half {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .half[data-side="them"] { background: var(--them); }
+  .half[data-side="us"] { background: var(--us); }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Texture, not pattern: thousandths of white that say "surface". */
+  .weave {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.03) 0 1px,
+      transparent 1px 3px);
+  }
+
+  .half[data-side="us"] .weave { background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 3px); }
+
+  /* Every line is built as though it were on their half — outer edge at the
+     top — and ours is that set flipped, which is the whole of the mirror. */
+  .half[data-side="us"] .lines,
+  .half[data-side="us"] .flare { transform: scaleY(-1); }
+
+  .line { position: absolute; }
+
+  .line.service {
+    left: var(--inset); right: var(--inset);
+    top: 30%;
+    height: var(--lw);
+  }
+
+  .line.center {
+    left: calc(50% - var(--lw) / 2);
+    top: 30%; bottom: 0;
+    width: var(--lw);
+  }
+
+  .line.outline {
+    inset: var(--inset) var(--inset) 0;
+    border: var(--lw) solid currentColor;
+    border-bottom: 0;
+    background: none !important;
+  }
+
+  /* The floodlight the score screen already puts in the near corner of our
+     half. Elliptical, clear by 62% of the way, 0.14 strong. */
+  .flood {
+    background: radial-gradient(
+      ellipse 130% 100% at 100% 100%,
+      rgba(255, 248, 214, 0.14) 0%,
+      rgba(255, 248, 214, 0) 62%);
+  }
+
+  /* ── The five candidate marks ───────────────────────────────────────── */
+
+  .mark { opacity: 0; }
+
+  .court.live .half.firing .mark {
+    animation: bloom var(--dur, 520ms) cubic-bezier(0.16, 0.9, 0.3, 1) both;
+  }
+
+  .court.live .half.draining .mark {
+    animation: drain var(--dur, 520ms) cubic-bezier(0.4, 0, 0.7, 0.9) both;
+  }
+
+  @keyframes bloom {
+    0%   { opacity: 0; }
+    14%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Undo read backwards: the light is already in the half and leaves it. */
+  @keyframes drain {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* A — a burst of light. The floodlight's own warm white, centred on the
+     whole half instead of arriving from one corner. */
+  .mark[data-mark="flood"] {
+    background: radial-gradient(
+      ellipse 120% 95% at 50% 50%,
+      rgba(255, 248, 214, var(--s)) 0%,
+      rgba(255, 248, 214, calc(var(--s) * 0.42)) 38%,
+      rgba(255, 248, 214, 0) 72%);
+  }
+
+  /* B — the court's own paint flares. */
+  .mark[data-mark="lines"] { background: none; }
+  .mark[data-mark="lines"] .flare .line { color: #fff; }
+  .mark[data-mark="lines"] .flare .line.service,
+  .mark[data-mark="lines"] .flare .line.center { background: #fff; }
+
+  /* C — a wash of the one accent. */
+  .mark[data-mark="wash"] {
+    background: rgba(221, 243, 92, var(--s));
+  }
+
+  /* D — the half's own tint lifted, same hue, higher value. */
+  .mark[data-mark="lift"] {
+    background: var(--half-tint);
+    mix-blend-mode: screen;
+    opacity: 0;
+  }
+
+  .half[data-side="them"] .mark[data-mark="lift"] { --half-tint: var(--them); }
+  .half[data-side="us"] .mark[data-mark="lift"] { --half-tint: var(--us); }
+
+  /* E — the competitor's green. */
+  .mark[data-mark="green"] {
+    background: rgba(61, 220, 132, calc(var(--s) * 1.25));
+  }
+
+  /* ── The net ────────────────────────────────────────────────────────── */
+
+  .net {
+    position: relative;
+    height: var(--tape);
+    background: rgba(238, 247, 245, 0.82);
+    box-shadow: 0 var(--shadow-y) var(--shadow-b) rgba(0, 0, 0, 0.5);
+    z-index: 2;
+  }
+
+  .net::before, .net::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--tape) * -1);
+    height: calc(var(--tape) * 3);
+    width: var(--tape);
+    background: rgba(238, 247, 245, 0.9);
+  }
+
+  .net::before { left: 0; }
+  .net::after { right: 0; }
+
+  /* ── The score on the half ──────────────────────────────────────────── */
+
+  .score {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--score-gap);
+    font-family: var(--round);
+    font-weight: 600;
+    line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .half[data-side="them"] .score { color: var(--ink-them); }
+  .half[data-side="us"] .score { color: var(--ink-us); }
+
+  .points { font-size: var(--pt); letter-spacing: -0.02em; }
+  .games { font-size: var(--ga); opacity: 0.55; align-self: flex-start; margin-top: var(--ga-top); }
+
+  .sets {
+    position: absolute;
+    right: var(--sets-r);
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--round);
+    font-weight: 600;
+    font-size: var(--ga);
+    opacity: 0.82;
+    z-index: 1;
+  }
+
+  .half[data-side="them"] .sets { color: var(--ink-them); }
+  .half[data-side="us"] .sets { color: var(--ink-us); }
+
+  /* The ball: yellow, because yellow means *this is yours, or this is
+     chosen*, and the serve is the one thing on the screen that is either. */
+  .serve {
+    position: absolute;
+    width: var(--ball-d);
+    height: var(--ball-d);
+    border-radius: 50%;
+    background: var(--ball);
+    opacity: 0.9;
+    z-index: 1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  }
+
+  /* ── Stage ──────────────────────────────────────────────────────────── */
+
+  .stage {
+    display: grid;
+    grid-template-columns: auto minmax(260px, 1fr);
+    gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .stage { grid-template-columns: 1fr; }
+  }
+
+  .stage-court {
+    --w: 320px;
+    width: var(--w);
+    height: calc(var(--w) * 242 / 198);
+    border-radius: 34px;
+    --lw: 1.6px;
+    --inset: 8px;
+    --tape: 3.2px;
+    --shadow-y: 2.4px;
+    --shadow-b: 5px;
+    --pt: 66px;
+    --ga: 24px;
+    --ga-top: 24px;
+    --score-gap: 8px;
+    --sets-r: 18px;
+    --ball-d: 15px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+    justify-self: center;
+  }
+
+  .stage-side { display: flex; flex-direction: column; gap: 22px; }
+
+  .verdict-line {
+    font-size: 14px;
+    color: rgba(238, 247, 245, 0.62);
+    border-left: 2px solid var(--hair);
+    padding-left: 14px;
+    margin: 0;
+    min-height: 3.2em;
+  }
+
+  .verdict-line b { color: var(--ink); font-weight: 600; }
+
+  .aside {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(238, 247, 245, 0.45);
+    max-width: 46ch;
+  }
+
+  .aside b { color: rgba(238, 247, 245, 0.8); font-weight: 600; }
+
+  /* ── Matrix ─────────────────────────────────────────────────────────── */
+
+  .matrix {
+    display: grid;
+    grid-template-columns: 148px repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    align-items: center;
+    overflow-x: auto;
+    min-width: 0;
+  }
+
+  .matrix > * { min-width: 0; }
+
+  .col-head {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(238, 247, 245, 0.45);
+    text-align: center;
+    padding-bottom: 2px;
+  }
+
+  .row-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-right: 8px;
+  }
+
+  .row-head b {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.03em;
+  }
+
+  .row-head span {
+    font-size: 12px;
+    line-height: 1.35;
+    color: rgba(238, 247, 245, 0.45);
+  }
+
+  .cell {
+    position: relative;
+    width: 100%;
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    display: block;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .cell:hover { border-color: rgba(221, 243, 92, 0.45); }
+
+  .cell .court {
+    width: 100%;
+    aspect-ratio: 198 / 242;
+    --lw: 1px;
+    --inset: 4px;
+    --tape: 2px;
+    --shadow-y: 1.5px;
+    --shadow-b: 3px;
+    --pt: 30px;
+    --ga: 11px;
+    --ga-top: 11px;
+    --score-gap: 4px;
+    --sets-r: 8px;
+    --ball-d: 7px;
+  }
+
+  .row-green .row-head b { color: rgba(238, 247, 245, 0.5); }
+
+  .flag {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 7px 1px;
+    border-radius: 4px;
+    align-self: flex-start;
+    margin-top: 4px;
+  }
+
+  .flag.keep { background: rgba(221, 243, 92, 0.16); color: var(--ball); }
+  .flag.cut { background: rgba(238, 247, 245, 0.08); color: rgba(238, 247, 245, 0.5); }
+
+  /* ── Notes ──────────────────────────────────────────────────────────── */
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+    gap: 1px;
+    background: var(--hair-soft);
+    border: 1px solid var(--hair-soft);
+  }
+
+  .note {
+    background: var(--panel);
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note h3 {
+    font-family: var(--cond);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 0.03em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .note h3 .flag { margin-top: 0; align-self: center; }
+
+  .note p { margin: 0; font-size: 14px; color: rgba(238, 247, 245, 0.62); }
+  .note p b { color: var(--ink); font-weight: 600; }
+
+  .swatch-row { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+
+  .swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .swatch-row code { color: rgba(238, 247, 245, 0.5); font-size: 11px; }
+
+  .decision {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-top: 26px;
+    padding: 18px 20px;
+    max-width: 68ch;
+    border: 1px solid rgba(221, 243, 92, 0.3);
+    border-left-width: 3px;
+    border-radius: 4px;
+    background: rgba(221, 243, 92, 0.05);
+  }
+
+  .decision p {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(238, 247, 245, 0.72);
+  }
+
+  .decision p b { color: var(--ink); font-weight: 600; }
+  .decision .flag { margin-top: 2px; flex: none; }
+
+  .closing {
+    border-top: 1px solid var(--hair);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .closing p { margin: 0; max-width: 68ch; color: rgba(238, 247, 245, 0.72); }
+  .closing p b { color: var(--ink); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .court.live .half.firing .mark,
+    .court.live .half.draining .mark { animation-duration: 1ms; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Decided · the rally mark · ADR-0011</p>
+    <h1>Five ways to mark a rally</h1>
+    <p class="standfirst">
+      The competitor flashes the field green. Their field is black and carries no
+      information, so green is free. Ours is a court whose two halves already mean
+      something, and once the themes arrive those halves are clay, grass or hard
+      court. Five candidates were drawn and fired across four surfaces.
+      <strong>The chosen one is D — the half’s own tint lifts.</strong> The other
+      four are kept here because a decision without its alternatives is not a
+      decision, it is an assertion. The thing itself is called the
+      <strong>rally mark</strong>: a rally is the unit of play, and a point is
+      only its result.
+    </p>
+    <div class="decision">
+      <span class="flag keep">Chosen</span>
+      <p>
+        <b>D · The tint lifts.</b> The half that won the rally brightens in its own
+        hue and falls back. It spends no colour at all — it <i>is</i> the surface —
+        which is exactly why it costs something instead: strength is not a constant.
+        Every theme shipped after this one names its own.
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>The stage</h2>
+      <p>One watch screen at roughly true size. Award a rally to either half, or drain one back out.</p>
+    </div>
+
+    <div class="stage">
+      <div class="court stage-court live" id="stage" data-theme="night"></div>
+
+      <div class="stage-side">
+        <div class="controls">
+          <div class="group">
+            <span>Mark</span>
+            <div class="pills" id="markPills"></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="group">
+            <span>Surface</span>
+            <div class="pills" id="themePills"></div>
+          </div>
+        </div>
+
+        <p class="verdict-line" id="verdict"></p>
+
+        <div class="controls">
+          <div class="group">
+            <span>Strength <span class="readout" id="sOut"></span></span>
+            <input type="range" id="strength" min="8" max="60" value="34" aria-label="Strength">
+          </div>
+          <div class="group">
+            <span>Duration <span class="readout" id="dOut"></span></span>
+            <input type="range" id="duration" min="200" max="1200" step="20" value="520" aria-label="Duration">
+          </div>
+        </div>
+
+        <div class="pills">
+          <button class="act" data-fire="them">Point to them</button>
+          <button class="act" data-fire="us">Point to us</button>
+          <button class="act quiet" data-drain="1">Undo — rejected</button>
+        </div>
+
+        <p class="aside">
+          Undo was drawn as the mark reversed: the half starts lit and drains
+          instead of blooming. Press it against the two above — they read the
+          same. The rise is 73ms of a 520ms mark, which is below the threshold
+          at which an eye calls it a different event. <b>An undo is left
+          unmarked</b> rather than marked indistinguishably.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>The sweep</h2>
+      <p>Every candidate against every surface, firing together. The question each row answers: does this still mean “a rally landed here” when the ground is no longer teal?</p>
+    </div>
+
+    <div class="pills">
+      <button class="act" id="fireAll">Fire all</button>
+      <button class="act quiet" id="autoBtn" aria-pressed="false">Auto-play</button>
+    </div>
+
+    <div class="matrix" id="matrix"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>What the sweep shows</h2>
+      <p>The chosen one first, then the four it was chosen over. Read against ADR-0006, which is the constraint none of them gets to spend.</p>
+    </div>
+
+    <div class="notes">
+      <div class="note">
+        <h3>D · The tint lifts <span class="flag keep">chosen</span></h3>
+        <div class="swatch-row">
+          <span class="swatch" style="background:#12564F"></span>
+          <span class="swatch" style="background:#0E3D4C"></span>
+          <code>the half’s own hue, screened</code>
+        </div>
+        <p>
+          The half that won brightens in its own colour and falls back. It reads as
+          the court itself responding rather than as something laid over it, and it
+          adds <b>no token to the palette</b> — nothing for ADR-0006 to object to,
+          because there is no second accent to argue with the first.
+        </p>
+        <p>
+          What it costs: the mark has no colour of its own, so <b>strength is a
+          property of the surface, not of the mark</b>. The same 0.34 that reads
+          clearly on turf green is nearly gone on glass blue, and every theme
+          shipped afterwards names its own number. That is a field on a theme, and
+          it is the price of the option that spends nothing.
+        </p>
+      </div>
+
+      <div class="note">
+        <h3>A · Burst of light</h3>
+        <div class="swatch-row">
+          <span class="swatch" style="background:#FFF8D6"></span>
+          <code>floodlight #FFF8D6</code>
+        </div>
+        <p>
+          The primitive already exists, already has tests, and its doc comment has
+          pre-argued the case: <b>“a light and not a hue — the moment this reads as
+          a second accent it is too strong, and the fix is strength, never a warmer
+          colour.”</b> Louder than D and identical on every surface, since warm white
+          does not care what it falls on. <b>The runner-up</b>, and where to go if D
+          turns out to be too quiet on a wrist at arm’s length.
+        </p>
+      </div>
+
+      <div class="note">
+        <h3>B · The paint flares</h3>
+        <div class="swatch-row">
+          <span class="swatch" style="background:#BEF5E4"></span>
+          <code>courtLine at full weight</code>
+        </div>
+        <p>
+          The service line, centre line and outline go to full white and fade back
+          to their 0.20–0.36 weights. Theme-proof for the same reason as A — court
+          paint is white on clay, grass and hard alike — and it never touches the
+          digit. But it is <b>quiet</b>: from a bench six metres away, a hairline is
+          not what the eye catches.
+        </p>
+      </div>
+
+      <div class="note">
+        <h3>C · Wash of ball yellow</h3>
+        <div class="swatch-row">
+          <span class="swatch" style="background:#DDF35C"></span>
+          <code>ball #DDF35C</code>
+        </div>
+        <p>
+          Defensible in one word — a rally won is “chosen”. But yellow already means
+          the serve <i>on this exact screen</i>, and a yellow bloom over the
+          opponents’ half says <b>“this is yours”</b> about a rally that was not ours.
+          On clay it also collides with the surface underneath it.
+        </p>
+      </div>
+
+      <div class="note">
+        <h3>E · Green, as they do it</h3>
+        <div class="swatch-row">
+          <span class="swatch" style="background:#3DDC84"></span>
+          <code>a second accent</code>
+        </div>
+        <p>
+          Costs ADR-0006 outright: <b>“once loss is red, the yellow stops meaning
+          ‘yours’ and starts meaning ‘good’.”</b> Then the sweep kills it twice more
+          — on Wimbledon grass a green flash on green is nearly invisible, and on
+          Roland Garros clay it is the one hue that has no business being there.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>What the decision carries with it</h2>
+    <p>
+      <b>Strength becomes a property of the surface.</b> D has no colour of its own,
+      so it cannot have one number. Whatever describes a theme — the two half tints,
+      the paint, the ink — grows a field for how far that surface lifts when a rally
+      lands on it. The sliders above are where each one gets settled, by eye, on the
+      theme it belongs to.
+    </p>
+    <p>
+      <b>The halves stop being told apart by hue.</b> On real clay both halves are
+      clay; on grass both are grass. Turf-green-against-glass-blue is the app’s
+      entire answer to “which half is ours” today — <code>ScoreView</code> is
+      explicit that it is never said by a label, because a label would take room
+      from the digit the watch is being looked at for. Under themes that answer
+      degrades to a difference in value. It is the theme feature’s problem rather
+      than this one’s, but D lives directly on top of it: the mark and the identity
+      of the half are now made of the same material.
+    </p>
+    <p>
+      <b>An undo is not marked.</b> The obvious move was the mark reversed — the
+      half starts lit and drains rather than blooming — and the stage above still
+      carries the button so it can be checked. It does not survive the check: the
+      only difference between the two is a 73ms rise inside a 520ms mark, and an
+      eye does not read that as a different event. Marking an undo the same way a
+      rally is marked is worse than not marking it, so it is left unmarked. If it
+      turns out to matter — an undo done on a wrist is invisible to four people
+      reading the phone on the bench — the answer is a different mechanism, not a
+      reversed one.
+    </p>
+    <p>
+      <b>Nothing here has to be drawn twice.</b> The mark is geometry-free — a half
+      brightening does not care that the phone’s board is landscape with the net
+      turned a quarter turn. Unlike <code>serveAlignment(for:from:)</code>, which
+      needs writing once per screen, this is written once.
+    </p>
+  </section>
+
+</div>
+
+<script>
+  const MARKS = [
+    { id: "lift", name: "Tint lifts", flag: "chosen",
+      verdict: "<b>D · The tint lifts. Chosen.</b> The half brightens in its own hue and falls back. It spends no colour, so nothing in the palette has to move — and its strength belongs to the theme rather than to the mark." },
+    { id: "flood", name: "Burst of light", flag: "runner-up",
+      verdict: "<b>A · Burst of light.</b> The floodlight’s own warm white, centred on the half instead of arriving from a corner. Louder than D and constant across surfaces; the runner-up, and where to go if D proves too quiet at arm’s length." },
+    { id: "lines", name: "Paint flares", flag: "viable",
+      verdict: "<b>B · The paint flares.</b> The court’s three painted lines go to full white and fall back. It never touches the digit — but it is quiet from six metres away, which is where the phone’s board is read from." },
+    { id: "wash", name: "Ball yellow", flag: "spends a colour",
+      verdict: "<b>C · Wash of ball yellow.</b> Yellow already means the serve on this screen. A yellow bloom over the opponents’ half says “yours” about a rally that was not ours." },
+    { id: "green", name: "Green", flag: "spends a colour",
+      verdict: "<b>E · Green, as the competitor does it.</b> A second accent, which ADR-0006 spends its whole argument refusing. Invisible on grass, wrong on clay." }
+  ];
+
+  const THEMES = [
+    { id: "night", name: "Night court" },
+    { id: "clay", name: "Roland Garros" },
+    { id: "grass", name: "Wimbledon" },
+    { id: "hard", name: "Hard court" }
+  ];
+
+  const ROW_NOTE = {
+    lift: "The surface, brighter. Nothing else.",
+    flood: "Warm white, centred, decaying.",
+    lines: "The court’s own paint, at full weight.",
+    wash: "The one accent, spent a second time.",
+    green: "The competitor’s move, as drawn."
+  };
+
+  function lines(flare) {
+    const cls = flare ? "flare" : "lines";
+    return '<div class="layer ' + cls + '">' +
+      '<div class="line service"></div>' +
+      '<div class="line center"></div>' +
+      '<div class="line outline"></div>' +
+      '</div>';
+  }
+
+  // The lines are painted by weight, not by a colour written at the call site:
+  // service is the strongest of the three, the outline the faintest.
+  function paintedLines(side) {
+    const w = side === "us"
+      ? { service: 0.36, center: 0.30, outline: 0.22 }
+      : { service: 0.34, center: 0.28, outline: 0.20 };
+    const v = side === "us" ? "var(--line-us)" : "var(--line-them)";
+    return '<div class="layer lines">' +
+      '<div class="line service" style="background:' + v + ';opacity:' + w.service + '"></div>' +
+      '<div class="line center" style="background:' + v + ';opacity:' + w.center + '"></div>' +
+      '<div class="line outline" style="color:' + v + ';opacity:' + w.outline + '"></div>' +
+      '</div>';
+  }
+
+  // Their zone's ball sits at its bottom corner and ours at its top — the inner
+  // corners — and right/left mirror between the halves, so a serve reads as a
+  // diagonal across the screen.
+  function half(side, mark, score) {
+    const serve = side === "us"
+      ? '<span class="serve" style="top:12px;right:12px"></span>'
+      : "";
+    const flood = side === "us" ? '<div class="layer flood"></div>' : "";
+    return '<div class="half" data-side="' + side + '">' +
+      '<div class="layer weave"></div>' +
+      paintedLines(side) +
+      flood +
+      '<div class="score"><span class="points">' + score.points + '</span>' +
+      '<span class="games">' + score.games + '</span></div>' +
+      '<span class="sets">' + score.sets + '</span>' +
+      serve +
+      '<div class="layer mark" data-mark="' + mark + '">' + lines(true) + '</div>' +
+      '</div>';
+  }
+
+  function build(el, mark) {
+    el.innerHTML =
+      half("them", mark, { points: "30", games: "5", sets: "0" }) +
+      '<div class="net"></div>' +
+      half("us", mark, { points: "40", games: "4", sets: "1" });
+  }
+
+  function fire(court, side, drain) {
+    const h = court.querySelector('.half[data-side="' + side + '"]');
+    if (!h) return;
+    h.classList.remove("firing", "draining");
+    void h.offsetWidth;
+    h.classList.add(drain ? "draining" : "firing");
+  }
+
+  // ── Stage ────────────────────────────────────────────────────────────
+
+  const stage = document.getElementById("stage");
+  const verdict = document.getElementById("verdict");
+  const sIn = document.getElementById("strength");
+  const dIn = document.getElementById("duration");
+  const sOut = document.getElementById("sOut");
+  const dOut = document.getElementById("dOut");
+
+  let mark = "lift";
+  let theme = "night";
+  let lastSide = "us";
+
+  function pills(host, items, get, set) {
+    host.innerHTML = "";
+    items.forEach(function (it) {
+      const b = document.createElement("button");
+      b.className = "pill";
+      b.textContent = it.name;
+      b.setAttribute("aria-pressed", String(get() === it.id));
+      b.addEventListener("click", function () {
+        set(it.id);
+        Array.prototype.forEach.call(host.children, function (c) {
+          c.setAttribute("aria-pressed", String(c.textContent === it.name));
+        });
+      });
+      host.appendChild(b);
+    });
+  }
+
+  function renderStage(refire) {
+    build(stage, mark);
+    stage.dataset.theme = theme;
+    if (refire !== false) requestAnimationFrame(function () { fire(stage, lastSide, false); });
+  }
+
+  function setVerdict() {
+    const m = MARKS.find(function (x) { return x.id === mark; });
+    verdict.innerHTML = m.verdict;
+  }
+
+  pills(document.getElementById("markPills"), MARKS,
+    function () { return mark; },
+    function (id) { mark = id; setVerdict(); renderStage(); });
+
+  pills(document.getElementById("themePills"), THEMES,
+    function () { return theme; },
+    function (id) { theme = id; renderStage(); });
+
+  function syncVars() {
+    const s = sIn.value / 100;
+    const d = dIn.value + "ms";
+    document.documentElement.style.setProperty("--s", String(s));
+    document.documentElement.style.setProperty("--dur", d);
+    sOut.textContent = s.toFixed(2);
+    dOut.textContent = d;
+  }
+
+  sIn.addEventListener("input", syncVars);
+  dIn.addEventListener("input", syncVars);
+
+  document.querySelectorAll("[data-fire]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      lastSide = b.dataset.fire;
+      fire(stage, lastSide, false);
+    });
+  });
+
+  document.querySelector("[data-drain]").addEventListener("click", function () {
+    fire(stage, lastSide, true);
+  });
+
+  // ── Matrix ───────────────────────────────────────────────────────────
+
+  const matrix = document.getElementById("matrix");
+  const cells = [];
+
+  function buildMatrix() {
+    const frag = document.createDocumentFragment();
+
+    const corner = document.createElement("div");
+    frag.appendChild(corner);
+
+    THEMES.forEach(function (t) {
+      const h = document.createElement("div");
+      h.className = "col-head";
+      h.textContent = t.name;
+      frag.appendChild(h);
+    });
+
+    MARKS.forEach(function (m) {
+      const head = document.createElement("div");
+      head.className = "row-head";
+      head.innerHTML = "<b>" + m.name + "</b><span>" + ROW_NOTE[m.id] + "</span>" +
+        '<span class="flag ' + (m.id === "lift" ? "keep" : "cut") + '">' + m.flag + "</span>";
+      frag.appendChild(head);
+
+      THEMES.forEach(function (t) {
+        const btn = document.createElement("button");
+        btn.className = "cell";
+        btn.setAttribute("aria-label", m.name + " on " + t.name);
+        const court = document.createElement("div");
+        court.className = "court live";
+        court.dataset.theme = t.id;
+        build(court, m.id);
+        btn.appendChild(court);
+        btn.addEventListener("click", function () {
+          mark = m.id;
+          theme = t.id;
+          setVerdict();
+          renderStage();
+          Array.prototype.forEach.call(document.getElementById("markPills").children, function (c) {
+            c.setAttribute("aria-pressed", String(c.textContent === m.name));
+          });
+          Array.prototype.forEach.call(document.getElementById("themePills").children, function (c) {
+            c.setAttribute("aria-pressed", String(c.textContent === t.name));
+          });
+          stage.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+        cells.push(court);
+        frag.appendChild(btn);
+      });
+    });
+
+    matrix.appendChild(frag);
+  }
+
+  let sweepSide = "us";
+
+  function fireAll() {
+    sweepSide = sweepSide === "us" ? "them" : "us";
+    cells.forEach(function (c) { fire(c, sweepSide, false); });
+    fire(stage, sweepSide, false);
+    lastSide = sweepSide;
+  }
+
+  document.getElementById("fireAll").addEventListener("click", fireAll);
+
+  const autoBtn = document.getElementById("autoBtn");
+  let timer = null;
+
+  autoBtn.addEventListener("click", function () {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+      autoBtn.setAttribute("aria-pressed", "false");
+    } else {
+      fireAll();
+      timer = setInterval(fireAll, 2200);
+      autoBtn.setAttribute("aria-pressed", "true");
+    }
+  });
+
+  syncVars();
+  setVerdict();
+  renderStage(false);
+  buildMatrix();
+
+  // Autoplay is atmosphere, and atmosphere is the first thing to go when the
+  // viewer has asked for less motion. Every control still works by hand.
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    fireAll();
+    timer = setInterval(fireAll, 2200);
+    autoBtn.setAttribute("aria-pressed", "true");
+  }
+</script>

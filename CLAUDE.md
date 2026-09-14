@@ -42,16 +42,23 @@ takeable, what is blocked and on what. See `.claude/skills/status/SKILL.md`.
 
 ## Building and testing
 
-Pipe `xcodebuild` and `swift test` through `xcbeautify --quiet`. It cuts the log
-down to warnings and errors, keeping the file, line, and message on every one of
-them; `swift test` adds a line per suite on top of that. A hand-picked
-`| tail -N` cuts off the error you ran the build to find.
+`/build [target]` and `/test [target]` run the commands below for a package,
+an app scheme, or `all`, picking one from what's changed if `target` is
+omitted. See `.claude/skills/build/SKILL.md` and
+`.claude/skills/test/SKILL.md`.
+
+Pipe `xcodebuild` and `swift test` through `xcsift`. Unlike `xcbeautify`, it's
+built for an agent to read rather than a human to skim: a clean build or test
+run collapses to one JSON object — `warnings`, `errors`, `passed_tests`,
+`failed_tests` — and `-q` drops even that to nothing on a pass. A failure keeps
+the file, line, and message for every error by default; `-w` adds the same for
+warnings, which are otherwise just a count.
 
 Open the pipe with `set -o pipefail`, which makes the shell report the build's
-exit code instead of `xcbeautify`'s. Without it a failing build reports success:
+exit code instead of `xcsift`'s. Without it a failing build reports success:
 
     set -o pipefail; xcodebuild -project Padel.xcodeproj -scheme "Padel Watch App" \
-      -destination 'platform=watchOS Simulator,id=<uuid>' build 2>&1 | xcbeautify --quiet
+      -destination 'platform=watchOS Simulator,id=<uuid>' build 2>&1 | xcsift -q
 
 `xcodebuild -list -project Padel.xcodeproj` names the schemes; a failed
 `-destination` prints every simulator UUID the scheme accepts.
@@ -59,9 +66,9 @@ exit code instead of `xcbeautify`'s. Without it a failing build reports success:
 Most of the tests are the packages' and run under `swift test`. One target's
 tests are the project's: `PadelTests`, hosted by the phone app, which reads the
 strings out of the built `Padel.app`. It runs under the `Padel` scheme's test
-action on an iOS simulator, and `xcbeautify --quiet` prints a passing suite as
-one line — `xcrun xcresulttool get test-results summary --path <.xcresult>`
-counts the cases behind it.
+action on an iOS simulator, and `xcsift`'s summary counts the cases behind it
+directly — `passed_tests` and `failed_tests`, no separate `xcresulttool` pass
+needed.
 
 `-list` reads nothing but the project file in name only: it resolves the package
 graph on the way, which writes `SourcePackages` and reaches GitHub for GRDB. It

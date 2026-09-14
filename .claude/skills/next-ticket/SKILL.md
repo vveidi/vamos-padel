@@ -28,11 +28,11 @@ without it.
    spec govern. What a ticket says must not change is not up for
    renegotiation; if you think it is wrong, say so in the handoff and build it
    as written.
-4. **Build it, test it, and drive it.** Run the build and the tests, then take
-   the change through every state the ticket lists on a real simulator, in
-   both languages where the words differ, and again at the largest Dynamic
-   Type setting. Screenshot what you are going to claim. A ticket is not done
-   because it compiles.
+4. **Build it, test it, and drive it.** Run the `build` and `test` skills,
+   then take the change through every state the ticket lists on a real
+   simulator, in both languages where the words differ, and again at the
+   largest Dynamic Type setting. Screenshot what you are going to claim. A
+   ticket is not done because it compiles.
 5. **Run the `code-review` skill over the work before committing it**, so that
    what it finds folds into the one commit the ticket gets. Then split what
    comes back:

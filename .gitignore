@@ -17,7 +17,7 @@ xcuserdata/
 *.dSYM
 
 # Xcode — build output
-build/
+/build/
 DerivedData/
 *.o
 *.LinkFileList

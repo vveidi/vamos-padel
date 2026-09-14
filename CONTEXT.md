@@ -171,3 +171,11 @@ colors, and nothing is written down. It is emphatically not the change of ends
 that padel has after odd games — the app does not know which end anybody is
 standing at.
 _Avoid_: swap sides, change of ends, switching sides
+
+**Tap mode**:
+How the watch's score screen turns a touch into a rally — *multi-tap*, where one
+tap awards us the rally and two award it to the opponents wherever the finger
+lands, or *tap zones*, where the half that is tapped is the side that scores. A
+preference of the watch and of nothing else: no match records which was in
+force, and the phone is never told. A long press undoes the last rally in both.
+_Avoid_: input mode, tap scheme, scoring mode, gesture settings

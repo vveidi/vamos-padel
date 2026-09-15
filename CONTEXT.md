@@ -40,6 +40,16 @@ One of the two pairs on court. In v1 the sides are anonymous: "us" and "the
 opponents", with no player names.
 _Avoid_: team, pair, couple
 
+**Half**:
+One of the two pieces of ground the net divides the court into — a region, not a
+pair. Each side plays from one of them, drawn where it is when you stand at our
+end: theirs across the net, ours nearest. It is what a screen taps, what a rally
+mark brightens and what a light falls on. The pairs change ends during a match
+and the halves do not change name, because the app does not know which end
+anybody is standing at.
+_Avoid_: side (that is the pair), court side, zone, quadrant (that is the
+serving half)
+
 **Golden point**:
 The rule by which deuce is settled by a single decisive point instead of
 playing on for a two-point lead. Switched on by a setting before the match.

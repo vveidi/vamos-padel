@@ -1,9 +1,9 @@
 ---
-name: status
-description: Read the ticket board — every feature's tickets, their blockers, their criteria and which are free to pick up. Use when the user invokes /status, or asks what is left, what is next, what is blocked, how a feature is going, or what state the backlog is in.
+name: backlog
+description: Read the ticket board — every feature's tickets, their blockers, their criteria and which are free to pick up. Use when the user invokes /backlog, or asks what is left, what is next, what is blocked, how a feature is going, or what state the backlog is in.
 ---
 
-# Status
+# Backlog
 
 `.scratch/status.sh` is the board. Run it rather than reading ticket files: it
 reads the `**Status:**` line, the `**Blocked by:**` line and the criteria

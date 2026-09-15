@@ -60,9 +60,11 @@ tile's four grounds redrawn on top of it.
       `ScoreView`'s "turf green against their glass blue", `docs/design/README.md`'s
       "turf green against glass blue", and anything `grep -rn "turf\|glass blue"`
       turns up in `Packages` and both app targets
-- [ ] `CONTEXT.md` gains a **Half** entry — the glossary defines "serving half"
-      but never the half itself — and the **Rally mark** entry's "in its own
-      color" becomes the surface's own color
+- [ ] `CONTEXT.md`'s **Rally mark** entry drops "in its own color" for the
+      surface's own color. **Court half** and **Serving half** are already
+      written and need nothing here — read them before touching a doc comment, so
+      the code says "court half" where it means the ground and never a bare
+      "half", which now belongs to neither cut on its own
 - [ ] `docs/design/RallyMark.html` gets one line saying the night court it fires
       against is no longer what ships, and that candidate B — the painted lines
       flaring — is now unbuildable rather than merely rejected

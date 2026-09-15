@@ -40,15 +40,17 @@ One of the two pairs on court. In v1 the sides are anonymous: "us" and "the
 opponents", with no player names.
 _Avoid_: team, pair, couple
 
-**Half**:
+**Court half**:
 One of the two pieces of ground the net divides the court into — a region, not a
 pair. Each side plays from one of them, drawn where it is when you stand at our
 end: theirs across the net, ours nearest. It is what a screen taps, what a rally
 mark brightens and what a light falls on. The pairs change ends during a match
-and the halves do not change name, because the app does not know which end
+and the court halves do not change name, because the app does not know which end
 anybody is standing at.
-_Avoid_: side (that is the pair), court side, zone, quadrant (that is the
-serving half)
+Said in full wherever the serving half is also in play — the net is not the only
+thing that divides this court — and as a bare "half" anywhere the other cut is
+nowhere near, which is most of the app.
+_Avoid_: side (that is the pair), court side, zone
 
 **Golden point**:
 The rule by which deuce is settled by a single decisive point instead of
@@ -91,8 +93,10 @@ particular player within the pair.
 _Avoid_: server, the serve (as an entity)
 
 **Serving half**:
-The half of the court, right or left of the center line, the serve is played
-from. The first rally of a game comes from the right, and the half changes with
+The right or left part **within** a court half, either side of the center line,
+the serve is played from. It is a cut across the other axis and nests inside the
+court half: not the serving side's ground, but where in that ground the server
+stands. The first rally of a game comes from the right, and the half changes with
 every rally after it — inside a tiebreak as well, where the serve itself passes
 on a different rhythm. In the match to N points a service turn stands in for a
 game: its first rally comes from the right. Right and left are the server's

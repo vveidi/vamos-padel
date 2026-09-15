@@ -1,34 +1,16 @@
-/// The workout the match runs inside.
-///
-/// The app does not survive an hour and a half on court by itself: the system
-/// unloads it between games, the screen goes dark, and raising your wrist
-/// returns you to the watch face. Registering the match as a workout is the
-/// only way to change that. Heart rate, calories and activity rings come as a
-/// side effect, but they are not the reason: the reason is that the score has
-/// to be on the screen for the whole match.
-///
-/// A protocol rather than HealthKit outright, for the same reason the store and
-/// the transport sit behind protocols (ADR-0002): the screens must know nothing
-/// about health. The immediate benefit is the preview, which would otherwise
-/// ask for Health access and write a workout into it every time somebody opened
-/// the canvas.
+/// A running workout is what keeps the app foregrounded for the length of a
+/// match: without one the system unloads it between games and the wrist raise
+/// returns to the watch face. The health data is a side effect.
 protocol Workout {
-    /// Starts the workout. Does nothing if one is already running.
+    /// Does nothing if a workout is already running.
     func start()
 
-    /// Ends the workout and hands it to Health. Does nothing if none was
-    /// started.
+    /// Does nothing if none was started.
     func end()
 }
 
-/// No workout at all: the match is played, the score is counted, and nothing
-/// reaches Health.
-///
-/// For previews, for the case where there is no health access whatsoever, and
-/// for a player who turned the switch off on the settings page — `RootView`
-/// hands this over instead of the real one, and the match screen never learns
-/// which it is holding. A denied permission does not lead here: a match with a
-/// denial still runs through `HealthKitWorkout`, which simply writes nothing.
+/// - Note: A denied Health permission does not lead here — such a match still
+///   runs through ``HealthKitWorkout``, which simply writes nothing.
 struct NoWorkout: Workout {
     func start() {}
 

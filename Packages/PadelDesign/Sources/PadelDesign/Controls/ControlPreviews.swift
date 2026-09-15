@@ -1,34 +1,9 @@
 import PadelScoring
 import SwiftUI
 
-// The five controls, drawn.
-//
-// Two boards and four previews, and the four are the point. These controls
-// are where the app's words live — every one of them is handed a phrase by a
-// screen — and a control is only as good as the longest phrase it is handed.
-// So each board is drawn twice over, once in each language, and again at the
-// largest Dynamic Type setting: "Serve changes every" against "Смена подачи
-// через" is the widest pair in the app, and the rules screen at the largest
-// setting is where it has historically run out of width.
-//
-// What to look for at `.accessibility5`: nothing clipped and nothing cut off.
-// The segments drop under each other, the stepper rows put their ± under the
-// label, and the pills grow rather than trimming their verb.
-//
-// The words are `Text(verbatim:)` and not keys. This package owns no catalog —
-// the screens do the speaking (see `SegmentedChoice.Option`) — so the Russian
-// here is the same Russian `Shared/Localizable.xcstrings` holds, copied in as
-// the words these controls will really be given.
-
 // MARK: - The words
 
-/// One board's worth of phrases.
 private struct Words {
-    /// What the ruleset choice says.
-    ///
-    /// A type and not a tuple, because it is three fields and the third is the
-    /// one only one board spends: the watch names the choice on its row before
-    /// opening the page, and the phone's segments carry no label above them.
     struct Scoring {
         let label: String
         let classic: String
@@ -77,20 +52,12 @@ private struct Words {
         duration: "1 ч 12 мин")
 }
 
-/// The one system control the redesign keeps, wearing the boards' switch —
-/// what ``SettingsCard`` documents rather than wraps.
-///
-/// Shared by both boards on purpose: the golden point is the one row that does
-/// *not* part company between the platforms, and drawing it twice is how two
-/// rows that ought to match drift apart.
 @MainActor private func toggle(words: Words, isOn: Binding<Bool>) -> some View {
     Toggle(isOn: isOn) {
         Text(verbatim: words.goldenPoint)
             .textStyle(.body)
             .foregroundStyle(.ink.weight(.control))
     }
-    // The row's height comes with the style: the watch's rows stand two texts
-    // tall and this one has a switch where their value is. See ``BallSwitch``.
     .toggleStyle(.ball)
 }
 
@@ -98,15 +65,6 @@ private struct Words {
 
 #if os(watchOS)
 
-    /// The watch's whole rules screen worth of furniture: four rows in a card,
-    /// each one opening a page. Nothing here is a segment and nothing is a ± .
-    ///
-    /// What to look for: every row two texts tall, the chosen value lit in
-    /// `ball` on the second line — the only lit thing on the row, and the
-    /// whole of the affordance, because the brief allows no chevron — and the
-    /// golden point standing as tall as the four rows above it with only its
-    /// own label to fill the height. Then open "Points to win" and check that
-    /// the page arrives already scrolled to 16 rather than at 5.
     private struct RowsBoard: View {
         let words: Words
 
@@ -130,8 +88,6 @@ private struct Words {
 
                         ChoiceRow(Text(verbatim: words.sets), value: $sets, in: 1...3)
 
-                        // The row the pushed page exists for: 36 values, which
-                        // is 35 taps of a ± and one turn of the crown.
                         ChoiceRow(Text(verbatim: words.points), value: $points, in: 5...40)
 
                         ChoiceRow(
@@ -160,8 +116,6 @@ private struct Words {
 
 #if !os(watchOS)
 
-/// The choice, the card and the two buttons — the phone's furniture, live: the
-/// segments switch and the ± move.
 private struct ControlsBoard: View {
     let words: Words
 
@@ -182,9 +136,6 @@ private struct ControlsBoard: View {
                 SettingsCard {
                     StepperRow(Text(verbatim: words.sets), value: $sets, in: 1...3)
 
-                    // 36 values behind a ± , which a thumb can cross and a
-                    // wrist cannot — the reason the watch opens a page for
-                    // this row instead.
                     StepperRow(Text(verbatim: words.points), value: $points, in: 5...40)
 
                     StepperRow(
@@ -221,9 +172,6 @@ private struct ControlsBoard: View {
 
 // MARK: - The history
 
-/// The four grounds in a column, which is the only way to see the argument
-/// they make: a won match, a lost one, one stopped early and one still being
-/// played, read as a season before a number has been read.
 private struct TilesBoard: View {
     let words: Words
 
@@ -243,8 +191,6 @@ private struct TilesBoard: View {
         .background(Color.night)
     }
 
-    /// What ticket 08 will really put on a tile: the score, the rules that
-    /// make it readable, and when it was played.
     private func tile(_ outcome: MatchOutcome) -> some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {

@@ -3,14 +3,6 @@ import Testing
 
 @testable import PadelDesign
 
-/// The two light effects.
-///
-/// Both are overlays, and the ticket's requirement of them is a layout one:
-/// "Neither may affect layout" — the same argument `ScoreView` makes about the
-/// serve indicator, that "an overlay is the whole of that guarantee". That is
-/// checkable, and so is the other claim about the floodlight, which is that it
-/// is a light and not a hue: it has to be visible and it has to be faint, and
-/// the failure is a step in either direction.
 @Suite("The light")
 @MainActor
 struct LightTests {
@@ -45,12 +37,8 @@ struct LightTests {
         #expect(brightest == from)
     }
 
-    /// "It is a **light**, not a hue. If it starts reading as a second accent
-    /// color, it is too strong or too saturated."
-    ///
-    /// Which is a pair of bounds: it has to lift the ground it is on, and it
-    /// has to lift it by little. The app has one color and it is the ball
-    /// (ADR-0006); a floodlight that arrived as paint would be the second.
+    /// A pair of bounds: it has to lift the ground it is on, and it has to lift
+    /// it by little.
     @Test("The floodlight is light rather than paint")
     func theFloodlightIsFaint() throws {
         let raster = try Self.lit(from: .topLeading)
@@ -74,9 +62,6 @@ struct LightTests {
         #expect(raster.pixel(100, awayFromIt, isCloseTo: .ball))
     }
 
-    /// Neither overlay may take a point from the layout. A court that ran
-    /// under a floating control would stop running under it the moment the
-    /// scrim pushed it about.
     @Test("Neither takes any room from the layout")
     func theOverlaysAreFree() throws {
         let bare = try #require(Raster(Text(verbatim: "40").fixedSize()))

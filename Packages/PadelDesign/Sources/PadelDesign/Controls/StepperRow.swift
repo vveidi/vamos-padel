@@ -1,23 +1,7 @@
 import SwiftUI
 
 /// A number being set: a label at the leading edge, then − , the value, and + .
-///
-/// **The phone's control, and only the phone's.** A ± pair is a fine way to
-/// cross 1...3 with a thumb and a poor one on a wrist: the board's circles
-/// halve to 15pt, and 5...40 behind them is 35 taps. The watch sets the same
-/// numbers with ``ChoiceRow``, which opens a page and lets the crown scroll
-/// it — see the spec's "The crown survives the rules screen", which this
-/// control is no longer the answer to.
-///
-/// The range comes from the call site and the row clamps to it. It does not
-/// know what a set is — `1...3`, `1...6` and `5...40` are all the same
-/// control.
-///
-/// **To VoiceOver it is adjustable, not a pair of buttons.** That is what a
-/// stepper is on the platform, and it is what `Stepper` itself reports: one
-/// element carrying the label, the value and `.isAdjustable`, moved by a
-/// swipe. The alternative — two buttons — would need the words "increase" and
-/// "decrease", and this package owns no words to give them.
+/// The range comes from the call site and the row clamps to it.
 @available(watchOS, unavailable)
 public struct StepperRow: View {
     private let label: Text
@@ -49,10 +33,9 @@ public struct StepperRow: View {
     }
 
     private var content: some View {
-        // Beside each other while the label leaves room, and above each other
-        // when it stops. "Подача через (X)" at the largest setting is wider
-        // than the screen on its own, and a row that kept the ± beside it
-        // would be a row with the label cut off.
+        // Beside each other while the label leaves room, above each other when
+        // it stops: "Подача через (X)" at the largest setting is wider than the
+        // screen on its own.
         ViewThatFits(in: .horizontal) {
             HStack(spacing: ControlMetrics.rowGap) {
                 labelText
@@ -84,7 +67,6 @@ public struct StepperRow: View {
             Text(verbatim: "\(value)")
                 .textStyle(.display)
                 .foregroundStyle(.ink)
-                // So that 9 becoming 10 does not shove the two buttons apart.
                 .monospacedDigit()
                 .frame(minWidth: ControlMetrics.stepperValue)
 
@@ -106,17 +88,14 @@ public struct StepperRow: View {
                 .frame(width: ControlMetrics.stepperGlyph, height: ControlMetrics.stepperGlyph)
                 .frame(width: ControlMetrics.stepperButton, height: ControlMetrics.stepperButton)
                 .background(Circle().fill(.ink.weight(.surface)))
-                // The hit area is wider than the circle and sits inside the
-                // button's label, which is the only place it counts: a frame
-                // put *around* a `Button` moves the button without widening
-                // what it answers to.
+                // The hit area sits inside the button's label, which is the
+                // only place it counts: a frame put *around* a `Button` moves
+                // the button without widening what it answers to.
                 .frame(width: ControlMetrics.stepperHit, height: ControlMetrics.stepperHit)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!reachable)
-        // A button at the end of its range that still looks live is a small
-        // lie told once per tap.
         .opacity(reachable ? 1 : InkWeight.tertiary.opacity)
     }
 
@@ -127,11 +106,6 @@ public struct StepperRow: View {
 
 // MARK: - The glyphs
 
-/// The bar of a − , and the second bar that makes it a + .
-///
-/// Drawn rather than borrowed, for the reason ``Ball`` is: `Image(systemName:)`
-/// would bring the system's weight and the system's cap, and these two are one
-/// stroke off the boards — `M5 12h14`, round-capped, in a 24-unit box.
 private struct StepperGlyph: Shape {
     let isPlus: Bool
 

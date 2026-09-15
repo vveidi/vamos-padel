@@ -1,19 +1,5 @@
 import SwiftUI
 
-// The palette, the ramp and the radii, drawn.
-//
-// A token is a number until it is next to the other numbers, and the two
-// mistakes this package can make — a weight that does not separate from the
-// one above it, a ramp entry that lands on top of the one below — are both
-// invisible in source and obvious here.
-//
-// Three boards and four previews; the ramp gets two, because a ramp is only
-// doing its job if it moves. Both platforms come from the same four: the sizes
-// and the radii resolve per platform, so these are the watch's when the canvas
-// is running the watch scheme and the phone's when it is running `padel`.
-// There is nothing to preview for a light appearance, because there is no
-// light appearance (ADR-0006).
-
 // MARK: - The palette
 
 private struct PaletteBoard: View {
@@ -75,12 +61,6 @@ private struct PaletteBoard: View {
         }
     }
 
-    /// One swatch and its name.
-    ///
-    /// `some ShapeStyle` rather than `Color`, so a gradient and a flat color
-    /// go through the same row: they are the same chip over the same ground
-    /// with the same label, and drawing them twice is how two rows that ought
-    /// to match drift apart.
     private func row(
         _ name: String, _ fill: some ShapeStyle, over ground: Color = .night
     ) -> some View {
@@ -99,8 +79,6 @@ private struct PaletteBoard: View {
         }
     }
 
-    /// A gradient token laid out top to bottom, which is the only direction a
-    /// 46×26 chip has room to show one in.
     private func downward(_ gradient: Gradient) -> LinearGradient {
         LinearGradient(gradient: gradient, startPoint: .top, endPoint: .bottom)
     }
@@ -137,9 +115,6 @@ private struct RampBoard: View {
 
 #Preview("The ramp") { RampBoard() }
 
-/// The ramp is only doing its job if it moves, and macOS cannot show that —
-/// see `RenderingTests`. On a watch or phone canvas, this preview beside the
-/// one above it is the whole of the evidence that the anchors are live.
 #Preview("The ramp, largest type") {
     RampBoard().environment(\.dynamicTypeSize, .accessibility5)
 }

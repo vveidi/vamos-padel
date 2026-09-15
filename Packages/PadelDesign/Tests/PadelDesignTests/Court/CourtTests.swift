@@ -3,16 +3,8 @@ import Testing
 
 @testable import PadelDesign
 
-/// The court's surface, drawn and then measured.
-///
-/// What is left to claim once the painted lines are gone is short, and all of
-/// it is a picture: the half is one surface all the way across, there is
-/// nothing painted on it, and the weave over it is texture rather than
-/// stripes. The middle one is the claim worth having — a service line written
-/// back would compile, would look plausible in review, and fails here.
-///
-/// The frame is 200×400 throughout, so a fraction of the half is a round
-/// number of pixels and a failure reports a position rather than a ratio.
+/// The frame is 200×400 throughout, so a fraction of the half is a round number
+/// of pixels and a failure reports a position rather than a ratio.
 @Suite("The court")
 @MainActor
 struct CourtTests {
@@ -45,8 +37,7 @@ struct CourtTests {
     func theHalfIsOneSurface() throws {
         let raster = try Self.half()
 
-        // The four corners and the middle: with nothing painted on the half
-        // there is no position on it that is not the surface.
+        // The four corners and the middle.
         for (column, row) in [(6, 6), (Self.width - 7, 6), (6, Self.height - 7),
             (Self.width - 7, Self.height - 7), (Self.width / 2, Self.height / 2)]
         {
@@ -56,14 +47,10 @@ struct CourtTests {
         }
     }
 
-    /// The claim this feature rests on, checked the way it would be broken.
-    ///
-    /// A line running *across* the half moves its row's mean a long way; a
-    /// line running *down* it moves every row's mean a little and shows up as
-    /// a column instead. Both are looked for, because the half used to carry
-    /// one of each — a service line across and a center line down — and either
-    /// coming back is the failure this test exists for. The weave is the only
-    /// thing allowed to move a reading, and it moves it by thousandths.
+    /// A line running *across* the half moves its row's mean a long way; a line
+    /// running *down* it moves every row's mean a little and shows up as a
+    /// column instead. Both are looked for. The weave is the only thing allowed
+    /// to move a reading, and it moves it by thousandths.
     @Test("Nothing is painted on the half")
     func theHalfCarriesNoLines() throws {
         let raster = try Self.half()
@@ -85,9 +72,8 @@ struct CourtTests {
 
     // MARK: The weave
 
-    /// The weave is texture and not pattern: "at a glance it should read as a
-    /// surface and not as stripes". A test cannot glance at it, but it can
-    /// check the two ways it stops being texture — vanishing, and shouting.
+    /// A test cannot glance at the weave, but it can check the two ways it
+    /// stops being texture: vanishing, and shouting.
     @Test("The weave lies on the surface without becoming stripes")
     func theWeaveIsTextureRatherThanPattern() throws {
         let raster = try Self.half()

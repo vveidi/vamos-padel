@@ -3,14 +3,9 @@ import Testing
 
 @testable import PadelDesign
 
-/// The ramp is a mapping, and a mapping is worth testing for the two ways it
-/// goes wrong: two entries landing on the same font, so a screen names a role
-/// and gets somebody else's, and an entry losing its `relativeTo:`, so Dynamic
-/// Type quietly stops working on it.
-///
-/// The sizes themselves are not asserted. They are a design decision and will
-/// move; a test that froze them would have to be edited by whoever moves them,
-/// which is a test that only ever says "yes, you changed what you changed".
+/// The sizes themselves are deliberately not asserted. They are a design
+/// decision and will move, and a test that froze them would only ever say
+/// "yes, you changed what you changed".
 @Suite("The type ramp")
 struct TypeRampTests {
     @Test("Seven entries, and seven is the budget")
@@ -37,20 +32,9 @@ struct TypeRampTests {
         }
     }
 
-    /// `ScoreView` sets the games digit on the score's baseline, and the
-    /// ticket says the two "have to move together when type scales".
-    ///
-    /// They only do that if they scale by the *same factor*, and the factor
-    /// comes from the anchor: `.largeTitle` and `.title2` do not grow alike,
-    /// so anchoring the pair apart would let the digit drift off the baseline
-    /// at the far end of the range. Sharing the anchor is the whole mechanism,
-    /// which is why it is asserted rather than left to the doc comment.
-    ///
-    /// This replaces an earlier check that every entry "carries a
-    /// `relativeTo`". That one could not fail — `relativeTo` is a
-    /// non-optional `Font.TextStyle`, so `allCases.contains` is true for
-    /// every possible value — and it was cited twice as evidence the ramp was
-    /// anchored. It verified nothing.
+    /// The shared anchor is the whole mechanism: two text styles do not grow
+    /// alike, so anchoring the pair apart would let the games digit drift off
+    /// the score's baseline at the far end of the range.
     @Test("The score and the digit beside it scale by one factor")
     func theScoreAndItsAsideStayAPair() {
         #expect(TypeRamp.score.relativeTo == TypeRamp.scoreAside.relativeTo)

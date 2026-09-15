@@ -2,55 +2,11 @@ import SwiftUI
 
 /// The watch's way of setting anything: a row that says what a value is, and
 /// opens a page to change it.
-///
-/// **One control for the ruleset and for the numbers alike.** "Classic against
-/// By points" and "sets to win: 2" are the same act on a 198pt screen — pick
-/// one of a short list — and the wrist has no room to draw them two different
-/// ways. So there is no segmented control here and no ± anywhere: the row
-/// names the value, the page lists what it could be, a tap picks and comes
-/// back.
-///
-/// **The crown still crosses 5...40 in one turn**, which is what the spec's
-/// "The crown survives the rules screen" was protecting. It does it by
-/// scrolling the page rather than by spinning a value in place, so nothing
-/// here binds `digitalCrownRotation` and no row has to be focused before it
-/// will move. The page opens already scrolled to what is chosen, so 21 is one
-/// short turn from 21 rather than sixteen from 5.
-///
-/// **A chevron at the trailing edge.** The row was drawn without one to begin
-/// with: the brief is "no navigation bar, no list rows, no
-/// chevron-and-separator", and the value under the label is drawn in `ball`,
-/// which in this app means exactly *this is yours, or this is chosen*
-/// (ADR-0006). Looked at on a wrist, that argument turned out to be about the
-/// wrong thing. The lit value says what the row *is*; it does not say the row
-/// **opens**, and a row that opens a screen has to say so before it is tapped.
-/// The brief's chevron is the one on a `List` row, ruled off by separators —
-/// this is ``Chevron``, in its well, and it is drawn on exactly the rows that
-/// lead somewhere.
-///
-/// ```swift
-/// ChoiceRow(
-///     Text("Scoring"),
-///     selection: $isClassic,
-///     options: [
-///         .init(Text("Classic"), value: true),
-///         .init(Text("By points"), value: false),
-///     ])
-///
-/// ChoiceRow(Text("Sets to win"), value: $setsToWin, in: 1...3)
-/// ```
-///
-/// The phone chooses with ``SegmentedChoice`` and ``StepperRow`` instead,
-/// which is why this is unavailable there: two controls that both mean "pick
-/// one" should not be reachable from the same screen, and which one a platform
-/// gets is a decision made once, here, rather than at every call site.
 @available(iOS, unavailable)
 public struct ChoiceRow<Value: Hashable>: View {
-    /// One thing the value could be.
-    ///
-    /// The label is a `Text` and not a `LocalizedStringKey`, because this
-    /// package owns no words: the catalog lives in the app and the screens do
-    /// the speaking.
+    /// One thing the value could be. The label is a `Text` and not a
+    /// `LocalizedStringKey` because this package owns no words — the catalog
+    /// lives in the app.
     public struct Option: Identifiable {
         let label: Text
         let value: Value
@@ -85,12 +41,10 @@ public struct ChoiceRow<Value: Hashable>: View {
 
     private var row: some View {
         HStack(spacing: ControlMetrics.rowGapToChevron) {
-            // The value under the label and never beside it, so that each of
-            // the two is given the row's whole width. "Подача через (X)" is
-            // wider than a watch on its own before the value is put anywhere,
-            // and a row that stacked only once it ran out of room would stand
-            // one text tall in English and two in Russian, in a card whose
-            // rows are read as a column of one shape.
+            // The value under the label and never beside it, so each gets the
+            // row's whole width. "Подача через (X)" is wider than a watch
+            // before the value is put anywhere, and a row that stacked only on
+            // running out of room would be one text tall in English, two in Russian.
             VStack(alignment: .leading, spacing: ControlMetrics.rowGap) {
                 labelText
                 chosenText
@@ -105,9 +59,8 @@ public struct ChoiceRow<Value: Hashable>: View {
             maxWidth: .infinity, minHeight: ControlMetrics.stackedRowHeight,
             alignment: .leading)
         .contentShape(Rectangle())
-        // One element and not two: VoiceOver reading a label and then a value
-        // as separate stops is a way of hearing a row and not knowing it opens
-        // anything.
+        // One element and not two: VoiceOver reading the label and the value as
+        // separate stops is a way of hearing a row and not knowing it opens.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(label)
         .accessibilityValue(chosen?.label ?? Text(verbatim: ""))
@@ -136,13 +89,8 @@ public struct ChoiceRow<Value: Hashable>: View {
 
 @available(iOS, unavailable)
 extension ChoiceRow where Value == Int {
-    /// A number from a range, which is the same control with its options
-    /// counted out.
-    ///
-    /// A numeral standing on its own says the same thing in both languages —
-    /// `RulesetView` has made that argument since the app had one language —
-    /// so the options are `verbatim` and the catalog is never asked for a key
-    /// of "%lld".
+    /// A numeral standing on its own says the same thing in both languages, so
+    /// the options are `verbatim` and the catalog is never asked for a "%lld".
     public init(_ label: Text, value: Binding<Int>, in range: ClosedRange<Int>) {
         self.init(
             label,
@@ -153,21 +101,9 @@ extension ChoiceRow where Value == Int {
 
 // MARK: - The page it opens
 
-/// The list a ``ChoiceRow`` pushes: every option down the screen, the chosen
-/// one ringed, a tap picking it and coming straight back.
-///
-/// Coming back on the tap rather than on a "Done" is the same argument
-/// `RulesetView` already makes about leaving the screen: there is nothing to
-/// confirm, and an extra tap is the very thing a wrist cannot afford.
-///
-/// It keeps watchOS's own title and back chevron. The brief's "no navigation
-/// bar" is about the screens the boards draw; a pushed page that hid its way
-/// back would be a page a player can only leave by choosing something — which
-/// is not a figure of speech. `RulesetView` hid its bar and was a trap: the
-/// edge swipe does not stand in for a Back button, and the screen that pushed
-/// this one now keeps its own bar for the same reason (``PadelDesign`` cannot
-/// see that screen, so ``RulesetSettings`` on the watch is where it is written
-/// down).
+/// The list a ``ChoiceRow`` pushes, one capsule per option. It keeps watchOS's
+/// title and back chevron: a pushed page that hid its bar could only be left by
+/// choosing, and the edge swipe is no substitute for Back.
 @available(iOS, unavailable)
 private struct ChoiceList<Value: Hashable>: View {
     let title: Text
@@ -197,9 +133,9 @@ private struct ChoiceList<Value: Hashable>: View {
                 }
                 .padding(.horizontal, ControlMetrics.cardPadding)
             }
-            // Opened on what is chosen and not at the top: the range 5...40 is
-            // 36 capsules, and a page that always started at 5 would make the
-            // crown do the work the row was opened to avoid.
+            // Opened on what is chosen and not at the top: 5...40 is 36
+            // capsules, and starting at 5 would make the crown do the work the
+            // row was opened to avoid.
             .onAppear { page.scrollTo(selection, anchor: .center) }
         }
         .background(Color.night)

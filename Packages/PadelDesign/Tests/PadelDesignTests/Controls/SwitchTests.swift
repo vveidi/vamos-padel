@@ -3,12 +3,6 @@ import Testing
 
 @testable import PadelDesign
 
-/// The switch, which exists for two pixels the system draws differently.
-///
-/// `.tint(.ball)` already gives the track its yellow; what it cannot reach is
-/// the knob, and a white knob on that yellow is the thing the boards are
-/// emphatic about. So both assertions below are about color, and neither is
-/// about the shape of a capsule.
 @Suite("The ball switch")
 @MainActor
 struct BallSwitchTests {
@@ -27,8 +21,8 @@ struct BallSwitchTests {
                     .background(Color.night)))
     }
 
-    /// The knob's middle, which is a knob's half-width in from the trailing
-    /// edge of the track once the track's own 3pt is taken off.
+    /// The knob's middle: a knob's half-width in from the trailing edge of the
+    /// track, once the track's own inset is taken off.
     static func knob(_ raster: Raster) -> (column: Int, row: Int) {
         let knobWidth = ControlMetrics.switchTrack.height - 2 * ControlMetrics.switchKnobInset
 
@@ -56,9 +50,6 @@ struct BallSwitchTests {
             "the knob is not the boards' deep teal")
     }
 
-    /// Off, the knob is at the leading end of the track and the accent is
-    /// nowhere: in this app `ball` means *this is yours, or this is chosen*
-    /// (ADR-0006), and a switch that is off is neither.
     @Test("Turned off, the knob crosses and nothing is lit")
     func theKnobCrossesAndTheLightGoesOut() throws {
         let raster = try Self.toggle(isOn: false)

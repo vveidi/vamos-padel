@@ -1,21 +1,7 @@
 import SwiftUI
 
-// The court, the net, the ball and the light, drawn.
-//
-// Five boards. Everything here is geometry, and geometry is the part of a
-// design that cannot be read off source: a post at one end of the net, a weave
-// that has become stripes and a floodlight that has become a color all
-// compile.
-//
-// Both platforms come from the same five. The thicknesses and the radii
-// resolve per platform, so these are the watch's when the canvas is running
-// the watch scheme and the phone's when it is running `padel` — which is what
-// makes running them twice worth the trouble.
-
 // MARK: - The court
 
-/// The whole thing, as four of the six boards draw it: full bleed to every
-/// edge, lit from a corner.
 private struct CourtBoard: View {
     var body: some View {
         Court()
@@ -28,11 +14,6 @@ private struct CourtBoard: View {
 
 // MARK: - The halves
 
-/// The two halves apart, on `night`.
-///
-/// What to look for: that they are the same surface, drawn once. Which of them
-/// is ours is not a question this board can answer — that is the net's job,
-/// and the net is on the board below.
 private struct HalvesBoard: View {
     private let labels = ["the net is below", "the net is above"]
 
@@ -57,11 +38,6 @@ private struct HalvesBoard: View {
 
 // MARK: - The net
 
-/// The net at both screens' widths, over a court and over `night`.
-///
-/// Over the court because the shadow is what lifts it off the surface and
-/// there is nothing to lift it off otherwise; over `night` because that is
-/// where the posts are easiest to count, and there are two of them.
 private struct NetBoard: View {
     private let widths: [CGFloat] = [198, 393]
 
@@ -95,11 +71,6 @@ private struct NetBoard: View {
 
 // MARK: - The ball
 
-/// Every size the ball is drawn at, and both ways round.
-///
-/// 10pt is the score screen's corner — the size the dot has today — 20pt is
-/// the one waiting on the net before a match, and 21 to 34 are the phone's
-/// tiles and buttons. It has to be the same object at both ends of that.
 private struct BallBoard: View {
     private let sizes: [CGFloat] = [10, 15, 20, 21, 24, 30, 34]
 
@@ -140,11 +111,6 @@ private struct BallBoard: View {
 
 // MARK: - The light
 
-/// The floodlight from each corner, and the scrim at each edge.
-///
-/// What to look for: the floodlight reading as light rather than as a second
-/// color, and the scrim reaching `night` at its edge without a visible band
-/// where it starts.
 private struct LightBoard: View {
     var body: some View {
         ScrollView {

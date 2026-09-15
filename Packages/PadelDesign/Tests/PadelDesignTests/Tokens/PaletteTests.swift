@@ -4,16 +4,10 @@ import Testing
 
 @testable import PadelDesign
 
-/// A color is a color, and there is not much here to assert. What there is:
-/// that the hex the boards are written in survives the trip into `Color`, and
-/// that the tokens which are meant to differ actually do — a weight that
-/// collapses onto the one above it is a design bug that reads as a rendering
-/// one.
 @Suite("The palette")
 struct PaletteTests {
-    /// Resolving in a default environment is enough: there is one appearance
-    /// and no dynamic colors in this palette (ADR-0006), so nothing here
-    /// depends on what the environment says.
+    /// A default environment is enough: there is one appearance and no dynamic
+    /// colors in this palette (ADR-0006).
     static func resolved(_ color: Color) -> Color.Resolved {
         color.resolve(in: EnvironmentValues())
     }
@@ -47,9 +41,8 @@ struct PaletteTests {
 
     @Test("The ink's weights descend in one order")
     func inkWeightsAreOrdered() {
-        // Two pairs are the same number on purpose — `hairline` and `surface`
-        // land on 0.12, `tape` and `control` on 0.82, and neither pair has a
-        // reason to move together — so the descent is checked with both pairs
+        // Two pairs share a number on purpose — `hairline` with `surface`,
+        // `tape` with `control` — so the descent is checked with both pairs
         // collapsed.
         let descending: [InkWeight] = [
             .primary, .post, .tape, .strong, .secondary, .tertiary, .surface, .surfaceQuiet,
@@ -69,8 +62,6 @@ struct PaletteTests {
         #expect(InkWeight.tape.opacity == InkWeight.control.opacity)
     }
 
-    /// Ticket 02 draws the net out of these and ticket 03 the controls, and
-    /// the point of naming them here is that neither writes a hex of its own.
     @Test("The net, the seam and the shadow are the boards' values")
     func thePrimitivesTokensMatchTheBoards() {
         #expect(abs(Self.resolved(.netTape).opacity - 0.82) < 0.001)
@@ -98,34 +89,24 @@ struct PaletteTests {
         #expect(abs(secondary.opacity - 0.55) < 0.001)
     }
 
-    /// The court used to answer twice, once per half, and now answers once.
-    /// What is checked is that the collapse reached all three answers: a
-    /// surface, an ink and a weave with no side left to ask about.
     @Test("The surface, the ink and the weave are each one value")
     func theCourtAnswersOnce() {
         #expect(Self.resolved(.courtSurface()) == Self.resolved(.court))
 
-        // The ink is one value for the one surface: every ground cut from the
-        // court takes it, and there is no second ink for a second half to ask
-        // for. `tokensMatchTheBoards` pins what that value is; this pins that
-        // there is only the one.
         for onTheCourt in [MatchOutcome.finished(winner: .us), .inProgress] {
             #expect(Self.resolved(.courtInk(onTheCourt)) == Self.resolved(.courtInk))
         }
 
-        // Still thousandths of white: the weave is the only texture left on
-        // the surface, and it did not take over the deleted lines' job.
         let weave = Self.resolved(.courtWeave())
 
         #expect(weave.opacity > 0 && weave.opacity < 0.05)
         #expect(Self.resolved(.courtWeave(dimmed: true)).opacity == 0)
     }
 
-    /// ``SwiftUI/Color/courtLit`` has to be brighter **and the same color**.
-    /// Brightness alone is satisfied by white, by the floodlight and by the
-    /// ball, which are three of the marks ADR-0011 rejected — so the claim is
-    /// checked as channel ratios rather than as luminance, and the three
-    /// rejects are run through the same check to show that it separates them.
+    /// Brightness alone is also satisfied by white, by the floodlight and by
+    /// the ball, which ADR-0011 rejected as marks — so the claim is checked as
+    /// channel ratios rather than as luminance, and the three rejects are run
+    /// through the same check to show that it separates them.
     @Test("The lit court is the court, brighter")
     func theLitCourtKeepsTheCourtsHue() {
         let court = Self.resolved(.court)
@@ -146,11 +127,10 @@ struct PaletteTests {
         }
     }
 
-    /// How far one color's channel balance sits from another's.
-    ///
-    /// Each channel over the blue, which is the court's strongest — so a color
-    /// that is the court scaled up comes out at zero however far it was
-    /// scaled, and a color that got brighter by turning white does not.
+    /// How far one color's channel balance sits from another's: each channel
+    /// over the blue, so a color that is the court scaled up comes out at zero
+    /// however far it was scaled, and one that brightened by turning white
+    /// does not.
     static func hueDrift(from base: Color, to other: Color) -> Double {
         let ratios = { (color: Color) -> (red: Double, green: Double) in
             let resolved = Self.resolved(color)
@@ -167,9 +147,6 @@ struct PaletteTests {
         return max(abs(one.red - two.red), abs(one.green - two.green))
     }
 
-    /// The ink that goes with a ``CourtTile``'s ground. Two of the four
-    /// outcomes stand on the court and take its ink; the other two stand on
-    /// `night`, and take the ink the app sets a title in.
     @Test("A tile's ink follows the ground its tile is drawn on")
     func theOutcomesInkFollowsTheGround() {
         for outcome in [MatchOutcome.finished(winner: .us), .inProgress] {

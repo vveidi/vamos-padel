@@ -1,186 +1,83 @@
 import PadelScoring
 import SwiftUI
 
-/// The app's colors, read off the redesign's boards (`docs/design/`).
+/// The app's colors, read off the boards in `docs/design/`.
 ///
-/// There is one palette and no light variant: a court at noon is a second
-/// design nobody has drawn (ADR-0006). The phone pins `.dark`; the watch is
-/// dark already.
-///
-/// **Every color the boards spend is named here** — including the ones no
-/// screen will ever ask for, because tickets 02 and 03 draw the net, the ball
-/// and the controls out of this file rather than out of their own hex
-/// literals. What a screen uses is `public`; what only this package's own
-/// primitives use is `internal`, so the distinction is enforced rather than
-/// merely documented.
-///
-/// The public tokens are spelled twice — once on `Color`, so they can be
-/// handed around as values, and once on `ShapeStyle`, so a call site can write
-/// `.foregroundStyle(.ball)` the way it writes `.foregroundStyle(.red)`.
+/// - Important: Dark only — there is no light variant (ADR-0006). The phone
+///   pins `.dark`; the watch is dark already.
 extension Color {
     // MARK: The ground and the court
 
-    /// The app's ground: everything outside the court.
     public static let night = Color(hex: 0x04_18_1F)
 
-    /// The court's surface — one blue, because a padel court is one color.
-    ///
-    /// Both halves take it. Which half is ours is said by **position** —
-    /// theirs above the net, ours below, the same as when you stand on
-    /// court — and by the net between them, never by a second hue and never by
-    /// a label.
-    ///
-    /// - Note: Nothing is painted on this surface, deliberately — see
-    ///   ``CourtHalf``, which carries the argument before anyone writes a
-    ///   service line back.
     public static let court = Color(hex: 0x17_40_6F)
 
-    /// The court brightened against itself: *this court is live*.
-    ///
-    /// Read by two things, which is why it is one token and not two light
-    /// blues: a rally landing on the court, and a match still running in the
-    /// history. Two places picking their own light blue drift a shade apart
-    /// the first time one of them is re-tuned.
-    ///
-    /// - Important: Brighter *and the same color*. "It got brighter" is also
-    ///   satisfied by white, by the floodlight and by the ball, which are the
-    ///   three marks ADR-0011 rejected — so what pins this token is the hue it
-    ///   keeps, not the luminance it gains.
     public static let courtLit = Color(hex: 0x2C_70_AE)
 
     // MARK: The one accent
 
-    /// The ball's yellow, and the only color in the app.
-    ///
-    /// It means exactly one thing: *this is yours, or this is chosen*. It
-    /// marks the serve, the half you picked, and the button that starts the
-    /// match. Losses go cold and gray — there is no red anywhere, because a
-    /// second color would argue with this one until it meant nothing but
-    /// "good" (ADR-0006).
     public static let ball = Color(hex: 0xDD_F3_5C)
 
-    /// A label on `ball` yellow.
     public static let onBall = Color(hex: 0x16_26_0A)
 
-    /// The fill behind something chosen — `ball` laid on thin enough to read
-    /// as a tint rather than as the ball itself. The selected segment and the
-    /// picked half are drawn on it.
     public static let ballWash = Color.ball.opacity(0.14)
 
-    /// The knob of a `ball`-tinted `Toggle`.
-    ///
-    /// Deep teal and not black: on the boards the knob keeps a trace of the
-    /// court under it, and a black knob reads as a hole punched in the track.
     public static let knob = Color(hex: 0x0B_2B_26)
 
-    /// The dark green of the ball's two seam arcs, at the weight the boards
-    /// draw them.
-    ///
-    /// Not `onBall`: a label on the ball is nearly black, and a seam at that
-    /// strength turns the ball into a beach ball. ``Ball`` draws the arcs.
     static let ballSeam = Color(hex: 0x14_28_12).opacity(0.4)
 
-    /// The seams of the ball cut out of a `ball`-yellow button — the one
-    /// place the ball is drawn the other way round, dark felt and bright
-    /// seams, because the court's own ball there would be yellow on yellow.
-    ///
-    /// The ball's own color rather than the ink's: a white seam on a dark disc
-    /// in a yellow button is a third value in a shape 21pt across.
+    /// The ball drawn the other way round — dark felt, bright seams — for the
+    /// one place it sits on a `ball`-yellow button.
     static let ballSeamCutOut = Color.ball.opacity(0.8)
 
     // MARK: The net
 
-    /// The net's tape, seen from directly above.
     static let netTape = Color.ink.weight(.tape)
 
-    /// The post at each end of the tape, brighter than the tape it holds —
-    /// which is what makes the net read as seen from above rather than as a
-    /// divider drawn across the screen.
     static let netPost = Color.ink.weight(.post)
 
-    /// The shadow that lifts the net and the ball off the court.
-    ///
-    /// One value for both. The boards draw the net's at 0.5 and the ball's at
-    /// 0.45, and two shadows five hundredths apart are one shadow written
-    /// twice.
     static let shadow = Color.black.opacity(0.5)
 
     // MARK: The ink
 
-    /// Text and lines on `night`. Weighted with ``Color/weight(_:)`` rather
-    /// than with an opacity written at the call site.
     public static let ink = Color(hex: 0xEE_F7_F5)
 
-    /// Text standing *on* the court, where the ground is no longer `night`
-    /// and the ink on `night` would read gray.
-    ///
-    /// One ink for the one surface, on either half of it.
+    /// Ink for text standing *on* the court, where ``ink`` reads gray.
     public static let courtInk = Color(hex: 0xE6_EE_F8)
 
     // MARK: The light
 
-    /// The floodlight's warm white.
-    ///
-    /// A color only in the sense that light has one. It is spent as a
-    /// gradient — see ``SwiftUI/Gradient/floodlight(strength:)`` — and never
-    /// as a fill, because the moment it reads as a hue the app has two
-    /// accents instead of one.
+    /// - Important: Spent as a gradient — see
+    ///   ``SwiftUI/Gradient/floodlight(strength:)`` — never as a fill, which
+    ///   would give the app a second accent.
     public static let floodlight = Color(hex: 0xFF_F8_D6)
 }
 
 // MARK: - Weights
 
-/// A named weight of the ink.
+/// The ink at a named weight — the boards spend one hex at a dozen opacities.
 ///
-/// The boards give the ink a dozen opacities and the same hex every time —
-/// `rgba(238, 247, 245, α)`. That is one color at a weight, not a dozen
-/// colors, so it is one token and this vocabulary, and a screen never writes
-/// the number.
-///
-/// Ordered from full strength down. Three collapses are deliberate:
-/// `hairline` and `surface` land on the same 0.12 and have no reason to move
-/// together, the boards' 0.10 divider is read as `hairline` rather than given
-/// a weight of its own — two hundredths apart is one weight drawn twice — and
-/// `tape` and `control` land on the same 0.82 from opposite ends of the app.
+/// - Note: Cases sharing a number move independently: `hairline`/`surface` at
+///   0.12, `tape`/`control` at 0.82.
 public enum InkWeight: Sendable, CaseIterable {
-    /// Full strength — a title, a score, the thing being read.
     case primary
 
-    /// The post at each end of the net's tape.
     case post
 
-    /// The net's tape itself.
     case tape
 
-    /// The ink a control is drawn in — a settings row's label, the bar of a
-    /// stepper's − and + .
-    ///
-    /// Named for the same role ``TypeRamp/control`` is named for, and it lands
-    /// on `tape`'s number rather than being spent as it: the net is a shape on
-    /// a court and a row label is a word under a finger, and the day one of
-    /// them moves the other has no business moving with it.
-    ///
-    /// The boards spend 0.82 on the wrist and 0.85 in the hand. That is one
-    /// weight drawn twice, by the rule the paragraph above states.
     case control
 
-    /// A label that is legible but not chosen — the unselected half of a
-    /// two-way choice.
     case strong
 
-    /// A label beside the thing being read.
     case secondary
 
-    /// A hint, a unit, a caption that is there when looked for.
     case tertiary
 
-    /// A 1pt border or divider.
     case hairline
 
-    /// A translucent panel: the settings card, a quiet button.
     case surface
 
-    /// A translucent panel that must stay further back than `surface`.
     case surfaceQuiet
 
     public var opacity: Double {
@@ -200,11 +97,6 @@ public enum InkWeight: Sendable, CaseIterable {
 }
 
 extension Color {
-    /// This color at a named weight.
-    ///
-    /// Written for the ink, but not restricted to it: `court` and `ball`
-    /// take the same vocabulary, and the point of the vocabulary is that the
-    /// number lives here and not at the call site.
     public func weight(_ weight: InkWeight) -> Color {
         opacity(weight.opacity)
     }
@@ -213,16 +105,10 @@ extension Color {
 // MARK: - Reading the boards
 
 extension Color {
-    /// A color from the hex the boards are written in.
-    ///
-    /// The boards are HTML and give their colors as `#rrggbb`. Converting each
-    /// one to three fractions by hand is where a palette drifts from the
-    /// design it was read off, so the conversion happens once, here, and every
-    /// token above reads like the line it came from.
+    /// A color from the `#rrggbb` the boards are written in.
     ///
     /// Deliberately not `public`: a screen that can build a color from a hex
-    /// is a screen that can invent one, and the whole of this package is the
-    /// argument that it should not.
+    /// is a screen that can invent one.
     init(hex: UInt32) {
         self.init(
             .sRGB,
@@ -234,59 +120,38 @@ extension Color {
 
 // MARK: - The same tokens, as shape styles
 
-/// `.foregroundStyle(.ball)` rather than `.foregroundStyle(Color.ball)`.
-///
-/// Implicit member syntax looks up static members on the type it can infer,
-/// and in a `some ShapeStyle` position that is not `Color`. SwiftUI declares
-/// its own colors twice for the same reason; so does this palette.
-///
-/// The mirror covers every `public` token, the court's three included — a
-/// half-mirror would mean a call site writing `.fill(.ball)` on one line and
-/// `.fill(Color.courtSurface())` on the next.
+/// The public tokens again in `some ShapeStyle` position, where implicit member
+/// syntax looks up statics on `ShapeStyle` rather than on `Color`. SwiftUI
+/// declares its own colors twice for the same reason.
 extension ShapeStyle where Self == Color {
-    /// See ``SwiftUI/Color/night``.
     public static var night: Color { Color.night }
 
-    /// See ``SwiftUI/Color/court``.
     public static var court: Color { Color.court }
 
-    /// See ``SwiftUI/Color/courtLit``.
     public static var courtLit: Color { Color.courtLit }
 
-    /// See ``SwiftUI/Color/ball``.
     public static var ball: Color { Color.ball }
 
-    /// See ``SwiftUI/Color/onBall``.
     public static var onBall: Color { Color.onBall }
 
-    /// See ``SwiftUI/Color/ballWash``.
     public static var ballWash: Color { Color.ballWash }
 
-    /// See ``SwiftUI/Color/knob``.
     public static var knob: Color { Color.knob }
 
-    /// See ``SwiftUI/Color/ink``.
     public static var ink: Color { Color.ink }
 
-    /// See ``SwiftUI/Color/courtInk``.
     public static var courtInk: Color { Color.courtInk }
 
-    /// See ``SwiftUI/Color/floodlight``.
     public static var floodlight: Color { Color.floodlight }
 
-    /// See ``SwiftUI/Color/courtSurface(dimmed:)``.
-    ///
-    /// The defaulted `dimmed:` is mirrored too, and not dropped. Without it
-    /// the concrete overload becomes the worse match for `courtSurface()`
-    /// alone, this one wins, and the forward below calls itself.
+    /// - Important: The defaulted `dimmed:` is mirrored, not dropped. Without
+    ///   it this overload wins bare `courtSurface()` and forwards to itself.
     public static func courtSurface(dimmed: Bool = false) -> Color {
         Color.courtSurface(dimmed: dimmed)
     }
 
-    /// See ``SwiftUI/Color/courtInk(_:)``.
     public static func courtInk(_ outcome: MatchOutcome) -> Color { Color.courtInk(outcome) }
 
-    /// See ``SwiftUI/Color/courtWeave(dimmed:)``.
     public static func courtWeave(dimmed: Bool = false) -> Color {
         Color.courtWeave(dimmed: dimmed)
     }

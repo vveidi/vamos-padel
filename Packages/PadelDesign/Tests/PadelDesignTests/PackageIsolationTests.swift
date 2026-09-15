@@ -2,23 +2,11 @@ import Foundation
 import Testing
 
 /// The design knows the domain; the domain never hears about the design
-/// (ADR-0006). Half of that runs one way and is worth checking: `PadelDesign`
-/// depends on `PadelScoring` and on nothing else.
-///
-/// The other half needs no test. `PadelStorage` and `PadelDelivery` cannot
-/// import this package without declaring it in their manifests, and
-/// `PadelScoring`'s own `PackageIsolationTests` allows no import at all.
-///
-/// Built as an allowlist for the reason spelled out in that suite: a denylist
-/// is incomplete by its nature, and what is allowed is known exactly.
+/// (ADR-0006). `PadelDesign` depends on `PadelScoring` and on nothing else.
 @Suite("Package isolation")
 struct PackageIsolationTests {
-    /// SwiftUI because this package draws; `PadelScoring` for `Side` and, from
-    /// ticket 03, `MatchOutcome`; `CoreGraphics` for `CGFloat`, which the
-    /// radii are.
-    ///
-    /// A line appearing here should be a deliberate decision, not a side
-    /// effect of somebody else's edit.
+    /// - Important: A line appearing here is a deliberate decision, never a
+    ///   side effect of somebody else's edit.
     static let allowedModules: Set<String> = ["SwiftUI", "PadelScoring", "CoreGraphics"]
 
     static let packageRoot = URL(filePath: #filePath)
@@ -63,10 +51,6 @@ struct PackageIsolationTests {
         #expect(manifest.contains(#".package(path: "../PadelScoring")"#))
     }
 
-    /// The guard above is only as good as the parser under it, and this file's
-    /// doc comments mention `PadelStorage`, `PadelDelivery` and `SwiftUI` in
-    /// prose. A parser that counted those would fail the suite for no reason;
-    /// one that missed a real `import` would pass it for no reason.
     @Test("Imports are recognized, mentions in comments are not")
     func importsAreRecognizedButCommentsAreNot() {
         let source = """
@@ -82,8 +66,7 @@ struct PackageIsolationTests {
     }
 
     /// The names of the modules imported in a source file. Comment lines are
-    /// skipped so that mentioning a module in documentation does not fail the
-    /// test.
+    /// skipped, so mentioning a module in documentation does not fail the test.
     static func importedModules(in source: String) -> [String] {
         source.split(separator: "\n").compactMap { line in
             let trimmed = line.trimmingCharacters(in: .whitespaces)

@@ -23,8 +23,6 @@ struct PadelWatchApp: App {
 
     init() {
         do {
-            // TODO: Drop the store, and the database module with it, from the watch
-            // (.scratch/paired-scoring/issues/06-the-delivery-is-removed.md)
             store = try DatabaseMatchStore.inApplicationSupport()
         } catch {
             logger.error("the store did not open: \(error.localizedDescription)")

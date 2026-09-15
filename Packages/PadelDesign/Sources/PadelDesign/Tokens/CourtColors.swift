@@ -9,21 +9,10 @@ import SwiftUI
 /// Mixing paint would move its alpha along with its hue and leave both wrong.
 /// ADR-0006's consequences say why there is a dimmed court at all.
 enum CourtDimming {
-    // TODO: Re-pick this on a wrist — burn-in and a dim court at arm's length
-    // are both questions a rendered measurement cannot answer
-    // (.scratch/court-surface/issues/01-the-one-surface.md)
-
-    /// How far the court's surface falls toward `night`.
-    ///
-    /// It answers to burn-in and to the score standing on it, and no longer to
-    /// a third thing: with one surface there is no second tint it has to stay
-    /// apart from when the lights go down, which is what had held it at 0.55.
-    ///
-    /// Settled against what is left: at 0.72 the surface measures 0.119 in
-    /// luminance against `night`'s 0.079 — still visibly a court rather than
-    /// the ground with a net across it, and still blue at rgb(7, 34, 51)
-    /// rather than gray — and ``SwiftUI/Color/courtInk`` stands off it at
-    /// 5.8 : 1.
+    /// Measured, not seen: the dimmed surface lands at 0.119 luminance against
+    /// `night`'s 0.079, stays blue at rgb(7, 34, 51), and holds `courtInk` at
+    /// 5.8 : 1. A wrist has not confirmed it
+    /// (`.scratch/court-surface/issues/03-the-dimming-on-a-wrist.md`).
     static let surface = 0.72
 
     /// How far the ball's felt falls toward `night`.

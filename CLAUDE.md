@@ -170,48 +170,70 @@ them. Nothing in this repo enforces it, and a fresh clone gets no such guard.
 
 ## Writing comments
 
-Write them the way Apple writes its documentation: the summary first, the rest
-only if the summary leaves something unsafe to assume.
+**The default is no comment.** The code says what it does; a name that needs a
+sentence to be understood wants renaming, and an extracted function with an
+honest name beats the comment that would have explained the block. This holds
+for `public` symbols too — there is no Quick Help exemption. A symbol whose
+signature already answers the question shows nothing in Quick Help because
+there is nothing left to show.
 
-- **One sentence, then a blank line.** A doc comment opens with a single
-  sentence saying what the symbol is or does. Types and properties take a noun
-  phrase — "The side serving the current game." Methods take a third-person
-  verb — "Returns the score after the rally."
-- **A discussion paragraph only for what a caller would otherwise get wrong:**
-  a precondition, a failure mode, a unit, a threading rule, an ownership rule.
-  Two or three sentences. If it needs more, it is an ADR.
-- **Rationale lives elsewhere.** Why a design was chosen belongs in
-  `docs/adr/` or in the commit message. A comment says what the code does now,
-  not how we arrived at it — the reader needs to know the workout keeps the
-  screen awake, not the two gestures we tried before the button.
-- **Use the callouts rather than prose** where one fits: `- Parameter`,
-  `- Returns`, `- Throws`, `- Note`, `- Important`, `- Warning`, and
-  double-backtick links to other symbols.
+A comment is written only when something true about the code **cannot be said
+in the code**:
+
+- a **precondition** or an invariant the type cannot express;
+- a **unit**, a coordinate space, a frame of reference;
+- a **threading** or **ownership** rule;
+- a **failure mode** — what happens on the unhappy path, when the signature
+  does not say;
+- **where a number came from**, when it was measured or read off a board;
+- **what a workaround is working around**, or an API constraint the call site
+  cannot show on its own.
+
+Nothing else. In particular:
+
 - **Never restate the code.** `// increment the score` over `score += 1` is
-  noise.
+  noise, and so is `/// The court's surface.` over `static let court`.
+- **Never narrate history.** Not what the design used to be, not what it
+  replaced, not what was tried first. Git holds that.
+- **Rationale lives elsewhere.** Why a design was chosen belongs in
+  `docs/adr/`, in the ticket, or in the commit message. A ticket that asks for
+  an argument to be written into a doc comment is asking for the wrong thing;
+  say so and put it in an ADR.
 
-`///` and `//` are held to different bars. A doc comment on a type, a member or
-a function is expected, and is written even when the name looks self-evident:
-it is what Quick Help shows, and a symbol without one shows nothing. An inline
-comment inside a body is not expected and has to earn its line — where a number
-came from, what a workaround is working around, an API constraint the call site
-cannot show on its own. One line above the code it is about. A body needing
-several of them wants splitting, not annotating.
+**Four lines is the ceiling**, comment markers included. Anything that wants
+more is an ADR or a commit message, without exception. Use the callouts rather
+than prose where one fits — `- Parameter`, `- Returns`, `- Throws`, `- Note`,
+`- Important`, `- Warning` — and double-backtick links to other symbols.
 
-Anything deferred is a `TODO:` on its own line, where the work will have to be
-done, with the ticket it belongs to:
+`///` and `//` are held to the same bar, and it is this one. An inline comment
+goes one line above the code it is about; a body wanting several wants
+splitting instead.
 
-    // TODO: Turn the corner rule a quarter turn for the landscape board
-    // (.scratch/phone-scoring/issues/04-the-scoreboard.md)
+**No `TODO:`, and no `FIXME:`.** Work that is not done is a ticket under
+`.scratch/`, never a comment. Wanting to write one is the signal that a ticket
+is missing: stop and write the ticket instead, then say in the handoff that you
+opened it.
 
-Xcode lists `TODO:` and `FIXME:` in the jump bar, which is the whole reason for
-the exact spelling — `// todo` and `// Todo(later)` are invisible there.
-`FIXME:` marks something already wrong; `TODO:` marks something not yet done.
-Neither is a place to argue a case: one line saying what, plus the path.
+A `TODO:` is worse than no record at all. The board cannot see it —
+`.scratch/status.sh` reads ticket files, so a comment is work that never appears
+as work, has no acceptance criteria, blocks nothing and is blocked by nothing,
+and survives every review because a reviewer reads it as a note rather than as
+a debt. It ages in place until the reason for it is gone and nobody dares delete
+it. A ticket is the one mechanism this repo has for something that should happen
+later, and it costs about as much to write as the comment did.
 
-The comments already in the repo are the older, narrative style, and they are
-not being retrofitted. Apply this to what you write and to what you are already
-changing; leave the rest alone until a ticket says otherwise.
+The same goes for a `FIXME:` on something already wrong, which is a bug, which
+is a ticket. If it is wrong and small, fix it now; if it is wrong and not small,
+it needs a ticket more than a comment, not less.
+
+`// MARK:` is not affected and stays — it is navigation, not deferred work, and
+Xcode's jump bar reads it.
+
+Most of the comments already in the repo predate this rule and break it: the
+older style put an essay on every symbol. `comment-diet` is retrofitting them
+one area at a time. Until that feature closes, apply this rule to what you
+write and to what you are already changing, and leave the rest to its ticket —
+but never take a file you are editing as the example to follow.
 
 ## Bulk edits
 

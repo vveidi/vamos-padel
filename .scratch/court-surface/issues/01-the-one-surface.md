@@ -152,8 +152,9 @@ surface at 0.119 luminance against `night`'s 0.079, still blue at rgb(7, 34, 51)
 `courtInk` standing off it at 5.8 : 1 — and the doc comment says exactly that
 rather than claiming a wrist. Neither the watch simulator nor `simctl` offers a
 way into Always-On, and `simctl ui … content_size` is refused by the watchOS
-runtime, so the watch's largest-type pass did not happen either. A `TODO:` naming
-this ticket sits above the constant.
+runtime, so the watch's largest-type pass did not happen either. It is now
+ticket 03 of this feature, `ready-for-human`. (It was a `TODO:` above the
+constant until `CLAUDE.md` stopped allowing those.)
 
 **For the owner to arbitrate.**
 

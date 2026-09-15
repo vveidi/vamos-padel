@@ -4,9 +4,9 @@
     import PadelStorage
     import WatchConnectivity
 
-    /// The transport on WatchConnectivity: the only implementation of the seam
-    /// from ADR-0002, and the only place in the whole codebase that knows about
-    /// it.
+    /// The transport on WatchConnectivity: the only implementation of the
+    /// interface from ADR-0002, and the only place in the whole codebase that
+    /// knows about it.
     ///
     /// The match is enqueued through `transferUserInfo` rather than sent as a
     /// message: a message requires the phone to be reachable right now, and it

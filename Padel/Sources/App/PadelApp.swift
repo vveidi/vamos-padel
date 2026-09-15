@@ -1,7 +1,7 @@
 import os
 import PadelDelivery
 import PadelStorage
-import PadelStorageSQLite
+import PadelStorageDatabase
 import SwiftUI
 
 @main
@@ -19,7 +19,7 @@ struct PadelApp: App {
 
     init() {
         do {
-            store = try SQLiteMatchStore.inApplicationSupport()
+            store = try DatabaseMatchStore.inApplicationSupport()
         } catch {
             logger.error("the store did not open: \(error.localizedDescription)")
 

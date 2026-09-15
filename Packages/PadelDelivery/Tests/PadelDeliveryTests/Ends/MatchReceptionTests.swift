@@ -1,7 +1,7 @@
 import Foundation
 import PadelScoring
 import PadelStorage
-import PadelStorageSQLite
+import PadelStorageDatabase
 import Testing
 
 @testable import PadelDelivery
@@ -10,7 +10,7 @@ import Testing
 struct MatchReceptionTests {
     @Test("A match that arrives lands in the phone's store")
     func anArrivingMatchIsStored() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let saved = SavedMatch.played([.them, .them], ruleset: toTwo)
 
@@ -25,7 +25,7 @@ struct MatchReceptionTests {
     /// design. It is recognized by the identifier created on the first rally.
     @Test("Arriving twice does not create a second match")
     func arrivingTwiceDoesNotDuplicateTheMatch() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
@@ -40,7 +40,7 @@ struct MatchReceptionTests {
     /// later is fresher, and that is what the history must keep.
     @Test("A second arrival updates the match rather than appending to it")
     func arrivingAgainUpdatesTheMatch() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
 
         var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -60,7 +60,7 @@ struct MatchReceptionTests {
     /// what it received.
     @Test("The phone signs for a match it stored")
     func aStoredMatchIsConfirmed() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
@@ -85,7 +85,7 @@ struct MatchReceptionTests {
 
     @Test("Different matches do not merge into one")
     func differentMatchesAreStoredSeparately() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let earlier = SavedMatch.played([.us, .us], ruleset: toTwo)
         let later = SavedMatch.played([.them, .them], from: aMoment.addingTimeInterval(3600))

@@ -85,8 +85,8 @@ it:
                     Rules/       Ruleset and the two replays that walk the journal
                     Match/       Match, its state, its outcome, its course
 
-    PadelStorage/   Seam/        the protocols and SavedMatch (ADR-0002)
-                    SQLite/      the GRDB implementation behind that seam
+    PadelStorage/   Interface/   the protocols and SavedMatch (ADR-0002)
+                    Database/    the GRDB implementation behind that interface
 
     PadelDelivery/  Transport/   the wire and what travels over it
                     Ends/        the watch's side and the phone's side
@@ -100,14 +100,14 @@ its isolation test sit at the test target's root, and `Logging.swift` sits at
 `PadelDelivery`'s, because they belong to no one subsystem.
 
 `PadelStorage` is the one package whose two folders are two targets, and
-therefore two products. `PadelStorage` is `Seam/` alone and links no database;
-`PadelStorageSQLite` is `SQLite/` and depends on it and on GRDB. The tests stay
-one target, named `PadelStorageTests` and mirroring both folders.
+therefore two products. `PadelStorage` is `Interface/` alone and links no
+database; `PadelStorageDatabase` is `Database/` and depends on it and on GRDB.
+The tests stay one target, named `PadelStorageTests` and mirroring both folders.
 
 The split exists so that the watch can name a `SavedMatch` on the wire without
 linking GRDB. It does not do that yet: both apps link both products today,
-because the watch still opens a store of its own. It drops to the seam alone
-when the store leaves it.
+because the watch still opens a store of its own. It drops to the interface
+alone when the store leaves it.
 
 Adding a folder needs no manifest edit — SwiftPM compiles everything under the
 target's directory. `PadelStorage` is the exception, and for the same reason:

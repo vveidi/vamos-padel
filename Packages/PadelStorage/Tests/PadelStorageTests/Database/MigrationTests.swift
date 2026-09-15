@@ -4,7 +4,7 @@ import PadelScoring
 import Testing
 
 @testable import PadelStorage
-@testable import PadelStorageSQLite
+@testable import PadelStorageDatabase
 
 @Suite("Schema migrations")
 struct MigrationTests {
@@ -64,7 +64,7 @@ struct MigrationTests {
         }
 
         // Opening the store is what applies the migrations.
-        let store = try SQLiteMatchStore(queue)
+        let store = try DatabaseMatchStore(queue)
 
         let restored = try #require(try store.matchInProgress())
 
@@ -81,12 +81,12 @@ struct MigrationTests {
     @Test("Migrations are not applied twice to an already migrated database")
     func migratingTwiceChangesNothing() throws {
         let database = "twice-\(UUID().uuidString)"
-        let store = try SQLiteMatchStore.inMemory(named: database)
+        let store = try DatabaseMatchStore.inMemory(named: database)
         let saved = SavedMatch.played([.us, .them])
         try store.save(saved)
 
         // Opening the same database a second time runs the migrator again.
-        let reopened = try SQLiteMatchStore.inMemory(named: database)
+        let reopened = try DatabaseMatchStore.inMemory(named: database)
 
         #expect(try reopened.matchInProgress() == saved)
     }

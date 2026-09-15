@@ -19,9 +19,9 @@ alternative. It fixes color drift and none of the shape drift, and the shape
 drift is the one that shows: a net with the posts at the wrong end reads as a
 different app.
 
-The seam is that **the package knows about a court, a net and a ball, and never
-about a match**. `ScoreView` keeps the mapping from a serving half to a corner
-of the screen, because which corner a serve belongs in is domain knowledge
+The interface is that **the package knows about a court, a net and a ball, and
+never about a match**. `ScoreView` keeps the mapping from a serving half to a
+corner of the screen, because which corner a serve belongs in is domain knowledge
 wearing layout's clothes. The package is asked for a ball in a corner and
 nothing more.
 
@@ -72,7 +72,7 @@ unless somebody says it was chosen.
   to be put back by hand, and the Digital Crown is part of that — the rules
   screen's numbers are stepper rows precisely so the crown still scrubs a range
   of thirty-six values.
-- **The type ramp is a seam of its own.** Screens name ramp entries, never
+- **The type ramp is an interface of its own.** Screens name ramp entries, never
   faces, so the two custom faces the design was drawn in can arrive — or be
   declined — by changing one file.
 - **They were declined.** The boards are set in Unbounded and Golos Text; the

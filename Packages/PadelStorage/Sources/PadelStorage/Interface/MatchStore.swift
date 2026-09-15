@@ -4,10 +4,11 @@ import PadelScoring
 /// The match store: what lets a match outlive the app being unloaded and the
 /// watch being restarted.
 ///
-/// A protocol rather than SQLite outright, so that the engine and the screens
-/// know nothing about the database — and for the same reason the workout and
-/// the transport sit behind protocols (ADR-0002): this is precisely the seam
-/// that is later swapped for CloudKit or a server without moving the data.
+/// A protocol rather than a database outright, so that the engine and the
+/// screens know nothing about the database — and for the same reason the
+/// workout and the transport sit behind protocols (ADR-0002): this is
+/// precisely the interface that is later swapped for CloudKit or a server
+/// without moving the data.
 ///
 /// The methods throw rather than swallow an error silently: the store is not
 /// the place to decide what to do about a write that did not happen. On the

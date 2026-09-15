@@ -3,7 +3,7 @@ import PadelScoring
 import Testing
 
 @testable import PadelStorage
-@testable import PadelStorageSQLite
+@testable import PadelStorageDatabase
 
 @Suite("Match store")
 struct MatchStoreTests {
@@ -24,7 +24,7 @@ struct MatchStoreTests {
             .pointsTo(target: 21, serveChangesEvery: 2),
         ])
     func aSavedMatchReadsBackUnchanged(ruleset: Ruleset) throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .them, .them, .us, .us], ruleset: ruleset)
 
         try store.save(saved)
@@ -34,7 +34,7 @@ struct MatchStoreTests {
 
     @Test("The first server reads back", arguments: [Side.us, .them])
     func theFirstServerReadsBack(firstServer: Side) throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .them], firstServer: firstServer)
 
         try store.save(saved)
@@ -44,7 +44,7 @@ struct MatchStoreTests {
 
     @Test("The match's start and duration read back")
     func theStartAndDurationReadBack() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us])
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(90 * 60))
 
@@ -61,7 +61,7 @@ struct MatchStoreTests {
     /// since no end happened.
     @Test("The journal is written after every rally, not at the end of the match")
     func theJournalIsWrittenAfterEveryRally() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
 
         for (played, winner) in [Side.us, .them, .us, .us].enumerated() {
@@ -81,7 +81,7 @@ struct MatchStoreTests {
     /// journal waiting for the next point.
     @Test("Undone rallies leave the database")
     func undoneRalliesLeaveTheDatabase() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us, .them, .them])
         try store.save(saved)
 
@@ -99,7 +99,7 @@ struct MatchStoreTests {
 
     @Test("Undoing down to an empty journal leaves no rally in the database")
     func undoingEverythingLeavesNoRallies() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them])
 
         try store.save(saved)
@@ -112,12 +112,12 @@ struct MatchStoreTests {
 
     @Test("An empty store has nothing to continue")
     func anEmptyStoreHasNothingToContinue() throws {
-        #expect(try SQLiteMatchStore.inMemory().matchInProgress() == nil)
+        #expect(try DatabaseMatchStore.inMemory().matchInProgress() == nil)
     }
 
     @Test("A finished match is not offered for continuation")
     func aFinishedMatchIsNotOfferedForContinuation() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
@@ -131,7 +131,7 @@ struct MatchStoreTests {
     /// in place of a new one.
     @Test("The latest match is continued, not a forgotten one from before")
     func onlyTheLatestMatchIsContinued() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let abandonedLongAgo = SavedMatch.played([.us, .them])
         let finishedToday = SavedMatch.played(
             [.us, .us],
@@ -146,7 +146,7 @@ struct MatchStoreTests {
 
     @Test("A new match does not overwrite the previous one")
     func aNewMatchDoesNotOverwriteTheOldOne() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let finishedYesterday = SavedMatch.played(
             [.us, .us], ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
         let startedToday = SavedMatch.played(
@@ -164,12 +164,12 @@ struct MatchStoreTests {
     @Test("The match carries on after the app is relaunched")
     func theMatchSurvivesARelaunch() throws {
         let database = "relaunch-\(UUID().uuidString)"
-        let store = try SQLiteMatchStore.inMemory(named: database)
+        let store = try DatabaseMatchStore.inMemory(named: database)
         let saved = SavedMatch.played([.us, .them, .us])
 
         try store.save(saved)
 
-        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+        let afterRelaunch = try DatabaseMatchStore.inMemory(named: database)
 
         #expect(try afterRelaunch.matchInProgress() == saved)
     }
@@ -186,7 +186,7 @@ struct MatchStoreTests {
     /// alone.
     @Test("A stopped match is saved abandoned and not offered for continuation")
     func anAbandonedMatchIsSavedAndNotOfferedForContinuation() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them, .us])
 
         try store.save(saved)
@@ -205,23 +205,22 @@ struct MatchStoreTests {
     @Test("The abandoned mark survives a relaunch of the app")
     func theAbandonedMarkSurvivesARelaunch() throws {
         let database = "abandoned-\(UUID().uuidString)"
-        let store = try SQLiteMatchStore.inMemory(named: database)
+        let store = try DatabaseMatchStore.inMemory(named: database)
         var saved = SavedMatch.played([.us, .them, .us])
         try store.save(saved)
 
         saved.abandon()
         try store.save(saved)
 
-        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+        let afterRelaunch = try DatabaseMatchStore.inMemory(named: database)
 
         #expect(try afterRelaunch.match(id: saved.id) == saved)
         #expect(try afterRelaunch.matchInProgress() == nil)
     }
 
-    /// The round trip of an abandoned match is what the spec demands of
-    /// Seam 2: "a saved match reads back with the same journal, ruleset and
-    /// abandoned mark". Comparing the whole thing checks all three at once,
-    /// and the journal matters most here: an hour of play must not be lost just
+    /// A saved match reads back with the same journal, ruleset and abandoned
+    /// mark. Comparing the whole thing checks all three at once, and the
+    /// journal matters most here: an hour of play must not be lost just
     /// because the court time ran out.
     ///
     /// The stop arrives after the match has already been written by its first
@@ -234,7 +233,7 @@ struct MatchStoreTests {
             .pointsTo(target: 16, serveChangesEvery: 4),
         ])
     func anAbandonedMatchReadsBackUnchanged(ruleset: Ruleset) throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them, .us, .us], ruleset: ruleset)
         try store.save(saved)
 
@@ -253,7 +252,7 @@ struct MatchStoreTests {
 
     @Test("A match that was never written is not in the store")
     func anUnknownMatchIsNotFound() throws {
-        #expect(try SQLiteMatchStore.inMemory().match(id: UUID()) == nil)
+        #expect(try DatabaseMatchStore.inMemory().match(id: UUID()) == nil)
     }
 
     // MARK: The previous match's rules
@@ -269,7 +268,7 @@ struct MatchStoreTests {
             .pointsTo(target: 21, serveChangesEvery: 2),
         ])
     func theLastRulesetIsRemembered(ruleset: Ruleset) throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
 
         try store.save(SavedMatch.played([.us, .them], ruleset: ruleset))
 
@@ -281,7 +280,7 @@ struct MatchStoreTests {
     /// was played out.
     @Test("The rules are remembered from a finished match too")
     func theRulesetOfAFinishedMatchIsRemembered() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let ruleset = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
 
         try store.save(SavedMatch.played([.us, .us], ruleset: ruleset))
@@ -292,7 +291,7 @@ struct MatchStoreTests {
 
     @Test("The rules remembered are the previous match's, not the one before")
     func theRulesetComesFromTheLatestMatch() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let today = Ruleset.classic(setsToWin: 3, goldenPoint: false)
 
         try store.save(SavedMatch.played([.us], ruleset: .defaultPointsTo))
@@ -310,10 +309,10 @@ struct MatchStoreTests {
         let database = "ruleset-\(UUID().uuidString)"
         let ruleset = Ruleset.pointsTo(target: 24, serveChangesEvery: 6)
 
-        let store = try SQLiteMatchStore.inMemory(named: database)
+        let store = try DatabaseMatchStore.inMemory(named: database)
         try store.save(SavedMatch.played([.us, .them], ruleset: ruleset))
 
-        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+        let afterRelaunch = try DatabaseMatchStore.inMemory(named: database)
 
         #expect(try afterRelaunch.lastRuleset() == ruleset)
     }
@@ -322,14 +321,14 @@ struct MatchStoreTests {
     /// start screen shows the defaults.
     @Test("An empty store remembers no previous ruleset")
     func anEmptyStoreRemembersNoRuleset() throws {
-        #expect(try SQLiteMatchStore.inMemory().lastRuleset() == nil)
+        #expect(try DatabaseMatchStore.inMemory().lastRuleset() == nil)
     }
 
     // MARK: History
 
     @Test("History is handed back from the freshest match to the oldest")
     func historyStartsWithTheFreshestMatch() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let earlier = SavedMatch.played([.us, .them])
         let later = SavedMatch.played([.them], from: aMoment.addingTimeInterval(3600))
 
@@ -347,7 +346,7 @@ struct MatchStoreTests {
     /// question, and `matchInProgress` answers it by the last rally.
     @Test("The history is ordered by the start of the match, not by its end")
     func theHistoryIsOrderedByTheStartOfTheMatch() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
 
         var interrupted = SavedMatch.played([.us])
         interrupted.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(4 * 3600))
@@ -363,7 +362,7 @@ struct MatchStoreTests {
 
     @Test("An empty store has no history")
     func anEmptyStoreHasNoHistory() throws {
-        #expect(try SQLiteMatchStore.inMemory().matches().isEmpty)
+        #expect(try DatabaseMatchStore.inMemory().matches().isEmpty)
     }
 
     /// The reason the history is watched rather than read: on the phone a
@@ -377,7 +376,7 @@ struct MatchStoreTests {
     /// watching, so the write that follows is one it cannot miss.
     @Test("A match written into the store arrives into the observed history")
     func aWrittenMatchArrivesIntoTheObservedHistory() async throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let earlier = SavedMatch.played([.us, .them])
 
         try store.save(earlier)
@@ -398,7 +397,7 @@ struct MatchStoreTests {
     /// has not answered yet", and it shows different things for the two.
     @Test("The observed history of an empty store starts empty")
     func theObservedHistoryOfAnEmptyStoreStartsEmpty() async throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
 
         var history = store.matchesObserved().makeAsyncIterator()
 
@@ -412,7 +411,7 @@ struct MatchStoreTests {
     /// arrives a second time (ticket 10).
     @Test("A diverged journal is rewritten, not appended to")
     func aDivergedJournalIsRewritten() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
 
         var saved = SavedMatch.played([.us, .us, .us])
         try store.save(saved)
@@ -434,7 +433,7 @@ struct MatchStoreTests {
     /// queue, which would diverge from the first.
     @Test("A finished match awaits delivery")
     func aFinishedMatchAwaitsDelivery() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
@@ -444,7 +443,7 @@ struct MatchStoreTests {
 
     @Test("A match in progress awaits nothing")
     func aMatchInProgressAwaitsNothing() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
 
         try store.save(SavedMatch.played([.us]))
 
@@ -455,7 +454,7 @@ struct MatchStoreTests {
     /// the history on the phone is alongside the rest.
     @Test("An abandoned match awaits delivery")
     func anAbandonedMatchAwaitsDelivery() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .them])
         saved.abandon()
 
@@ -466,7 +465,7 @@ struct MatchStoreTests {
 
     @Test("A match marked delivered leaves the queue")
     func aDeliveredMatchLeavesTheQueue() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
@@ -480,7 +479,7 @@ struct MatchStoreTests {
     /// the watch.
     @Test("A match changed after delivery returns to the queue")
     func aChangedMatchReturnsToTheQueue() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
@@ -497,7 +496,7 @@ struct MatchStoreTests {
     /// history on the phone.
     @Test("A match without a single rally awaits nothing")
     func aMatchWithoutRalliesAwaitsNothing() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
         empty.abandon()
 
@@ -512,7 +511,7 @@ struct MatchStoreTests {
     /// point was undone.
     @Test("A stale delivery of a previous version is not marked")
     func aStaleDeliveryIsNotMarked() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         var saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         try store.save(saved)
@@ -530,7 +529,7 @@ struct MatchStoreTests {
 
     @Test("Delivery is marked on the match it was promised to")
     func onlyTheNamedMatchIsMarkedDelivered() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let delivered = SavedMatch.played([.us, .us], ruleset: toTwo)
         let waiting = SavedMatch.played(
             [.them, .them], ruleset: toTwo, from: aMoment.addingTimeInterval(3600))

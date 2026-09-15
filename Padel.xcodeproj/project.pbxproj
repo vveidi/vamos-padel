@@ -12,8 +12,8 @@
 		AA01A000000000000000002E /* PadelDelivery in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000002B /* PadelDelivery */; };
 		AA01A000000000000000003D /* PadelDesign in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000003C /* PadelDesign */; };
 		AA01A000000000000000003E /* PadelDesign in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000003B /* PadelDesign */; };
-		AA01A000000000000000004D /* PadelStorageSQLite in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000004C /* PadelStorageSQLite */; };
-		AA01A000000000000000004E /* PadelStorageSQLite in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000004B /* PadelStorageSQLite */; };
+		AA01A000000000000000004D /* PadelStorageDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000004C /* PadelStorageDatabase */; };
+		AA01A000000000000000004E /* PadelStorageDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000004B /* PadelStorageDatabase */; };
 		DDE9576530478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001C /* PadelStorage */; };
 		DDE9576630478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001B /* PadelStorage */; };
 		DDFEE3113046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000B /* PadelScoring */; };
@@ -111,7 +111,7 @@
 				AA01A000000000000000002D /* PadelDelivery in Frameworks */,
 				AA01A000000000000000003D /* PadelDesign in Frameworks */,
 				DDE9576530478A830054DB3F /* PadelStorage in Frameworks */,
-				AA01A000000000000000004D /* PadelStorageSQLite in Frameworks */,
+				AA01A000000000000000004D /* PadelStorageDatabase in Frameworks */,
 				DDFEE3123046086400C7278D /* PadelScoring in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -130,7 +130,7 @@
 				AA01A000000000000000002E /* PadelDelivery in Frameworks */,
 				AA01A000000000000000003E /* PadelDesign in Frameworks */,
 				DDE9576630478A830054DB3F /* PadelStorage in Frameworks */,
-				AA01A000000000000000004E /* PadelStorageSQLite in Frameworks */,
+				AA01A000000000000000004E /* PadelStorageDatabase in Frameworks */,
 				DDFEE3113046086400C7278D /* PadelScoring in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,7 +182,7 @@
 			packageProductDependencies = (
 				AA01A000000000000000000C /* PadelScoring */,
 				AA01A000000000000000001C /* PadelStorage */,
-				AA01A000000000000000004C /* PadelStorageSQLite */,
+				AA01A000000000000000004C /* PadelStorageDatabase */,
 				AA01A000000000000000002C /* PadelDelivery */,
 				AA01A000000000000000003C /* PadelDesign */,
 			);
@@ -235,7 +235,7 @@
 			packageProductDependencies = (
 				AA01A000000000000000000B /* PadelScoring */,
 				AA01A000000000000000001B /* PadelStorage */,
-				AA01A000000000000000004B /* PadelStorageSQLite */,
+				AA01A000000000000000004B /* PadelStorageDatabase */,
 				AA01A000000000000000002B /* PadelDelivery */,
 				AA01A000000000000000003B /* PadelDesign */,
 			);
@@ -735,13 +735,13 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = PadelDesign;
 		};
-		AA01A000000000000000004B /* PadelStorageSQLite */ = {
+		AA01A000000000000000004B /* PadelStorageDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = PadelStorageSQLite;
+			productName = PadelStorageDatabase;
 		};
-		AA01A000000000000000004C /* PadelStorageSQLite */ = {
+		AA01A000000000000000004C /* PadelStorageDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = PadelStorageSQLite;
+			productName = PadelStorageDatabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

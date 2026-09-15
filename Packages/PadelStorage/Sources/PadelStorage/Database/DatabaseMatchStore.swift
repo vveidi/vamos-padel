@@ -8,7 +8,7 @@ import PadelStorage
 /// Writes synchronously, on the thread it was called from: writing one rally
 /// is a single short transaction, and waiting for it costs the screen less
 /// than working out in which order two consecutive taps reached the database.
-public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
+public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
     private let dbQueue: DatabaseQueue
 
     /// The database in the app container — the one the watch and the phone
@@ -17,7 +17,7 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
     /// The path is worked out here rather than in the apps: each of them has
     /// its own container, so one rule yields two different databases, and they
     /// have nothing to agree about.
-    public static func inApplicationSupport() throws -> SQLiteMatchStore {
+    public static func inApplicationSupport() throws -> DatabaseMatchStore {
         let directory = URL.applicationSupportDirectory
 
         // On a fresh install the directory does not exist yet, and SQLite
@@ -27,14 +27,14 @@ public final class SQLiteMatchStore: MatchStore, MatchDeliveryQueue {
 
         let file = directory.appending(path: "matches.sqlite")
 
-        return try SQLiteMatchStore(DatabaseQueue(path: file.path(percentEncoded: false)))
+        return try DatabaseMatchStore(DatabaseQueue(path: file.path(percentEncoded: false)))
     }
 
     /// An in-memory database: tests and previews. The name is only needed when
     /// several connections are opened to the same database; without it each
     /// one gets a database of its own.
-    public static func inMemory(named name: String? = nil) throws -> SQLiteMatchStore {
-        try SQLiteMatchStore(DatabaseQueue(named: name))
+    public static func inMemory(named name: String? = nil) throws -> DatabaseMatchStore {
+        try DatabaseMatchStore(DatabaseQueue(named: name))
     }
 
     /// The migrations are applied on opening, and there is nowhere else for

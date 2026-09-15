@@ -1,7 +1,7 @@
 import os
 import PadelDelivery
 import PadelStorage
-import PadelStorageSQLite
+import PadelStorageDatabase
 import SwiftUI
 
 @main
@@ -25,7 +25,7 @@ struct PadelWatchApp: App {
         do {
             // TODO: Drop the store, and the database module with it, from the watch
             // (.scratch/paired-scoring/issues/06-the-delivery-is-removed.md)
-            store = try SQLiteMatchStore.inApplicationSupport()
+            store = try DatabaseMatchStore.inApplicationSupport()
         } catch {
             logger.error("the store did not open: \(error.localizedDescription)")
 

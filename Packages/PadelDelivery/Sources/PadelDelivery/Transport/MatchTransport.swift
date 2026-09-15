@@ -4,11 +4,11 @@ import PadelStorage
 /// The sending side of the transport: what a finished match leaves the watch
 /// by.
 ///
-/// A protocol rather than WatchConnectivity outright — the very seam ADR-0002
-/// was written for: a cloud or a server will appear here by swapping one
-/// implementation, without moving the data. The immediate benefit is the same
-/// as for the store and the workout: the delivery queue is checked by a test
-/// against a stub, not by a pair of devices on the desk.
+/// A protocol rather than WatchConnectivity outright — the very interface
+/// ADR-0002 was written for: a cloud or a server will appear here by swapping
+/// one implementation, without moving the data. The immediate benefit is the
+/// same as for the store and the workout: the delivery queue is checked by a
+/// test against a stub, not by a pair of devices on the desk.
 public protocol MatchSender: Sendable {
     /// Puts the match in the delivery queue.
     ///

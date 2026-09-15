@@ -12,35 +12,36 @@ let package = Package(
     ],
     products: [
         .library(name: "PadelStorage", targets: ["PadelStorage"]),
-        .library(name: "PadelStorageSQLite", targets: ["PadelStorageSQLite"]),
+        .library(name: "PadelStorageDatabase", targets: ["PadelStorageDatabase"]),
     ],
     dependencies: [
         .package(path: "../PadelScoring"),
         .package(url: "https://github.com/groue/GRDB.swift", from: "7.11.1"),
     ],
     targets: [
-        // Both targets live under the one source folder, so each names its
-        // half with a `path:`: a new folder here belongs to neither until the
-        // manifest says which.
+        // `PadelStorage` is the interface — the protocols and `SavedMatch`,
+        // with no database in its graph. `PadelStorageDatabase` is the one
+        // implementation behind it. Both live under the one source folder, so
+        // each names its half with a `path:`.
         .target(
             name: "PadelStorage",
             dependencies: [
                 .product(name: "PadelScoring", package: "PadelScoring")
             ],
-            path: "Sources/PadelStorage/Seam"),
+            path: "Sources/PadelStorage/Interface"),
         .target(
-            name: "PadelStorageSQLite",
+            name: "PadelStorageDatabase",
             dependencies: [
                 "PadelStorage",
                 .product(name: "PadelScoring", package: "PadelScoring"),
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "Sources/PadelStorage/SQLite"),
+            path: "Sources/PadelStorage/Database"),
         .testTarget(
             name: "PadelStorageTests",
             dependencies: [
                 "PadelStorage",
-                "PadelStorageSQLite",
+                "PadelStorageDatabase",
                 // The migration tests need a database before the store has
                 // opened it: otherwise there is nowhere to get a "database of
                 // the previous version" from.

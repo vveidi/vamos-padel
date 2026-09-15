@@ -1,7 +1,7 @@
 import Foundation
 import PadelScoring
 import PadelStorage
-import PadelStorageSQLite
+import PadelStorageDatabase
 import Testing
 
 @testable import PadelDelivery
@@ -13,7 +13,7 @@ struct MatchDeliveryTests {
     /// all the while.
     @Test("A finished match is put in the queue")
     func aFinishedMatchIsQueued() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
@@ -28,7 +28,7 @@ struct MatchDeliveryTests {
     /// phone (ticket 12) needs it, not "6:4".
     @Test("The whole match travels, not its result")
     func theWholeMatchTravels() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let saved = SavedMatch.played(
             [.them, .us, .them], ruleset: .classic(setsToWin: 1, goldenPoint: true),
@@ -45,7 +45,7 @@ struct MatchDeliveryTests {
 
     @Test("A match in progress is not put in the queue")
     func aMatchInProgressIsNotQueued() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
 
         try store.save(SavedMatch.played([.us], ruleset: toTwo))
@@ -61,10 +61,10 @@ struct MatchDeliveryTests {
         let database = "delivery-\(UUID().uuidString)"
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
-        let store = try SQLiteMatchStore.inMemory(named: database)
+        let store = try DatabaseMatchStore.inMemory(named: database)
         try store.save(saved)
 
-        let afterRelaunch = try SQLiteMatchStore.inMemory(named: database)
+        let afterRelaunch = try DatabaseMatchStore.inMemory(named: database)
         let transport = FakeTransport()
 
         // Nobody calls delivery by hand: the app launched, the transport came
@@ -81,7 +81,7 @@ struct MatchDeliveryTests {
     /// other way round.
     @Test("Nothing leaves before the transport is ready")
     func nothingIsSentBeforeTheTransportIsReady() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
 
         try store.save(SavedMatch.played([.us, .us], ruleset: toTwo))
@@ -99,7 +99,7 @@ struct MatchDeliveryTests {
     /// not the sending.
     @Test("A confirmed match is not sent again")
     func aConfirmedMatchIsNotSentAgain() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let delivery = MatchDelivery(queue: store, sender: transport)
 
@@ -117,7 +117,7 @@ struct MatchDeliveryTests {
     /// match has to leave again — otherwise it will never leave at all.
     @Test("An unconfirmed match is sent again")
     func anUnconfirmedMatchIsSentAgain() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let delivery = MatchDelivery(queue: store, sender: transport)
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -138,7 +138,7 @@ struct MatchDeliveryTests {
     /// the first.
     @Test("A match changed after delivery is sent again")
     func aMatchChangedAfterDeliveryIsSentAgain() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let delivery = MatchDelivery(queue: store, sender: transport)
 
@@ -167,7 +167,7 @@ struct MatchDeliveryTests {
     /// edit.
     @Test("A receipt for an older version of the match does not clear the queue")
     func aReceiptForAnOlderVersionDoesNotClearTheQueue() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
         let delivery = MatchDelivery(queue: store, sender: transport)
 
@@ -198,7 +198,7 @@ struct MatchDeliveryTests {
     /// mis-tap.
     @Test("A match without a single rally is not sent")
     func aMatchWithoutRalliesIsNotSent() throws {
-        let store = try SQLiteMatchStore.inMemory()
+        let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
 
         var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
@@ -215,7 +215,7 @@ struct MatchDeliveryTests {
     func anEmptyStoreQueuesNothing() throws {
         let transport = FakeTransport()
 
-        MatchDelivery(queue: try SQLiteMatchStore.inMemory(), sender: transport).deliverPending()
+        MatchDelivery(queue: try DatabaseMatchStore.inMemory(), sender: transport).deliverPending()
 
         #expect(transport.sent.isEmpty)
     }

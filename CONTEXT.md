@@ -199,9 +199,10 @@ _Avoid_: input mode, tap scheme, scoring mode, gesture settings
 
 **Rally mark**:
 What the court does when a rally is recorded: the winning side's half brightens
-in its own color and falls back, so that a rally landing is seen and not only
-counted. It marks harder for one that also took a game or a set, and an undo is
-not marked at all. It belongs to the device the rally was awarded on, which is
-the match's scorer and therefore marks every rally in it (ADR-0011).
+to the surface's own lit blue and falls back, so that a rally landing is seen
+and not only counted. It marks harder for one that also took a game or a set,
+and an undo is not marked at all. It belongs to the device the rally was
+awarded on, which is the match's scorer and therefore marks every rally in it
+(ADR-0011).
 _Avoid_: flash, point mark, highlight, glow (that is light, and this is the
 surface's own color)

@@ -60,8 +60,9 @@ struct StartView: View {
     ///
     /// The opponents on top, us at the bottom — the same as on the score
     /// screen and the same as on court: they are across the net, in front of
-    /// us. The colors are the same too, so the half the player will be tapping
-    /// for their own points all match is recognizable before the first rally.
+    /// us. The arrangement is the same too, so the half the player will be
+    /// tapping for their own points all match is in the place it will be in
+    /// before the first rally.
     /// **The capsule is the button and the court around it is inert.** A
     /// control has to light because it was touched, or the light means
     /// nothing.
@@ -75,14 +76,14 @@ struct StartView: View {
     /// The two paddings sit outside the button: inside the style they would
     /// grow what the finger can hit.
     private func half(_ side: Side) -> some View {
-        CourtHalf(side: side)
+        CourtHalf()
             .overlay(alignment: side == .them ? .bottom : .top) {
                 Button {
                     start(side)
                 } label: {
                     Text(Self.serves(side))
                 }
-                .buttonStyle(ServeCapsule(side: side))
+                .buttonStyle(ServeCapsule())
                 .padding(.horizontal, Board.capsuleInset)
                 .padding(side == .them ? .bottom : .top, Board.netGap)
             }
@@ -157,8 +158,6 @@ struct StartView: View {
 /// Choosing a half is what this button does, and the ball's yellow means
 /// exactly that (ADR-0006).
 private struct ServeCapsule: ButtonStyle {
-    let side: Side
-
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .textStyle(.display)
@@ -179,7 +178,7 @@ private struct ServeCapsule: ButtonStyle {
             // and the corners stay court.
             .choiceCapsule(
                 isChosen: configuration.isPressed,
-                restingInk: .courtInk(side),
+                restingInk: .courtInk,
                 isRingedAtRest: true)
             .animation(.easeOut(duration: Board.press), value: configuration.isPressed)
     }

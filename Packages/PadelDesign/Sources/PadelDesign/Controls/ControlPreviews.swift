@@ -221,14 +221,14 @@ private struct ControlsBoard: View {
 
 // MARK: - The history
 
-/// The three tints in a column, which is the only way to see the argument they
-/// make: a won match, a lost one and one stopped early, read as a season
-/// before a number has been read.
+/// The four grounds in a column, which is the only way to see the argument
+/// they make: a won match, a lost one, one stopped early and one still being
+/// played, read as a season before a number has been read.
 private struct TilesBoard: View {
     let words: Words
 
     private let outcomes: [MatchOutcome] = [
-        .finished(winner: .us), .finished(winner: .them), .abandoned,
+        .finished(winner: .us), .finished(winner: .them), .abandoned, .inProgress,
     ]
 
     var body: some View {
@@ -250,7 +250,7 @@ private struct TilesBoard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: score(outcome))
                     .textStyle(.tileScore)
-                    .foregroundStyle(ink(outcome))
+                    .foregroundStyle(Color.courtInk(outcome))
 
                 Text(verbatim: outcome == .abandoned ? words.stopped : words.ruleset.classic)
                     .textStyle(.caption)
@@ -275,14 +275,9 @@ private struct TilesBoard: View {
         switch outcome {
         case .finished(winner: .us): "2 : 1"
         case .finished(winner: .them): "0 : 2"
-        case .abandoned, .inProgress: "9 : 12"
+        case .abandoned: "9 : 12"
+        case .inProgress: "1 : 1"
         }
-    }
-
-    /// A won score is read at full strength and the other two are not, which
-    /// is the tint's argument said again in the ink.
-    private func ink(_ outcome: MatchOutcome) -> Color {
-        outcome == .finished(winner: .us) ? .inkOurHalf : .ink.weight(.strong)
     }
 }
 

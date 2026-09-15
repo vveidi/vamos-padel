@@ -5,11 +5,12 @@ import SwiftUI
 /// The match's outcome — what is seen right after the last rally, or after the
 /// match was stopped early.
 ///
-/// The ground says which of the three it was, the way a history tile's tint
-/// does: the winner's half of the court full-bleed, and `night` under a match
-/// that finished on neither half. The court is the one it was just played
-/// on — our turf for a win, their glass for a loss — and the ball's yellow
-/// marks only the win, because the ball marks what is yours (ADR-0006).
+/// The ground says whether the match was played out at all: the court
+/// full-bleed if it was, `night` if it was stopped early. It no longer says
+/// who won — there is one surface, and a win and a loss are the same court —
+/// so that is left to the headline, to the ball's yellow on it, and to which
+/// score is written first. The ball marks only the win, because the ball marks
+/// what is yours (ADR-0006).
 ///
 /// It scrolls. Nothing here is long, but the headline, the score and the two
 /// buttons stand taller than a watch once Dynamic Type is turned up, and a
@@ -82,7 +83,7 @@ struct OutcomeView: View {
     @ViewBuilder private var counts: some View {
         if let winner {
             Text(verbatim: "\(score[winner]) : \(score[winner.opposite])")
-                .foregroundStyle(Color.courtInk(winner))
+                .foregroundStyle(Color.courtInk)
         } else {
             // No winner to put first, so which number is ours is said by the
             // ball's yellow — *this is yours* — and not by a label, which
@@ -113,7 +114,7 @@ struct OutcomeView: View {
     private var headlineInk: Color {
         switch winner {
         case .us: .ball
-        case .them: Color.courtInk(.them).weight(.control)
+        case .them: Color.courtInk.weight(.control)
         case nil: Color.ink.weight(.control)
         }
     }
@@ -153,16 +154,15 @@ struct OutcomeView: View {
     /// The court the match was just played on, lit from a corner and fading
     /// into `night` at the foot so the buttons stay legible over it.
     ///
-    /// A won match stands on our half and a lost one on theirs — the tints a
-    /// history tile gives the same three outcomes. An abandoned match stands
-    /// on neither: `night` with a trace of the floodlight, which is what that
-    /// tile is drawn as. The half is the whole court primitive rather than its
-    /// colour alone, lines and weave included: what the screen has to read as
-    /// is the court, and the court is what draws one.
+    /// A match that was played out stands on the court, won or lost; one
+    /// stopped early stands on `night` with a trace of the floodlight, which
+    /// is neither. The half is the whole court primitive rather than its
+    /// colour alone, weave included: what the screen has to read as is the
+    /// court, and the court is what draws one.
     private var ground: some View {
         Group {
-            if let winner {
-                CourtHalf(side: winner)
+            if winner != nil {
+                CourtHalf()
             } else {
                 Color.night
             }

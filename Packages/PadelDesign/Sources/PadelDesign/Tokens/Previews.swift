@@ -1,4 +1,3 @@
-import PadelScoring
 import SwiftUI
 
 // The palette, the ramp and the radii, drawn.
@@ -21,10 +20,10 @@ private struct PaletteBoard: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                group("Ground and halves") {
+                group("Ground and court") {
                     row("night", .night)
-                    row("theirHalf", .theirHalf)
-                    row("ourHalf", .ourHalf)
+                    row("court", .court)
+                    row("courtLit", .courtLit)
                 }
 
                 group("The accent") {
@@ -42,30 +41,20 @@ private struct PaletteBoard: View {
                 }
 
                 group("The net") {
-                    row("netTape", Color.netTape, over: .ourHalf)
-                    row("netPost", Color.netPost, over: .ourHalf)
-                    row("shadow", Color.shadow, over: .ourHalf)
+                    row("netTape", Color.netTape, over: .court)
+                    row("netPost", Color.netPost, over: .court)
+                    row("shadow", Color.shadow, over: .court)
                 }
 
-                group("Inside a half") {
-                    row("inkTheirHalf", .inkTheirHalf, over: .theirHalf)
-                    row("inkOurHalf", .inkOurHalf, over: .ourHalf)
-                }
-
-                group("Court lines") {
-                    ForEach(Side.allCases, id: \.self) { side in
-                        ForEach(CourtLine.allCases, id: \.self) { line in
-                            row(
-                                "\(side) · \(line)",
-                                .courtLine(line, on: side),
-                                over: .courtSurface(side))
-                        }
-                    }
+                group("On the court") {
+                    row("courtInk", .courtInk, over: .court)
+                    row("courtWeave", Color.courtWeave(), over: .court)
+                    row("courtSurface(dimmed:)", .courtSurface(dimmed: true), over: .night)
                 }
 
                 group("The light") {
-                    row("floodlight", downward(.floodlight()), over: .ourHalf)
-                    row("nightScrim", downward(.nightScrim), over: .ourHalf)
+                    row("floodlight", downward(.floodlight()), over: .court)
+                    row("nightScrim", downward(.nightScrim), over: .court)
                     row("ballGlow", downward(.ballGlow), over: .night)
                 }
             }

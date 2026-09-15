@@ -32,16 +32,13 @@ struct PaletteTests {
         "Every token is the color the board gives",
         arguments: [
             (Color.night, UInt32(0x04_18_1F)),
-            (.theirHalf, 0x0E_3D_4C),
-            (.ourHalf, 0x12_56_4F),
+            (.court, 0x17_40_6F),
+            (.courtLit, 0x2C_70_AE),
             (.ball, 0xDD_F3_5C),
             (.onBall, 0x16_26_0A),
             (.knob, 0x0B_2B_26),
             (.ink, 0xEE_F7_F5),
-            (.inkTheirHalf, 0xDC_EF_E9),
-            (.inkOurHalf, 0xF4_FF_FB),
-            (.lineTheirHalf, 0xB4_EB_DE),
-            (.lineOurHalf, 0xBE_F5_E4),
+            (.courtInk, 0xE6_EE_F8),
             (.floodlight, 0xFF_F8_D6),
         ])
     func tokensMatchTheBoards(token: Color, hex: UInt32) {
@@ -101,55 +98,91 @@ struct PaletteTests {
         #expect(abs(secondary.opacity - 0.55) < 0.001)
     }
 
-    @Test("The two halves are two surfaces, two inks and two sets of lines")
-    func theHalvesDiffer() {
-        #expect(Self.resolved(.courtSurface(.us)) != Self.resolved(.courtSurface(.them)))
-        #expect(Self.resolved(.courtInk(.us)) != Self.resolved(.courtInk(.them)))
+    /// The court used to answer twice, once per half, and now answers once.
+    /// What is checked is that the collapse reached all three answers: a
+    /// surface, an ink and a weave with no side left to ask about.
+    @Test("The surface, the ink and the weave are each one value")
+    func theCourtAnswersOnce() {
+        #expect(Self.resolved(.courtSurface()) == Self.resolved(.court))
 
-        for line in CourtLine.allCases {
-            #expect(
-                Self.resolved(.courtLine(line, on: .us))
-                    != Self.resolved(.courtLine(line, on: .them)),
-                "the \(line) line is the same on both halves")
+        // The ink is one value for the one surface: every ground cut from the
+        // court takes it, and there is no second ink for a second half to ask
+        // for. `tokensMatchTheBoards` pins what that value is; this pins that
+        // there is only the one.
+        for onTheCourt in [MatchOutcome.finished(winner: .us), .inProgress] {
+            #expect(Self.resolved(.courtInk(onTheCourt)) == Self.resolved(.courtInk))
         }
 
-        #expect(Self.resolved(.courtWeave(on: .us)) != Self.resolved(.courtWeave(on: .them)))
+        // Still thousandths of white: the weave is the only texture left on
+        // the surface, and it did not take over the deleted lines' job.
+        let weave = Self.resolved(.courtWeave())
+
+        #expect(weave.opacity > 0 && weave.opacity < 0.05)
+        #expect(Self.resolved(.courtWeave(dimmed: true)).opacity == 0)
     }
 
-    /// The ink that goes with a ``CourtTile``'s tint. The tile draws a won
-    /// match on turf and a lost one on glass, so the ink has to be that half's
-    /// and not one answer for both; a match that finished on neither half is
-    /// on `night`, and takes the ink the app sets a title in.
-    @Test("A tile's ink follows the half its tint came from")
-    func theOutcomesInkFollowsTheTint() {
-        #expect(Self.resolved(.courtInk(.finished(winner: .us))) == Self.resolved(.courtInk(.us)))
-        #expect(
-            Self.resolved(.courtInk(.finished(winner: .them))) == Self.resolved(.courtInk(.them)))
+    /// ``SwiftUI/Color/courtLit`` has to be brighter **and the same color**.
+    /// Brightness alone is satisfied by white, by the floodlight and by the
+    /// ball, which are three of the marks ADR-0011 rejected — so the claim is
+    /// checked as channel ratios rather than as luminance, and the three
+    /// rejects are run through the same check to show that it separates them.
+    @Test("The lit court is the court, brighter")
+    func theLitCourtKeepsTheCourtsHue() {
+        let court = Self.resolved(.court)
+        let lit = Self.resolved(.courtLit)
 
-        for outcome in [MatchOutcome.abandoned, .inProgress] {
+        #expect(lit.red > court.red)
+        #expect(lit.green > court.green)
+        #expect(lit.blue > court.blue)
+
+        // The tolerance sits just above `courtLit`'s own drift of 0.07 and an
+        // order of magnitude below the nearest reject's 0.58.
+        #expect(Self.hueDrift(from: .court, to: .courtLit) < 0.08)
+
+        for brighter in [Color.white, .floodlight, .ball] {
+            #expect(
+                Self.hueDrift(from: .court, to: brighter) > 0.08,
+                "a brightness-only check would have let this through")
+        }
+    }
+
+    /// How far one color's channel balance sits from another's.
+    ///
+    /// Each channel over the blue, which is the court's strongest — so a color
+    /// that is the court scaled up comes out at zero however far it was
+    /// scaled, and a color that got brighter by turning white does not.
+    static func hueDrift(from base: Color, to other: Color) -> Double {
+        let ratios = { (color: Color) -> (red: Double, green: Double) in
+            let resolved = Self.resolved(color)
+
+            return (
+                red: Double(resolved.red / resolved.blue),
+                green: Double(resolved.green / resolved.blue)
+            )
+        }
+
+        let one = ratios(base)
+        let two = ratios(other)
+
+        return max(abs(one.red - two.red), abs(one.green - two.green))
+    }
+
+    /// The ink that goes with a ``CourtTile``'s ground. Two of the four
+    /// outcomes stand on the court and take its ink; the other two stand on
+    /// `night`, and take the ink the app sets a title in.
+    @Test("A tile's ink follows the ground its tile is drawn on")
+    func theOutcomesInkFollowsTheGround() {
+        for outcome in [MatchOutcome.finished(winner: .us), .inProgress] {
+            #expect(
+                Self.resolved(.courtInk(outcome)) == Self.resolved(.courtInk),
+                "\(outcome) stands on the court and takes the court's ink")
+        }
+
+        for outcome in [MatchOutcome.finished(winner: .them), .abandoned] {
             #expect(
                 Self.resolved(.courtInk(outcome)) == Self.resolved(.ink.weight(.control)),
-                "\(outcome) stands on night and does not take a half's ink")
+                "\(outcome) stands on night and does not take the court's ink")
         }
-    }
-
-    @Test(
-        "The service line is read first and the outline last",
-        arguments: Side.allCases)
-    func linesDescendFromServiceToOutline(side: Side) {
-        let service = Self.resolved(.courtLine(.service, on: side)).opacity
-        let center = Self.resolved(.courtLine(.center, on: side)).opacity
-        let outline = Self.resolved(.courtLine(.outline, on: side)).opacity
-
-        #expect(service > center)
-        #expect(center > outline)
-    }
-
-    @Test("Our half is the lit one", arguments: CourtLine.allCases)
-    func ourLinesAreBrighterThanTheirs(line: CourtLine) {
-        #expect(
-            Self.resolved(.courtLine(line, on: .us)).opacity
-                > Self.resolved(.courtLine(line, on: .them)).opacity)
     }
 
     @Test("The light never arrives at full strength")

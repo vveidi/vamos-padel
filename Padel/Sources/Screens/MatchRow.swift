@@ -100,8 +100,8 @@ struct MatchRow: View {
         Text(state.finalScore.written)
             .textStyle(.tileScore)
             .monospacedDigit()
-            // The court's own ink, on a tile that is a half of it — the same
-            // three-way answer the match card's score is set in.
+            // The ink that goes with the tile's ground — the same four-way
+            // answer the match card's score is set in.
             .foregroundStyle(Color.courtInk(state.outcome))
             .accessibilityLabel(Text(state.finalScore.spoken))
     }
@@ -109,9 +109,9 @@ struct MatchRow: View {
     /// The mark that has to be caught by the eye without reading the row.
     ///
     /// An abandoned match counts as neither a win nor a loss, and in a column
-    /// of results its score must not pass for one. The tile's tint says so as
-    /// well now — it is the one tile cut from neither half — but a tint is a
-    /// thing you have to have learned, and the word is not.
+    /// of results its score must not pass for one. The tile's ground says so as
+    /// well now — it is the one tile lifted off `night` and left unlit — but a
+    /// ground is a thing you have to have learned, and the word is not.
     ///
     /// The match card says the same thing in a whole sentence instead: there
     /// is one match on it and room to announce the outcome where a win would

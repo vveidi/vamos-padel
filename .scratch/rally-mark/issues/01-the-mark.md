@@ -1,8 +1,8 @@
 # 01: The mark
 
 **What to build:** the rally mark as a primitive in `PadelDesign` — a half
-brightening in its own color and falling back — and the per-side strength it is
-drawn at.
+brightening to `courtLit` and falling back — and the one strength it is drawn
+at.
 
 **Blocked by:** None
 
@@ -15,15 +15,17 @@ drawn at.
 - [ ] It is laid **over** a half and takes no room from the layout, the guarantee
       `Floodlight` and `ServeIndicator` both state in their doc comments and for
       the same reason: the court under it is full-bleed
-- [ ] The half brightens in its **own** color — its tint drawn over itself, so
-      the value rises and the hue does not. Not white, not `floodlight`, not
+- [ ] The half brightens in the **surface's own** color — `courtLit`, the court
+      lifted in value with its hue kept. Not white, not `floodlight`, not
       `ball`. Four of the five candidates in `docs/design/RallyMark.html` also
       get brighter; being the same color afterwards is what distinguishes this
       one
-- [ ] `Color.rallyMark(on:)` is in `Tokens/CourtColors.swift` beside
-      `courtSurface`, `courtLine` and `courtWeave`, with the per-side strength
-      private to that file the way `lineOpacity(_:on:)` is. A doc comment saying
-      what was measured and at what size, as `CourtDimming` does
+- [ ] The mark is a **fill** of `courtLit` animated 0 → 1 → 0, not a blend mode
+      over the surface. `court-surface` 01 added the token and `PaletteTests`
+      already pins its hue against `court`, so what is left here is the one
+      strength — whether the peak sits below full `courtLit` — settled by eye at
+      watch size, with a doc comment saying what was measured, as `CourtDimming`
+      does
 - [ ] Two tiers, differing in **time only** — a rally, and a rally that took a
       game or a set, which holds at its peak before it falls. Strength is the
       surface's and a tier must not touch it
@@ -33,8 +35,8 @@ drawn at.
 - [ ] Raster tests in `Tests/PadelDesignTests/Court/`, mirroring the source
       folder: at peak the marked half is measurably brighter than unmarked; its
       **hue is unchanged**; the other half is untouched to the pixel; and the
-      half's geometry — the three painted lines — measures the same with the mark
-      and without, which is the overlay guarantee stated as a number
+      half's weave measures the same with the mark and without, which is the
+      overlay guarantee stated as a number
 - [ ] **No `isLuminanceReduced` anywhere in the file**, and a doc comment saying
       why there is no dimmed variant when every other court primitive has one
       (ADR-0011: the mark is never on screen with the luminance reduced)
@@ -60,10 +62,10 @@ against the unmarked half's, not its luminance alone.
 
 **Where the strength number comes from.** By eye, at the size the screen is read
 at, and written into the doc comment with what was seen — `CourtDimming.surface`
-is the model: "at 0.72 the two halves measured 0.021 apart in luminance and read
-as one black rectangle." A number in this repo says what it was settled against.
+is the model, and its doc comment says what it was settled against rather than
+what its value is. A number in this repo says what it was settled against.
 
 **Nothing here is built for the themes.** They are near-term, and they still get
-no seam: every court color is already a per-side answer in one file, so a surface
+no seam: every court color is already one answer in one file, so a surface
 threaded through `CourtColors.swift` threads this with it. A seam built here
 would be a second one beside the one that already exists.

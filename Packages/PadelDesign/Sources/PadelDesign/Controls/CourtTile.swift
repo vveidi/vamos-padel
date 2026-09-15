@@ -4,21 +4,21 @@ import SwiftUI
 /// A match in the history, cut from the court rather than ruled as a table
 /// row.
 ///
-/// **The tint is the control's whole argument: you can read the season by
-/// color before reading a single number.** Won is the turf we play on, lost
-/// is the cold glass across the net, and a match stopped early is neither —
-/// it is the ground the court stands on, lifted just enough to be a card and
-/// holding a trace of the floodlight.
+/// **The ground is the control's whole argument: you can read the season by
+/// color before reading a single number.** There are four of them and they
+/// spend one hue between them. A win is the court, with the ball's light
+/// spilling into a corner. A loss is `night` with a hairline around it and
+/// nothing else — the quietest thing on the list, which is what a loss should
+/// be, and the price is that a month of losses is a very quiet screen. A match
+/// stopped early is that same `night` lifted into a card and left unlit: no
+/// result, and no light on it either. A match still running is `courtLit` —
+/// *this court is live*, the same statement a rally landing makes.
 ///
 /// It takes ``PadelScoring/MatchOutcome`` and not a `TileStyle` of its own.
 /// The domain already draws this distinction, has already argued it — "an
 /// abandoned match is not a win, not a loss, and not a game still going" — and
-/// a second three-way enum here would be that argument written twice, in the
-/// package that is meant to know less (ADR-0006, and ticket 01's `Side`).
-///
-/// A match still in progress is drawn as an abandoned one. It has no result
-/// either, which is exactly what that tint says; the two are told apart by the
-/// words the caller puts on the tile, not by the ground under them.
+/// a second four-way enum here would be that argument written twice, in the
+/// package that is meant to know less (ADR-0006).
 ///
 /// The content is handed in. `MatchCard` keeps the course of the score and
 /// this gives it something to draw it on — the seam the spec names.
@@ -64,6 +64,17 @@ public struct CourtTile<Content: View>: View {
             .background(ground)
             .clipShape(RoundedRectangle(cornerRadius: .tile))
             .contentShape(RoundedRectangle(cornerRadius: .tile))
+            .overlay {
+                if isLost {
+                    // The one ground that is the same color as the list under
+                    // it, so this hairline is the whole of what makes it a
+                    // tile. `strokeBorder` and not `stroke`, which straddles
+                    // the edge and would lose its outer half to the clip —
+                    // the same border `PillButton` draws.
+                    RoundedRectangle(cornerRadius: .tile)
+                        .strokeBorder(.ink.weight(.hairline))
+                }
+            }
     }
 
     private var ground: some View {
@@ -71,17 +82,18 @@ public struct CourtTile<Content: View>: View {
             Rectangle().fill(tint)
 
             if isLifted {
-                // Two layers and not a lighter hex: `night` is the app's
-                // ground, and a match stopped early is that ground raised into
-                // a card and lit from the same corner as everything else.
+                // A layer and not a lighter hex: `night` is the app's ground,
+                // and a match stopped early is that ground raised into a card.
+                // No floodlight over it — a match with no result gets no light
+                // on it either, which is what separates it from the one still
+                // being played.
                 Rectangle().fill(.ink.weight(.surfaceQuiet))
-                Floodlight(corner: .topTrailing, strength: 0.1)
             }
 
             // The same texture as the surface it is cut from — the court's
             // own, at the court's own weight.
             Weave(stripe: CourtMetrics.weave)
-                .fill(Color.courtWeave(on: weaveSide))
+                .fill(Color.courtWeave())
                 .clipped()
 
             if isWon { glow }
@@ -106,26 +118,15 @@ public struct CourtTile<Content: View>: View {
 
     private var tint: Color {
         switch outcome {
-        case .finished(winner: .us): .ourHalf
-        case .finished(winner: .them): .theirHalf
-        case .abandoned, .inProgress: .night
-        }
-    }
-
-    /// Which half's weave lies over the tint.
-    ///
-    /// The two weaves are four thousandths of white apart, and the tile that
-    /// has no half takes the fainter: `night` is darker than either surface,
-    /// and the texture over it has the furthest to go before it stops reading
-    /// as a surface and starts reading as stripes.
-    private var weaveSide: Side {
-        switch outcome {
-        case .finished(let winner): winner
-        case .abandoned, .inProgress: .them
+        case .finished(winner: .us): .court
+        case .finished(winner: .them), .abandoned: .night
+        case .inProgress: .courtLit
         }
     }
 
     private var isWon: Bool { outcome == .finished(winner: .us) }
 
-    private var isLifted: Bool { outcome.winner == nil }
+    private var isLost: Bool { outcome == .finished(winner: .them) }
+
+    private var isLifted: Bool { outcome == .abandoned }
 }

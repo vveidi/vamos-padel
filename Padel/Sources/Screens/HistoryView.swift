@@ -11,7 +11,8 @@ import SwiftUI
 /// up in.
 ///
 /// It is `night` with a light on it, and the matches are tiles cut from the
-/// court — a win on turf, a defeat on glass, a match stopped early on neither.
+/// court — a win on the court, a defeat on the ground the court stands on, a
+/// match stopped early on that ground lifted into a card.
 /// **That is the screen's argument: a season is readable by colour before a
 /// single number is.** Which is also why nothing here is a `List`: separators
 /// and chevrons would rule a table over the court, and the tiles already say

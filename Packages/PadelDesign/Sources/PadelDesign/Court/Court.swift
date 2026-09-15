@@ -1,4 +1,3 @@
-import PadelScoring
 import SwiftUI
 
 /// The whole court: their half, the net, ours — the two halves equal.
@@ -13,14 +12,14 @@ public struct Court: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CourtHalf(side: .them)
+            CourtHalf()
 
             // Drawn above our half rather than under it, so the tape's shadow
-            // falls on the turf — the boards' `z-index: 1`. A `VStack` draws
+            // falls on the surface — the boards' `z-index: 1`. A `VStack` draws
             // its children in order, and the order puts our half last.
             NetLine().zIndex(1)
 
-            CourtHalf(side: .us)
+            CourtHalf()
         }
     }
 }

@@ -89,39 +89,101 @@ struct CourtTileTests {
                 size: Self.size))
     }
 
-    /// The tile's whole argument: the season is readable by color. Three
+    /// Low and leading, which is as far from the glow in the top trailing
+    /// corner as the tile goes — and inside the hairline, so a border never
+    /// answers for a ground.
+    static func body(_ raster: Raster) -> Double {
+        raster.meanLuminance(columns: 20..<80, rows: 60..<80)
+    }
+
+    /// The top trailing corner — where the won tile's glow hangs, and where
+    /// the floodlight used to fall on an abandoned one.
+    static func corner(_ raster: Raster) -> Double {
+        raster.meanLuminance(columns: 260..<295, rows: 4..<24)
+    }
+
+    /// The tile's whole argument: the season is readable by color. Two
     /// outcomes that drew the same ground would be a history of identical
     /// cards with the answer buried in the numbers.
-    @Test("The three outcomes are three grounds")
-    func eachOutcomeHasItsOwnTint() throws {
-        let won = try Self.tile(.finished(winner: .us))
-        let lost = try Self.tile(.finished(winner: .them))
-        let stopped = try Self.tile(.abandoned)
+    ///
+    /// Four grounds and one hue between them, which is what makes this worth
+    /// measuring rather than reading: the win and the match still running are
+    /// the same blue at two brightnesses, and the loss and the match stopped
+    /// early are the same `night` with a lift between them.
+    @Test("The four outcomes are four grounds")
+    func eachOutcomeHasItsOwnGround() throws {
+        let outcomes: [MatchOutcome] = [
+            .finished(winner: .us), .finished(winner: .them), .abandoned, .inProgress,
+        ]
+        var grounds: [(outcome: MatchOutcome, patch: Double)] = []
 
-        // Low and leading, which is as far from the glow in the top trailing
-        // corner as the tile goes.
-        let patch = { (raster: Raster) in
-            raster.meanLuminance(columns: 20..<80, rows: 60..<80)
+        for outcome in outcomes {
+            grounds.append((outcome, Self.body(try Self.tile(outcome))))
         }
 
-        #expect(patch(won) != patch(lost))
-        #expect(patch(lost) != patch(stopped))
-        #expect(patch(won) != patch(stopped))
+        for (index, one) in grounds.enumerated() {
+            for two in grounds.dropFirst(index + 1) {
+                #expect(
+                    abs(one.patch - two.patch) > 0.01,
+                    "\(one.outcome) and \(two.outcome) are the same ground")
+            }
+        }
+    }
 
-        #expect(won.pixel(40, 70, isCloseTo: .ourHalf))
-        #expect(lost.pixel(40, 70, isCloseTo: .theirHalf))
+    /// The two grounds cut from the court, at the two brightnesses the palette
+    /// gives them — and not a third blue invented here.
+    @Test("A win is the court and a match still running is the court, lit")
+    func theCourtsTwoGroundsAreTheCourtsTwoTokens() throws {
+        #expect(try Self.tile(.finished(winner: .us)).pixel(40, 70, isCloseTo: .court))
+        #expect(try Self.tile(.inProgress).pixel(40, 70, isCloseTo: .courtLit))
+    }
+
+    /// A loss is `night` on a `night` list, and the hairline is the whole of
+    /// what makes it a tile. That is the quietest thing the history draws, on
+    /// purpose — but it still has to be drawn.
+    @Test("A loss is night, with a hairline and nothing else")
+    func theLostTileIsNightInsideAHairline() throws {
+        let lost = try Self.tile(.finished(winner: .them))
+
+        #expect(lost.pixel(40, 70, isCloseTo: .night))
+
+        // The border, read down the leading edge at the tile's waist, where
+        // the rounded corners are well out of the way.
+        let edge = lost.meanLuminance(columns: 0..<2, rows: 40..<50)
+
+        #expect(edge > Self.body(lost), "no hairline, so the tile has no edge at all")
+
+        // And no lift under it: the ground is the list's own, which is what
+        // makes the hairline the only thing separating them.
+        #expect(
+            abs(Self.body(lost) - Raster.luminance(of: .night)) < 0.02,
+            "the lost tile was lifted off the ground it is meant to sit on")
     }
 
     /// `night`, lifted — the ground of the app raised into a card. It must be
-    /// brighter than the ground it sits on or it is not a tile at all.
+    /// brighter than the ground it sits on or it is not a tile at all, and it
+    /// must be brighter than a loss or the two outcomes with no result are one.
     @Test("A match stopped early is night, lifted off night")
     func theAbandonedTileIsLifted() throws {
         let stopped = try Self.tile(.abandoned)
 
         #expect(
-            stopped.meanLuminance(columns: 20..<80, rows: 60..<80)
-                > Raster.luminance(of: .night),
+            Self.body(stopped) > Raster.luminance(of: .night),
             "the tile is the same value as the ground under it")
+        #expect(
+            Self.body(stopped) > Self.body(try Self.tile(.finished(winner: .them))),
+            "a match stopped early and a match lost are the same tile")
+    }
+
+    /// The lift and nothing over it. A match with no result gets no light on
+    /// it either, which is what separates it from the one still being played.
+    @Test("No light falls on a match stopped early")
+    func theAbandonedTileIsUnlit() throws {
+        let stopped = try Self.tile(.abandoned)
+
+        #expect(
+            abs(Self.corner(stopped) - Self.body(stopped)) < 0.01,
+            "the abandoned tile is lit in the corner the floodlight used to come from")
     }
 
     /// The one place the accent appears as light rather than as a mark, and
@@ -131,26 +193,9 @@ struct CourtTileTests {
         let won = try Self.tile(.finished(winner: .us))
         let lost = try Self.tile(.finished(winner: .them))
 
-        let corner = { (raster: Raster) in
-            raster.meanLuminance(columns: 260..<295, rows: 4..<24)
-        }
-        let body = { (raster: Raster) in
-            raster.meanLuminance(columns: 20..<80, rows: 60..<80)
-        }
-
-        #expect(corner(won) > body(won), "the won tile's corner is not lit")
+        #expect(Self.corner(won) > Self.body(won), "the won tile's corner is not lit")
         #expect(
-            corner(lost) - body(lost) < corner(won) - body(won),
+            Self.corner(lost) - Self.body(lost) < Self.corner(won) - Self.body(won),
             "the lost tile carries a glow of its own")
-    }
-
-    /// A match still going has no result either, and the tint says exactly
-    /// that. The words on the tile tell the two apart; the ground does not.
-    @Test("A match still in progress is drawn as one stopped early")
-    func inProgressBorrowsTheAbandonedTint() throws {
-        let playing = try Self.tile(.inProgress)
-        let stopped = try Self.tile(.abandoned)
-
-        #expect(playing.patch(columns: 20..<80, rows: 60..<80, matches: stopped))
     }
 }

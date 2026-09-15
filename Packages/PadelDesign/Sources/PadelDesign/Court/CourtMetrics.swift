@@ -1,29 +1,17 @@
 import CoreGraphics
 
-/// The court's proportions, and the few thicknesses that cannot be one.
+/// The court's thicknesses.
 ///
-/// The geometry is **fractions of the half it is drawn in**, because the same
-/// court is drawn on a 198pt watch screen and on a 393pt phone, and a table of
-/// numbers for each is how the two drift apart.
+/// Everything here is absolute, because everything left here is a thickness: a
+/// shape 0.5% of the screen wide is a shape nobody can see on a wrist. They
+/// resolve per platform the way the radii do — the boards' pixels halved on
+/// the watch, which is drawn at 2x, and taken at face value on the phone,
+/// which is drawn at 1x.
 ///
-/// What stays absolute is thickness. A line 0.5% of the screen wide is a line
-/// nobody can see on a wrist, so the thicknesses resolve per platform the way
-/// the radii do: the boards' pixels halved on the watch, which is drawn at 2x,
-/// and taken at face value on the phone, which is drawn at 1x.
+/// The one proportion it used to hold was the service line's, and the lines
+/// were deleted along with the shape they were measured in — see
+/// ``CourtHalf``.
 enum CourtMetrics {
-    /// Where the service line crosses its half, measured from the half's
-    /// **outer** edge — the top of their half, the bottom of ours.
-    ///
-    /// One number for both, because the halves are one court seen from our
-    /// end. ``PaintedLine`` mirrors rather than measuring twice.
-    static let serviceLine: CGFloat = 0.3
-
-    /// A painted line. 2px on both boards.
-    static var line: CGFloat { Platform.value(watch: 1, phone: 2) }
-
-    /// How far inside the half the outline runs, on the three sides it has.
-    static var outlineInset: CGFloat { Platform.value(watch: 5, phone: 10) }
-
     /// The net's tape — and with it the whole net, since a post is one tape
     /// wide and three tapes long.
     ///

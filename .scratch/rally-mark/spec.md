@@ -26,13 +26,12 @@ own color and falls back.
 
 In:
 
-- **The rally mark** as a primitive in `PadelDesign`, drawn in the half's own
-  tint and spending no new color.
+- **The rally mark** as a primitive in `PadelDesign`, drawn in `courtLit` and
+  spending no new color.
 - **Two tiers**: a rally, and a rally that also took a game or a set.
 - **The watch's score screen** and **the phone's scoreboard**, each marking the
   rallies it awarded.
-- **A per-side strength**, in the file that already owns what the court is
-  painted in.
+- **One strength**, in the file that already owns what the court is painted in.
 
 Not in:
 
@@ -52,13 +51,13 @@ Not in:
   write no code, and the comment exists so that nobody writes some.
 - **A dimmed variant.** Unlike every other thing drawn on the court, this one has
   no Always-On case at all.
-- **A theme.** The strength is per side today. It becomes per surface when the
-  surfaces do, and needs no seam built ahead of them.
+- **A theme.** There is one strength for one surface today. It becomes one per
+  surface when there are several, and needs no seam built ahead of them.
 
 ## The design, in words
 
-**The half that won brightens in its own color and falls back.** Its tint, drawn
-over itself, so the hue does not move and only the value does. Not white, not the
+**The half that won brightens in the surface's own color and falls back.** The
+court lifted in value with its hue kept — `courtLit`. Not white, not the
 floodlight's warm light, not the ball's yellow.
 
 That is the whole decision and it was made against four alternatives, all of them
@@ -97,14 +96,13 @@ wrapper around that, and is tested by nobody.
 
 ### The color
 
-`Color.rallyMark(on:)` in `Tokens/CourtColors.swift`, beside `courtSurface`,
-`courtLine`, `courtWeave` and `CourtDimming`. That file already says it owns what
-the geometry is painted in, and the mark is paint. The per-side strength is
-private to it, the way `lineOpacity(_:on:)` is.
+`Color.courtLit`, already in the palette: `court-surface` 01 added it as the
+surface brightened against itself, and it means exactly what the mark means —
+*this court is live*. There is nothing left for this feature to name.
 
-This is also why the feature builds no seam for the themes: every court color is
-already a per-side answer in one file, so the day a surface is threaded through
-them the mark's number is threaded with them.
+That also settles the shape of the mark: it is a **fill animated 0 → 1 → 0**
+over the half, not a blend mode over the surface. Same pixels, one concept
+fewer to re-derive.
 
 ### Where the trigger comes from
 
@@ -117,21 +115,24 @@ having moved with it, which both screens are already handed. No new
 
 ### The mark is the surface, and the surface's own hue
 
-The half's tint drawn over itself, screened, so that value rises and hue does
-not. A mark that washed toward white would be the floodlight, which is a
-different primitive and the candidate that lost.
+`courtLit` is the court lifted in value with its hue kept, so a marked half
+reads as the court itself responding rather than as something laid over it. A
+mark that washed toward white would be the floodlight, which is a different
+primitive and the candidate that lost.
 
 The raster test that matters is therefore not "it got brighter" but "it got
 brighter *and stayed the same color*". Brightness alone is satisfied by four of
-the five rejected candidates.
+the five rejected candidates. `PaletteTests` already makes that check against
+`courtLit`; what this feature owes is the same check on the marked half as
+drawn.
 
-### The strength is per side, and it is settled by eye
+### The strength is one number
 
-`CourtDimming` is the precedent, down to the doc comment: "settled by eye at
-watch size: at 0.72 the two halves measured 0.021 apart in luminance and read as
-one black rectangle." The same sentence is owed here, with the same kind of
-number in it. What reads on turf green does not read on glass blue, and that is
-before any theme exists.
+It was going to be one per side — what read on turf green did not read on glass
+blue. `court-surface` collapsed the two halves into one surface, so there is one
+surface to settle the mark against and one number to settle. Whether an opacity
+peak below 1 reads better than the full `courtLit` is still a question for a
+wrist rather than a canvas.
 
 ### The mark has no Always-On case
 
@@ -167,13 +168,14 @@ spec nobody opens.
 
 - **Every surface shipped after this one names its own strength.** This is the
   price of the candidate that spends no color, and ADR-0011 records it as the
-  thing that was bought rather than as a defect.
-- **The mark and the identity of a half are made of the same material.** Which
-  half is ours is said by turf green against glass blue and never by a label. On
-  clay both halves are clay. That answer degrades under themes, and the mark sits
-  on top of it — it brightens a surface whose color is the only thing saying
-  whose surface it is. The themes have to answer this for the score screen's sake
-  regardless; the mark makes it a second debt, not a new one.
+  thing that was bought rather than as a defect. It is one number per surface
+  now rather than one per half.
+- **The debt about a half's identity is settled, and was never owed.** This
+  feature was going to inherit "the mark brightens a surface whose color is the
+  only thing saying whose surface it is". `court-surface` paid it first: which
+  half is ours is said by position and by the net, and the surface says nothing
+  about it either way. A marked half is the court lighting up, and which court
+  it is is a question the arrangement already answered.
 - **The match-winning rally is not marked in practice.** It would be marked on a
   screen replaced by the outcome in the same update. Consistent with the feature
   marking no match ending, and worth knowing before it is filed as a bug.

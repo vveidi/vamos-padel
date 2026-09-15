@@ -13,7 +13,7 @@ import SwiftUI
 /// where the net is.
 ///
 /// ```swift
-/// CourtHalf(side: .us)
+/// CourtHalf()
 ///     .overlay { Floodlight(corner: .bottomTrailing) }
 /// ```
 public struct Floodlight: View {

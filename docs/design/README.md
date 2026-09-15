@@ -59,9 +59,12 @@ the reference for everything else on it: the scrim, the top strip, the corner
 ball, the bottom controls.
 
 It also labels the halves "Them" and "Us". The watch's score screen decided
-otherwise and the phone follows it: which half is ours is said by the ground it
-is drawn on, turf green against glass blue, and never by a label that takes room
-from the digit the board is being read for.
+otherwise and the phone follows it: which half is ours is said by where it is —
+theirs across the net, ours on our side of it — and never by a label that takes
+room from the digit the board is being read for. The board draws two halves in
+two colors, and that is the second thing on it that no longer ships:
+`court-surface` collapsed them into one blue with no painted lines, so position
+and the net carry that on their own.
 
 The **Undo** and **End** it draws in the bottom bar were out of scope when it was
 drawn, because there was no phone scoring to undo. They are in scope now.

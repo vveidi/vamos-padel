@@ -283,10 +283,9 @@ struct MatchCard: View {
     ///
     /// The score after the step and not the name of whoever took it, because
     /// the question the card is opened with is "was it close" — and a column of
-    /// names answers it only by being counted up in the reader's head. Who took
-    /// the step is the band's own colour, ours the turf and theirs the glass,
-    /// so a run of three is read off the page without reading a number; which
-    /// of the two numbers moved is the one left at full strength.
+    /// names answers it only by being counted up in the reader's head. Every
+    /// band is the one court, so who took the step is said by which of the two
+    /// numbers is left at full strength.
     private func band(_ step: ScoreStep, named name: StepName) -> some View {
         counts(step.score, taken: step.winner)
             .textStyle(.control)
@@ -294,7 +293,7 @@ struct MatchCard: View {
             .padding(.horizontal, Board.bandPadding)
             .frame(maxWidth: .infinity, minHeight: Board.bandHeight, alignment: .leading)
             .background(
-                Color.courtSurface(step.winner),
+                Color.courtSurface(),
                 in: RoundedRectangle(cornerRadius: Board.bandRadius))
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(name.spoken)
@@ -305,18 +304,18 @@ struct MatchCard: View {
     /// The two numbers, ours first, with the one that just moved at full
     /// strength.
     private func counts(_ score: SideCounts, taken: Side) -> Text {
-        numeral(score[.us], lit: taken == .us, on: taken)
-            + Text(verbatim: " : ").foregroundStyle(Color.courtInk(taken).weight(.tertiary))
-            + numeral(score[.them], lit: taken == .them, on: taken)
+        numeral(score[.us], lit: taken == .us)
+            + Text(verbatim: " : ").foregroundStyle(Color.courtInk.weight(.tertiary))
+            + numeral(score[.them], lit: taken == .them)
     }
 
     /// One side's count, lit if it is the one that just moved.
     ///
     /// Verbatim: a numeral standing on its own is not a sentence, and a catalog
     /// that carried a key of "%lld" would be carrying nothing.
-    private func numeral(_ count: Int, lit: Bool, on half: Side) -> Text {
+    private func numeral(_ count: Int, lit: Bool) -> Text {
         Text(verbatim: "\(count)")
-            .foregroundStyle(Color.courtInk(half).weight(lit ? .primary : .secondary))
+            .foregroundStyle(Color.courtInk.weight(lit ? .primary : .secondary))
     }
 
     /// A line that is not a step of the course: the tiebreak's points, or where

@@ -50,10 +50,10 @@ award it to the opponents, a long press undoes the last one. **Tap zones** is
 what the screen does today: the opponents on top, us at the bottom, the half you
 hit is the side that scores, long press undoes. Multi-tap is the default.
 
-The court is drawn identically in both. Which number is ours is said by the
-ground it stands on — turf green against glass blue — and that is how the score
-is *read*, independently of how it is *entered*. Changing tap mode must not move
-a digit, or every change costs the player a re-orientation on court.
+The court is drawn identically in both. Which number is ours is said by where it
+stands — below the net, as it is on court — and that is how the score is *read*,
+independently of how it is *entered*. Changing tap mode must not move a digit, or
+every change costs the player a re-orientation on court.
 
 The setting lives in two places and is one component in both: a `ChoiceRow`
 naming its value and pushing a list of the two, with three lines under it

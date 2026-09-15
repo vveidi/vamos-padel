@@ -88,8 +88,8 @@ struct NetTests {
         let raster = try #require(
             Raster(Court(), size: CGSize(width: CGFloat(Self.width), height: CGFloat(height))))
 
-        // The net is the brightest thing on an unlit court by a distance —
-        // ink at 0.82 against paint that never passes 0.36.
+        // The net is the brightest thing on an unlit court by a distance — ink
+        // at 0.82 against a surface with nothing on it but a weave at 0.03.
         let brightest = try #require(
             (0..<height).max { raster.rowLuminance($0) < raster.rowLuminance($1) })
 
@@ -97,7 +97,10 @@ struct NetTests {
             abs(brightest - height / 2) <= 2,
             "the net is not in the middle, so the halves are not equal")
 
-        #expect(raster.pixel(50, height / 4, isCloseTo: .theirHalf))
-        #expect(raster.pixel(50, height * 3 / 4, isCloseTo: .ourHalf))
+        // One surface above the net and the same one below it. Which half is
+        // ours is said by the net between them and by nothing else, which is
+        // what makes the net's position above worth measuring at all.
+        #expect(raster.pixel(50, height / 4, isCloseTo: .court))
+        #expect(raster.pixel(50, height * 3 / 4, isCloseTo: .court))
     }
 }

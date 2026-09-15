@@ -74,10 +74,10 @@ players read. Choosing one is giving up the other, and the honest answer to
 wanting both is `paired-scoring`.
 
 **The scoreboard is a court seen from above, turned.** The net crosses the long
-axis, so in landscape it stands vertical and the halves lie left and right. Ours
-is turf green, theirs glass blue, the ball sits in the corner of the serving
-half, and which half is drawn on the left is a setting — a button mirrors the
-board so nobody has to walk around the bench.
+axis, so in landscape it stands vertical and the halves lie left and right. Both
+are the one surface `court-surface` 01 collapsed them into, the ball sits in the
+corner of the serving half, and which half is drawn on the left is a setting — a
+button mirrors the board so nobody has to walk around the bench.
 
 ## Solution
 

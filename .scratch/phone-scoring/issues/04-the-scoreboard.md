@@ -11,9 +11,11 @@ digits the screen allows, and the ball in the corner of the serving half.
 - [ ] The net crosses the long axis: in landscape it stands vertical and the
       halves lie left and right. `NetLine` from `PadelDesign` turned, not
       redrawn
-- [ ] Ours is on the left by default, theirs on the right, drawn on their own
-      grounds — turf green and glass blue, both `PadelDesign`'s. The screen
-      names no color of its own
+- [ ] Ours is on the left by default and theirs on the right, both drawn on the
+      one surface with the net between them — `court-surface` 01 collapsed the
+      two grounds into one and deleted the painted lines, so this draws the
+      plain surface from the start. Which half is ours is said by position and
+      by the net. The screen names no color of its own
 - [ ] A tap on a half records a rally for that side, and the journal is in the
       store before the digits change
 - [ ] The points are the largest thing on the screen, from the `.score` ramp

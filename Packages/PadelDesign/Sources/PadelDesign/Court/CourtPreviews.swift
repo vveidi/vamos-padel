@@ -1,12 +1,11 @@
-import PadelScoring
 import SwiftUI
 
 // The court, the net, the ball and the light, drawn.
 //
 // Five boards. Everything here is geometry, and geometry is the part of a
-// design that cannot be read off source: a service line at 30% of the wrong
-// edge, a post at one end of the net, a weave that has become stripes and a
-// floodlight that has become a color all compile.
+// design that cannot be read off source: a post at one end of the net, a weave
+// that has become stripes and a floodlight that has become a color all
+// compile.
 //
 // Both platforms come from the same five. The thicknesses and the radii
 // resolve per platform, so these are the watch's when the canvas is running
@@ -29,22 +28,22 @@ private struct CourtBoard: View {
 
 // MARK: - The halves
 
-/// The two halves apart, on `night`, so that the mirror and the missing fourth
-/// edge are both visible.
+/// The two halves apart, on `night`.
 ///
-/// Their service line is 30% down from the top and ours is 30% up from the
-/// bottom; their center line runs from the service line to the net and ours
-/// from the net to the service line; and neither outline has an edge along the
-/// net. Put the two back together and it is one court.
+/// What to look for: that they are the same surface, drawn once. Which of them
+/// is ours is not a question this board can answer — that is the net's job,
+/// and the net is on the board below.
 private struct HalvesBoard: View {
+    private let labels = ["the net is below", "the net is above"]
+
     var body: some View {
         VStack(spacing: 22) {
-            ForEach(Side.allCases, id: \.self) { side in
-                CourtHalf(side: side)
+            ForEach(labels, id: \.self) { label in
+                CourtHalf()
                     .overlay(alignment: .topLeading) {
-                        Text(verbatim: side == .them ? "them · the net is below" : "us · the net is above")
+                        Text(verbatim: label)
                             .textStyle(.caption)
-                            .foregroundStyle(Color.courtInk(side).weight(.secondary))
+                            .foregroundStyle(Color.courtInk.weight(.secondary))
                             .padding(10)
                     }
             }
@@ -60,9 +59,9 @@ private struct HalvesBoard: View {
 
 /// The net at both screens' widths, over a court and over `night`.
 ///
-/// Over the court because the shadow is what lifts it off the turf and there
-/// is nothing to lift it off otherwise; over `night` because that is where the
-/// posts are easiest to count, and there are two of them.
+/// Over the court because the shadow is what lifts it off the surface and
+/// there is nothing to lift it off otherwise; over `night` because that is
+/// where the posts are easiest to count, and there are two of them.
 private struct NetBoard: View {
     private let widths: [CGFloat] = [198, 393]
 
@@ -78,9 +77,9 @@ private struct NetBoard: View {
                         NetLine().frame(width: width)
 
                         VStack(spacing: 0) {
-                            CourtHalf(side: .them).frame(height: 40)
+                            CourtHalf().frame(height: 40)
                             NetLine().zIndex(1)
-                            CourtHalf(side: .us).frame(height: 40)
+                            CourtHalf().frame(height: 40)
                         }
                         .frame(width: width)
                     }
@@ -110,7 +109,7 @@ private struct BallBoard: View {
                 row("on the court", finish: .onCourt)
                     .padding(.vertical, 14)
                     .frame(maxWidth: .infinity)
-                    .background(Color.ourHalf)
+                    .background(Color.court)
 
                 row("cut out of a button", finish: .cutOut)
                     .padding(.vertical, 14)
@@ -132,7 +131,7 @@ private struct BallBoard: View {
 
             Text(verbatim: name)
                 .textStyle(.caption)
-                .foregroundStyle(finish == .onCourt ? Color.inkOurHalf : .onBall)
+                .foregroundStyle(finish == .onCourt ? Color.courtInk : .onBall)
         }
     }
 }

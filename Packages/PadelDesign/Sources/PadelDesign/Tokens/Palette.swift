@@ -18,17 +18,35 @@ import SwiftUI
 /// handed around as values, and once on `ShapeStyle`, so a call site can write
 /// `.foregroundStyle(.ball)` the way it writes `.foregroundStyle(.red)`.
 extension Color {
-    // MARK: The ground and the two halves
+    // MARK: The ground and the court
 
     /// The app's ground: everything outside the court.
     public static let night = Color(hex: 0x04_18_1F)
 
-    /// Glass blue — the half across the net, drawn at the top because that is
-    /// where it is when you stand on court.
-    public static let theirHalf = Color(hex: 0x0E_3D_4C)
+    /// The court's surface — one blue, because a padel court is one color.
+    ///
+    /// Both halves take it. Which half is ours is said by **position** —
+    /// theirs above the net, ours below, the same as when you stand on
+    /// court — and by the net between them, never by a second hue and never by
+    /// a label.
+    ///
+    /// - Note: Nothing is painted on this surface, deliberately — see
+    ///   ``CourtHalf``, which carries the argument before anyone writes a
+    ///   service line back.
+    public static let court = Color(hex: 0x17_40_6F)
 
-    /// Turf green — our half, at the bottom.
-    public static let ourHalf = Color(hex: 0x12_56_4F)
+    /// The court brightened against itself: *this court is live*.
+    ///
+    /// Read by two things, which is why it is one token and not two light
+    /// blues: a rally landing on the court, and a match still running in the
+    /// history. Two places picking their own light blue drift a shade apart
+    /// the first time one of them is re-tuned.
+    ///
+    /// - Important: Brighter *and the same color*. "It got brighter" is also
+    ///   satisfied by white, by the floodlight and by the ball, which are the
+    ///   three marks ADR-0011 rejected — so what pins this token is the hue it
+    ///   keeps, not the luminance it gains.
+    public static let courtLit = Color(hex: 0x2C_70_AE)
 
     // MARK: The one accent
 
@@ -93,23 +111,11 @@ extension Color {
     /// than with an opacity written at the call site.
     public static let ink = Color(hex: 0xEE_F7_F5)
 
-    /// Text inside their half — the ink cooled to sit on glass blue.
-    public static let inkTheirHalf = Color(hex: 0xDC_EF_E9)
-
-    /// Text inside our half — the ink warmed to sit on turf green.
-    public static let inkOurHalf = Color(hex: 0xF4_FF_FB)
-
-    // MARK: The paint the court's lines are drawn in
-
-    /// The white the lines on their half are painted in, before a weight.
+    /// Text standing *on* the court, where the ground is no longer `night`
+    /// and the ink on `night` would read gray.
     ///
-    /// Never spent at full strength — ``Color/courtLine(_:on:dimmed:)`` is the
-    /// only way in, which is why this is `internal`.
-    static let lineTheirHalf = Color(hex: 0xB4_EB_DE)
-
-    /// The white the lines on our half are painted in, before a weight. The
-    /// brighter of the two: the boards light the near half more.
-    static let lineOurHalf = Color(hex: 0xBE_F5_E4)
+    /// One ink for the one surface, on either half of it.
+    public static let courtInk = Color(hex: 0xE6_EE_F8)
 
     // MARK: The light
 
@@ -196,7 +202,7 @@ public enum InkWeight: Sendable, CaseIterable {
 extension Color {
     /// This color at a named weight.
     ///
-    /// Written for the ink, but not restricted to it: `ourHalf` and `ball`
+    /// Written for the ink, but not restricted to it: `court` and `ball`
     /// take the same vocabulary, and the point of the vocabulary is that the
     /// number lives here and not at the call site.
     public func weight(_ weight: InkWeight) -> Color {
@@ -234,18 +240,18 @@ extension Color {
 /// and in a `some ShapeStyle` position that is not `Color`. SwiftUI declares
 /// its own colors twice for the same reason; so does this palette.
 ///
-/// The mirror covers every `public` token, the court's four included — a
+/// The mirror covers every `public` token, the court's three included — a
 /// half-mirror would mean a call site writing `.fill(.ball)` on one line and
-/// `.fill(Color.courtSurface(side))` on the next.
+/// `.fill(Color.courtSurface())` on the next.
 extension ShapeStyle where Self == Color {
     /// See ``SwiftUI/Color/night``.
     public static var night: Color { Color.night }
 
-    /// See ``SwiftUI/Color/theirHalf``.
-    public static var theirHalf: Color { Color.theirHalf }
+    /// See ``SwiftUI/Color/court``.
+    public static var court: Color { Color.court }
 
-    /// See ``SwiftUI/Color/ourHalf``.
-    public static var ourHalf: Color { Color.ourHalf }
+    /// See ``SwiftUI/Color/courtLit``.
+    public static var courtLit: Color { Color.courtLit }
 
     /// See ``SwiftUI/Color/ball``.
     public static var ball: Color { Color.ball }
@@ -262,39 +268,26 @@ extension ShapeStyle where Self == Color {
     /// See ``SwiftUI/Color/ink``.
     public static var ink: Color { Color.ink }
 
-    /// See ``SwiftUI/Color/inkTheirHalf``.
-    public static var inkTheirHalf: Color { Color.inkTheirHalf }
-
-    /// See ``SwiftUI/Color/inkOurHalf``.
-    public static var inkOurHalf: Color { Color.inkOurHalf }
+    /// See ``SwiftUI/Color/courtInk``.
+    public static var courtInk: Color { Color.courtInk }
 
     /// See ``SwiftUI/Color/floodlight``.
     public static var floodlight: Color { Color.floodlight }
 
-    /// See ``SwiftUI/Color/courtSurface(_:dimmed:)``.
+    /// See ``SwiftUI/Color/courtSurface(dimmed:)``.
     ///
     /// The defaulted `dimmed:` is mirrored too, and not dropped. Without it
-    /// the concrete overload becomes the worse match for `courtSurface(side)`
+    /// the concrete overload becomes the worse match for `courtSurface()`
     /// alone, this one wins, and the forward below calls itself.
-    public static func courtSurface(_ side: Side, dimmed: Bool = false) -> Color {
-        Color.courtSurface(side, dimmed: dimmed)
+    public static func courtSurface(dimmed: Bool = false) -> Color {
+        Color.courtSurface(dimmed: dimmed)
     }
 
-    /// See ``SwiftUI/Color/courtInk(_:)-(Side)``.
-    public static func courtInk(_ side: Side) -> Color { Color.courtInk(side) }
-
-    /// See ``SwiftUI/Color/courtInk(_:)-(MatchOutcome)``.
+    /// See ``SwiftUI/Color/courtInk(_:)``.
     public static func courtInk(_ outcome: MatchOutcome) -> Color { Color.courtInk(outcome) }
 
-    /// See ``SwiftUI/Color/courtLine(_:on:dimmed:)``.
-    public static func courtLine(
-        _ line: CourtLine, on side: Side, dimmed: Bool = false
-    ) -> Color {
-        Color.courtLine(line, on: side, dimmed: dimmed)
-    }
-
-    /// See ``SwiftUI/Color/courtWeave(on:dimmed:)``.
-    public static func courtWeave(on side: Side, dimmed: Bool = false) -> Color {
-        Color.courtWeave(on: side, dimmed: dimmed)
+    /// See ``SwiftUI/Color/courtWeave(dimmed:)``.
+    public static func courtWeave(dimmed: Bool = false) -> Color {
+        Color.courtWeave(dimmed: dimmed)
     }
 }

@@ -1,4 +1,3 @@
-import PadelScoring
 import SwiftUI
 import Testing
 
@@ -18,18 +17,14 @@ import Testing
 struct AlwaysOnTests {
     static let size = CGSize(width: 200, height: 400)
 
-    /// Bare surface on a half: below their service line, left of the center
-    /// line, and well inside the outline — no paint of any kind in it.
+    /// A patch of surface well inside the half, clear of every edge.
     static let surfaceColumns = 30..<80
     static let surfaceRows = 200..<260
 
-    /// Their service line, which at 30% of 400 is two rows at 120.
-    static let serviceRows = 120..<122
-
-    static func half(_ side: Side, dimmed: Bool) throws -> Raster {
+    static func half(dimmed: Bool) throws -> Raster {
         try #require(
             Raster(
-                CourtHalf(side: side).environment(\.isLuminanceReduced, dimmed),
+                CourtHalf().environment(\.isLuminanceReduced, dimmed),
                 size: size))
     }
 
@@ -37,91 +32,87 @@ struct AlwaysOnTests {
         raster.meanLuminance(columns: surfaceColumns, rows: surfaceRows)
     }
 
-    @Test("The halves go dark, and are still two halves")
-    func theTintsFallMostOfTheWayToNight() throws {
-        let litThem = try Self.half(.them, dimmed: false)
-        let dimThem = try Self.half(.them, dimmed: true)
-        let dimUs = try Self.half(.us, dimmed: true)
+    /// How far the surface falls now answers to burn-in and to the score
+    /// standing on it, and to nothing else: there is one surface, so there is
+    /// no second tint it has to stay apart from when the lights go down.
+    ///
+    /// Both ends of that are here. It has to arrive somewhere well down toward
+    /// `night`, or the fall is not paying for itself; and it has to stop short
+    /// of `night` and stay blue, or the court has become a black rectangle
+    /// with a net drawn across it.
+    @Test("The court goes dark, and is still a court")
+    func theSurfaceFallsMostOfTheWayToNight() throws {
+        let lit = try Self.half(dimmed: false)
+        let dimmed = try Self.half(dimmed: true)
 
-        #expect(Self.surface(dimThem) < Self.surface(litThem), "the half did not dim")
-        #expect(
-            Self.surface(dimThem) > Raster.luminance(of: .night),
-            "the half went all the way to night")
+        let night = Raster.luminance(of: .night)
 
-        // Which end is ours is what the glance is for, and two tints that both
-        // arrive at `night` are one black rectangle.
-        //
-        // The threshold is where it is because this is the number the design
-        // was settled on: at a 0.72 fall the halves measured 0.021 apart and
-        // were one color to look at, and at 0.55 they measure 0.032 and are
-        // two. Anything that walks the fall back up fails here rather than on
-        // a wrist.
+        #expect(Self.surface(dimmed) < Self.surface(lit), "the court did not dim")
+        #expect(Self.surface(dimmed) > night, "the court went all the way to night")
+
+        // Most of the way down, measured as the fraction of the drop it
+        // actually made — anything that walks `CourtDimming.surface` back up
+        // to where it was when it had a second tint to stay clear of fails
+        // here.
+        let fell = (Self.surface(lit) - Self.surface(dimmed)) / (Self.surface(lit) - night)
+
+        #expect(fell > 0.6, "the fall is too shallow to be worth making")
+
+        // And still a blue rather than a gray. `night` is a teal and the court
+        // is a blue, so the channel *order* survives any mix of the two and
+        // says nothing — what a dim that washed the color out would lose is
+        // the distance between the channels, so that is what is measured.
+        let pixel = dimmed.pixel(50, 230)
+
         #expect(
-            Self.surface(dimUs) - Self.surface(dimThem) > 0.028,
-            "the two halves are one color when dimmed")
+            pixel.blue - pixel.red > 0.1,
+            "the dimmed court has gone gray rather than dark")
+        #expect(pixel.blue > pixel.green, "the dimmed court is no longer a blue")
     }
 
     @Test("The weave goes")
     func theTextureIsNotDrawnWhenDimmed() throws {
-        let lit = try Self.half(.them, dimmed: false)
-        let dimmed = try Self.half(.them, dimmed: true)
+        let lit = try Self.half(dimmed: false)
+        let dimmed = try Self.half(dimmed: true)
 
-        // Lit, the patch is brighter than the tint under it, and the weave is
-        // the only thing in it that could be doing that.
-        #expect(Self.surface(lit) > Raster.luminance(of: .courtSurface(.them)))
+        // Lit, the patch is brighter than the surface under it, and the weave
+        // is the only thing in it that could be doing that.
+        #expect(Self.surface(lit) > Raster.luminance(of: .courtSurface()))
 
-        // Dimmed, the patch *is* the tint.
+        // Dimmed, the patch *is* the surface.
         #expect(
-            abs(Self.surface(dimmed) - Raster.luminance(of: .courtSurface(.them, dimmed: true)))
+            abs(Self.surface(dimmed) - Raster.luminance(of: .courtSurface(dimmed: true)))
                 < 1 / 255)
-    }
-
-    @Test("The lines are still there, thinner")
-    func theGeometrySurvives() throws {
-        let lit = try Self.half(.them, dimmed: false)
-        let dimmed = try Self.half(.them, dimmed: true)
-
-        let line = { (raster: Raster) in
-            raster.meanLuminance(columns: Self.surfaceColumns, rows: Self.serviceRows)
-        }
-
-        #expect(line(dimmed) > Self.surface(dimmed), "the service line went out")
-        #expect(
-            line(dimmed) - Self.surface(dimmed) < line(lit) - Self.surface(lit),
-            "the paint did not thin")
-    }
-
-    /// The service line is the strongest of the three at 0.34 and the outline
-    /// the faintest at 0.20, so the service line surviving says nothing about
-    /// the one that is actually at risk.
-    @Test("The faintest line survives too")
-    func theWeakestPaintIsStillVisible() throws {
-        let dimmed = try Self.half(.them, dimmed: true)
-
-        // Their outline runs down the leading edge, inset by the margin plus
-        // half the thickness — 11 on the Mac's phone-sized metrics.
-        let outline = dimmed.meanLuminance(columns: 10..<13, rows: 200..<260)
-
-        #expect(outline > Self.surface(dimmed), "the outline went out")
     }
 
     /// The one row of the ticket's table that asks for nothing to happen, and
     /// the one a later change could undo without anything else noticing.
     @Test("The score's ink does not dim")
     func theInkIsUntouched() throws {
-        for side in [Side.them, .us] {
-            let score = { (dimmed: Bool) in
-                try #require(
-                    Raster(
-                        Rectangle().fill(Color.courtInk(side))
-                            .environment(\.isLuminanceReduced, dimmed),
-                        size: CGSize(width: 20, height: 20)))
-            }
-
-            #expect(
-                (try score(true)).patch(columns: 5..<15, rows: 5..<15, matches: try score(false)),
-                "the ink dimmed with the court")
+        let score = { (dimmed: Bool) in
+            try #require(
+                Raster(
+                    Rectangle().fill(Color.courtInk)
+                        .environment(\.isLuminanceReduced, dimmed),
+                    size: CGSize(width: 20, height: 20)))
         }
+
+        #expect(
+            (try score(true)).patch(columns: 5..<15, rows: 5..<15, matches: try score(false)),
+            "the ink dimmed with the court")
+    }
+
+    /// The point of dimming at all is that what is being read survives it. The
+    /// score is the only thing left standing on the surface now that the lines
+    /// are gone, so this is the whole of the readability claim.
+    @Test("The score still stands off the court it is drawn on")
+    func theInkStillReadsAgainstTheDimmedCourt() throws {
+        let ink = Raster.luminance(of: .courtInk)
+        let court = Raster.luminance(of: .courtSurface(dimmed: true))
+
+        // WCAG's ratio, which the two are miles clear of and which is the only
+        // number here anybody else would recognize.
+        #expect((ink + 0.05) / (court + 0.05) > 4.5)
     }
 
     @Test("The floodlight goes out")
@@ -131,7 +122,7 @@ struct AlwaysOnTests {
         let court = { (lit: Bool, dimmed: Bool) in
             try #require(
                 Raster(
-                    CourtHalf(side: .us)
+                    CourtHalf()
                         .overlay { lit ? Floodlight(corner: .bottomTrailing) : nil }
                         .environment(\.isLuminanceReduced, dimmed),
                     size: Self.size))
@@ -169,7 +160,7 @@ struct AlwaysOnTests {
 
         // And still the brightest thing on the court, which is what pays for
         // keeping it on screen at all.
-        #expect(dimmed.luminance > Self.surface(try Self.half(.us, dimmed: true)))
+        #expect(dimmed.luminance > Self.surface(try Self.half(dimmed: true)))
     }
 
     @Test("The net is still strung across the middle")

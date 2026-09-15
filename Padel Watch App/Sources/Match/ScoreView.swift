@@ -9,10 +9,10 @@ import SwiftUI
 /// looking and with a wet hand, so the halves split the screen in half and hold
 /// nothing but the score.
 ///
-/// Which half is ours is said by the ground it is drawn on — turf green against
-/// their glass blue — and never by a label: a label would take room from the
-/// digit the watch is being looked at for. Both surfaces are the court's own
-/// and belong to `PadelDesign`; this screen names no colour of its own.
+/// Which half is ours is said by where it is — below the net, the way it is
+/// when you stand on court — and never by a label: a label would take room from
+/// the digit the watch is being looked at for. The court is one surface and it
+/// belongs to `PadelDesign`; this screen names no colour of its own.
 struct ScoreView: View {
     let points: Points
 
@@ -46,7 +46,7 @@ struct ScoreView: View {
             // the tape takes the room, the posts stand proud of it, and no
             // spacing opens a seam of `night` down the middle of the court.
             // Drawn after their half and before ours so its shadow falls on
-            // the turf — the same order `PadelDesign.Court` puts them in.
+            // the surface — the same order `PadelDesign.Court` puts them in.
             NetLine().zIndex(1)
 
             zone(for: .us)
@@ -121,7 +121,7 @@ private struct ScoreZone: View {
             Text(pointsLabel)
                 .textStyle(.score)
                 .minimumScaleFactor(0.4)
-                .foregroundStyle(.courtInk(side))
+                .foregroundStyle(.courtInk)
 
             if let games {
                 // A numeral drawn on its own is not a sentence, and a catalog
@@ -130,7 +130,7 @@ private struct ScoreZone: View {
                 Text(verbatim: "\(games)")
                     .textStyle(.scoreAside)
                     .minimumScaleFactor(0.5)
-                    .foregroundStyle(Color.courtInk(side).weight(.secondary))
+                    .foregroundStyle(Color.courtInk.weight(.secondary))
             }
         }
         .lineLimit(1)
@@ -164,7 +164,7 @@ private struct ScoreZone: View {
                 Text(verbatim: "\(sets)")
                     .textStyle(.scoreAside)
                     .padding(.trailing, 12)
-                    .foregroundStyle(Color.courtInk(side).weight(.control))
+                    .foregroundStyle(Color.courtInk.weight(.control))
             }
         }
         .background { court }
@@ -176,10 +176,10 @@ private struct ScoreZone: View {
     /// The ground under the score: the half of a court this side plays on.
     ///
     /// A background rather than a layer of the `HStack` above, so that the
-    /// surface, the weave and the three painted lines cost the score nothing —
-    /// the same argument the ball's overlay makes below.
+    /// surface and the weave over it cost the score nothing — the same
+    /// argument the ball's overlay makes below.
     private var court: some View {
-        CourtHalf(side: side)
+        CourtHalf()
             // The board puts a floodlight in the near corner of our half and
             // none in theirs. It is the light of the court we are standing on;
             // the half across the net is lit from further away, and giving it

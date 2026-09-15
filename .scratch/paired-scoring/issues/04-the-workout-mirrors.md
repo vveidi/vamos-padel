@@ -1,12 +1,12 @@
-# 05: The workout mirrors, and the phone stays awake
+# 04: The workout mirrors, and the phone stays awake
 
 **What to build:** the watch's workout starts mirroring to the phone, the phone
 holds the mirrored session for the length of the match, and a match started on
 the phone raises the watch app into that workout.
 
-**Blocked by:** 03, 04
+**Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** needs-triage
 
 - [ ] `HealthKitWorkout` calls `startMirroringToCompanionDevice()` when the
       session starts and stops mirroring when it ends
@@ -29,12 +29,12 @@ the phone raises the watch app into that workout.
       papered over
 - [ ] The "Recording to Health" switch now governs whether the workout is
       **saved**, not whether a session runs
-- [ ] Driven on a live pair as part of ticket 11; the simulator cannot see any
+- [ ] Driven on a live pair as part of ticket 07; the simulator cannot see any
       of this
 
 ## Notes
 
-**On the switch changing meaning.** ADR-0010 records it: with the match on the
+**On the switch changing meaning.** The spec records it: with the match on the
 phone, no workout means no mirrored session and no background life, so the
 session has to run regardless. What the player was actually turning off was a
 row in Health, and that is what the switch keeps doing. The wording on the start

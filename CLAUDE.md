@@ -202,7 +202,7 @@ Anything deferred is a `TODO:` on its own line, where the work will have to be
 done, with the ticket it belongs to:
 
     // TODO: Turn the corner rule a quarter turn for the landscape board
-    // (.scratch/phone-scoring/issues/07-the-scoreboard.md)
+    // (.scratch/phone-scoring/issues/04-the-scoreboard.md)
 
 Xcode lists `TODO:` and `FIXME:` in the jump bar, which is the whole reason for
 the exact spelling — `// todo` and `// Todo(later)` are invisible there.

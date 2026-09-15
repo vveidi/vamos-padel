@@ -33,7 +33,7 @@ Not in:
 
 - **The phone's scoreboard.** It keeps its two tappable halves. It is read from
   a bench by four people at a distance, which is the opposite of the problem
-  here, and `phone-scoring` ticket 07 has not built it yet in any case.
+  here, and `phone-scoring` ticket 04 has not built it yet in any case.
 - **A haptic when the match ends by itself.** The last rally has already buzzed;
   a second buzz on top of it is two answers to one tap. `.stop` fires on the
   confirmation button and nowhere else.
@@ -146,7 +146,7 @@ go on behaving as zones in both modes.
 
 The buzz answers the finger, not the journal — but `MatchView`'s two methods are
 the same millisecond as the gesture today, and stay the same millisecond after
-`phone-scoring` ticket 09, where the intent is sent and not awaited. Firing from
+`paired-scoring` ticket 05, where the intent is sent and not awaited. Firing from
 there rather than from the gesture recognizers costs nothing and picks up the two
 paths that would otherwise be silent: the VoiceOver action, and the undo on the
 outcome screen after a match-ending mis-tap.
@@ -191,7 +191,7 @@ and the README's "Two artboards" goes to three and back again.
   sit over our bottom", which the vertical stack ends; and `StartView.swift`'s
   "a match starting is worth one, a rally scored is not" is precisely what this
   feature reverses.
-- **`phone-scoring` ticket 09 will touch the same two files.** It changes where a
+- **`paired-scoring` ticket 05 will touch the same two files.** It changes where a
   tap goes, not how it is made; the overlap is a merge in `ScoreView` and
   `ScorePages`, not a redesign.
 

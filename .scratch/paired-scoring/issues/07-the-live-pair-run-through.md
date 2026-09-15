@@ -1,12 +1,12 @@
-# 11: The live pair run-through
+# 07: The live pair run-through
 
 **What to verify:** the half of this feature no simulator can see. A real watch
 on a real wrist, a real phone on a bench, and a list of things that either work
 or sink the release.
 
-**Blocked by:** 05, 06, 07, 08, 09, 10
+**Blocked by:** 04, 05, 06
 
-**Status:** ready-for-human
+**Status:** needs-triage
 
 - [ ] **The mirrored session lifts the phone.** Start a match on the watch, lock
       the phone, play ten rallies from the wrist, unlock: all ten are there
@@ -23,7 +23,7 @@ or sink the release.
 - [ ] **Latency from the wrist.** Time a tap to the digit changing, with the
       phone asleep in a pocket and again with the scoreboard open. Write both
       numbers into the closing note — this is the number that decides whether
-      ADR-0010's fallback channel is needed
+      the spec's fallback channel is needed
 - [ ] **Ninety minutes of scoreboard.** Battery drawn on both devices, and how
       warm the phone gets with the idle timer disabled
 - [ ] **Always-On on the watch** still dims the court the way the redesign
@@ -40,7 +40,8 @@ or sink the release.
 
 **This is the ticket that can send the feature back.** If the latency from a
 sleeping phone is seconds rather than fractions, the answer is not to ship it
-and hope: it is ADR-0010's fallback, or a re-examination of ADR-0009 itself.
+and hope: it is the spec's fallback channel, or a re-examination of pairing
+itself.
 Both are decisions for the owner, which is why this ticket is not
 `ready-for-agent`.
 

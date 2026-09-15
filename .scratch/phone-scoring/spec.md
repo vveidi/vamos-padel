@@ -1,25 +1,26 @@
-# Phone scoring: the match lives on the phone, the watch is its remote (v1)
+# Phone scoring: the phone scores a match of its own (v1)
 
 Status: ready-for-agent
 
 ## Problem Statement
 
-Today the watch is the whole app and the phone is a window onto what the watch
-finished. `CONTEXT.md` opens with that sentence, ADR-0002 makes it a rule — "the
-watch stays the source of truth until the hand-off, and therefore has to see a
-match through to the end with no phone nearby" — and every piece of the delivery
-machinery exists to carry a finished match across that gap once.
+The watch is the whole app and the phone is a window onto what the watch
+finished. That leaves the phone doing nothing while a match is being played, and
+the four people on court with nothing to look at. A padel match is watched by
+the pair that is losing it as much as by the pair that is winning; the score
+belongs on the bench, not only on one wrist.
 
-That leaves the phone doing nothing while a match is being played, and the four
-people on court with nothing to look at. A padel match is watched by the pair
-that is losing it as much as by the pair that is winning; the score belongs on
-the bench, not only on one wrist.
+This feature gives the phone a match of its own. It is scored on a landscape
+scoreboard split in two, both halves tapped to award a rally, the digits as
+large as the screen allows, and the ball in the corner of the half that serves.
+The journal is written into the same store the history is read from, so the
+match is in the history from its first point.
 
-This feature moves the match onto the phone and turns the watch into its remote.
-The score is shown on a landscape scoreboard split in two, both halves tapped to
-award a rally, the digits as large as the screen allows, and the ball in the
-corner of the half that serves. The watch keeps the screen it has, keeps the
-workout, and stops keeping the match.
+**The watch is not touched.** It goes on scoring matches of its own exactly as
+it does today — its own store, its own workout, the delivery that hands a
+finished match to the phone. A match has one scorer and it is the device it was
+started on (ADR-0009). The two devices say nothing to each other while a match
+runs.
 
 ## What is in, and what is not
 
@@ -31,22 +32,23 @@ In:
 - The phone's **new match** screen, which `PhoneNewMatch.dc.html` has been
   waiting for since the redesign (`SegmentedChoice` and `StepperRow` shipped
   unused and marked unavailable on watchOS for exactly this).
-- The **live link** in both directions: the journal out to the watch, intents
-  back from it.
-- The **mirrored workout session**, which is what keeps the phone's app alive
-  in the background while the match runs.
-- **Removing the delivery**: `MatchDelivery`, `MatchReception`, the receipt, the
-  queue, the delivery mark, and the database on the watch.
+- The **history** learning that a match can be running while it is on screen,
+  and what to do with one left running yesterday.
+- The **storage modules** getting their boundary named and their names fixed, so
+  that nothing outside the composition root says SQLite.
 
 Not in:
 
-- **Named sides.** The glossary's "in v1 the sides are anonymous" stands. The
-  reference app this was compared against names four players; naming them
-  changes every string, both catalogs and the VoiceOver of every screen, and it
-  is a feature of its own.
-- **Announcing the score out loud.** Wanted, and mentioned during the grilling
-  as a later feature. It needs the phone awake and audible, which the mirrored
-  session gives it — so it is cheap *after* this, and it is not in this.
+- **The two devices in one match.** The live link, the intent protocol, the
+  mirrored workout, the watch as a remote, and the removal of the delivery are
+  all `paired-scoring`, which is v1 and comes after this. Every argument for
+  them is written down there; none of it is lost.
+- **Named sides.** The glossary's "in v1 the sides are anonymous" stands. Naming
+  them changes every string, both catalogs and the VoiceOver of every screen,
+  and it is a feature of its own.
+- **Announcing the score out loud.** Wanted, and a feature of its own. It is
+  also the thing that will one day keep the phone awake honestly — real audio
+  output, not the silence guideline 2.5.4 exists to catch.
 - **A second scoreboard layout in portrait.** The scoreboard is landscape and
   forces the rotation; the rest of the app is free in both orientations.
 - **Light mode** and the **two custom fonts** — both declined, both recorded in
@@ -54,28 +56,22 @@ Not in:
 
 ## The design, in words
 
-**The match has one home, and it is the phone.** The rally journal is written
-there after every rally, into the same store the history is read from, so a
-match is in the history from its first point rather than after a hand-off. There
-is no second journal anywhere, at any moment, and therefore nothing to merge.
+**A match scored on the phone is written down as it is played.** The journal
+goes into the store after every rally, into the same table the history reads, so
+there is no hand-off, nothing to deliver, and nothing that can be lost by the
+app being backgrounded or terminated: the match comes back from the store.
 
-**The watch asks; it does not record.** A tap on the wrist is an *intent* — "a
-rally to us, on top of a journal of 27" — which the phone either records or
-refuses. What comes back is the journal, and the watch computes the score from
-it with the same engine the phone uses. The watch stores nothing and survives
-nothing: close the app mid-match and it rejoins where the phone is.
+**Nothing keeps the phone alive, and nothing needs to.** Every rally arrives
+through the phone's own screen, so the app is in front of the player whenever
+anything happens. The idle timer is held while the board is up; that is the
+whole of it. There is no workout, no HealthKit, no background session and no
+warning to show — the thing those would protect against cannot happen when
+there is no second device feeding the match.
 
-**A match needs both devices to begin.** Starting on the phone raises the watch
-app into a workout (`HKHealthStore.startWatchApp(with:)`); starting on the watch
-requires the phone to answer. Neither device plays padel alone. This is the
-sharpest departure from what the app is today, and the cost is named in the
-consequences below.
-
-**The workout is the watch's, and the phone mirrors it.** That is not a detail
-of Health: a mirrored workout session is what entitles the phone's app to keep
-running in the background for the length of the match, which is the only thing
-standing between "the owner of the journal" and "an app iOS may suspend at any
-moment".
+**A phone-scored match has no workout**, and that is the trade. The watch has
+the sensors and the session to run them in; the phone has the screen the four
+players read. Choosing one is giving up the other, and the honest answer to
+wanting both is `paired-scoring`.
 
 **The scoreboard is a court seen from above, turned.** The net crosses the long
 axis, so in landscape it stands vertical and the halves lie left and right. Ours
@@ -85,138 +81,73 @@ board so nobody has to walk around the bench.
 
 ## Solution
 
-### The seam
+### No host, and no second journal
 
-`PadelDelivery` stops being a post office and becomes a link. Two ends, named
-for what they do rather than for the device they run on:
+The scoreboard holds the match in its own `@State` and applies a rally, an undo
+or an end through `SavedMatch`'s own methods, persisting after each — precisely
+what `MatchView` does on the watch today. There is no host object, because there
+is nothing for it to arbitrate: the scoreboard is the only door into the
+journal.
 
-- **`MatchHost`** — holds the match, applies intents to it, writes it to the
-  store, and broadcasts the journal after every change. The phone runs it.
-- **`MatchRemote`** — holds the last journal that arrived, renders it, and sends
-  intents. The watch runs it.
+The history's live tile needs no plumbing of its own either. `matches()` already
+returns matches in progress and `matchesObserved()` already re-reads after every
+transaction that touched a match or its rallies, so a rally recorded on the
+board reaches the tile through the observation the history is already running.
 
-Both sit on a transport protocol, as `MatchSender`/`MatchReceiver` do today, so
-the pair is tested against a stub instead of against two devices on a desk.
+When `paired-scoring` 02 builds `MatchHost`, that mutation moves behind it in
+one move. Keeping it in one small cluster of `private func`s is the only thing
+this feature does to make that cheap, and it is the shape the watch already has.
 
-### What travels
+### The storage modules get their names
 
-Out of the host: the whole match — id, ruleset, first server, the journal as an
-array of winners, the abandoned mark, the two moments. The same content
-`MatchPayload` already encodes, because the score is not on the wire any more
-than it is in the database (ADR-0001): the watch is handed the journal and
-computes the state itself.
+`PadelStorage` is two targets along the line its folders draw: the protocols and
+`SavedMatch` on one side, the database that implements them on the other. That
+boundary is what lets `PadelDelivery` — and, after pairing, the watch — name a
+`SavedMatch` without linking GRDB.
 
-Into the host: an intent — record a rally for a side, undo, end the match, start
-a match with this ruleset and this first server — each carrying the **journal
-length it was formed against**. The host refuses an intent whose base does not
-match what it holds. That one integer is what makes a message delivered twice
-score once, and a tap made against a stale screen fail loudly instead of
-quietly.
+What the boundary is called has to change. `Seam/` becomes `Interface/`,
+`SQLite/` becomes `Database/`, `PadelStorageSQLite` becomes
+`PadelStorageDatabase` and `SQLiteMatchStore` becomes `DatabaseMatchStore`. The
+technology is named where the technology is chosen — ADR-0003 — and in the file
+that imports GRDB, and nowhere an app can see it. A second provider would pair
+naturally: `PadelStorageCloud`, `CloudMatchStore`.
 
-### What dies
-
-`MatchDelivery`, `MatchReception`, `Arrival.receipt`, `MatchDeliveryQueue`, the
-`delivered` column, `SQLiteMatchStore` on the watch and the GRDB dependency with
-it. ADR-0004 goes with them; ADR-0002 survives only in the half that says
-storage is local and behind a seam.
-
-## Implementation Decisions
-
-### The phone owns the journal, though it is the device iOS may kill
-
-The watch is the device the system promises to keep alive during a workout, and
-putting the journal on the phone means putting it where it can be suspended. The
-mirrored workout session is the answer, and it is Apple's own answer to this
-exact shape of app: the watch runs the session, calls
-`startMirroringToCompanionDevice()`, and iOS launches the phone's app in the
-background and keeps it there for the duration.
-
-The alternative — the journal on the watch, the phone as a live mirror with a
-remote — was argued for at length during the grilling and rejected: the history
-is the phone's, the scoreboard is the phone's, and a design in which the phone
-draws and controls a match it does not hold needs two journals or a round trip
-for its own taps.
-
-**Background audio was considered and refused.** Playing silence to stay alive
-is what guideline 2.5.4 exists to catch, and this feature ships before the first
-release.
-
-### WatchConnectivity carries the data; the mirrored session buys the life
-
-Two channels are available once a workout is mirrored — WatchConnectivity
-messages and `sendToRemoteWorkoutSession(data:)`. Using both for data would mean
-two orderings and two failure modes for one conversation.
-
-So: the mirrored session is used for what only it can do, which is keeping the
-phone's app running. Every byte goes over WatchConnectivity `sendMessage`, which
-is immediate, bidirectional, and already the only place in the codebase that
-knows what WatchConnectivity is. `transferUserInfo` — today's queue — is wrong
-here for the reason it was right before: it guarantees arrival and promises
-nothing about when.
-
-If the live pair shows `sendMessage` dropping under the mirrored session, the
-fallback is the session's own channel, and it is a change behind the transport
-protocol rather than in any screen.
-
-### The intent carries its base, and the host is the only judge
-
-An intent is not a rally. It is refused when the match is over, when the base
-does not match, and when there is no match. The watch draws nothing until the
-journal comes back — no optimistic point, ever, because a scoreboard that shows
-40 and takes it back is worse than one that is 200 ms late.
-
-### The store splits along the line its folders already draw
-
-`PadelStorage` is `Seam/` and `SQLite/` in two folders, and the watch needs the
-first without the second: it has to name a `SavedMatch` on the wire and must not
-link GRDB to do it. They become two targets in the same package, which is a
-manifest change and no moved file.
-
-### The board's geometry is one sentence
-
-The net crosses the long axis. In landscape that puts it vertical with the
-halves left and right; in portrait it is horizontal with the halves stacked,
-which is what `PhoneScore.dc.html` draws and what the watch already does. Only
-the landscape half of that sentence ships here — the scoreboard forces landscape
-— but the rule is written down so the portrait board, if it is ever wanted, is
-not a second design.
+The import at each composition root stays visible and is meant to: `PadelApp`
+and `PadelWatchApp` are the two files whose job is to say which provider is
+being built.
 
 ### Both orientations everywhere except the scoreboard
 
 The app declares all orientations. The scoreboard asks for landscape on the way
 in with `requestGeometryUpdate` and lets go on the way out. This is the only
-non-SwiftUI code in the app, and it earns its place twice: it is the one way the
-board is landscape for a player who has rotation lock on.
+non-SwiftUI code in the app, and it earns its place: it is the one way the board
+is landscape for a player who has rotation lock on.
 
 ## Consequences, stated plainly
 
-- **No phone, no padel.** A player who leaves the phone in a locker cannot score
-  a match. This is a deliberate reversal of the app's opening sentence and of
-  ADR-0002's second consequence, and it is what the new ADR-0009 records.
-- **No watch, no padel either.** The pair is required in both directions.
-- **A match interrupted by a flat phone is not lost**, but it is frozen: the
-  watch refuses taps while the phone is unreachable, and the rallies played in
-  the meantime are not recorded anywhere.
-- **Almost none of this can be verified in a simulator.** Mirrored workout
-  sessions, `startWatchApp`, and WatchConnectivity reachability all need a real
-  paired watch and phone. Ticket 11 is that run-through, and it is
-  `ready-for-human`.
+- **A phone-scored match leaves no row in Health.** No heart rate, no calories,
+  no ring. `HKWorkoutSession` is watchOS's and the phone has no equivalent.
+- **Both devices may be scoring at once.** Neither can see the other's match
+  while it runs, so nothing stops two — and nothing tries to, because any
+  warning would be a guess. They land in the history as two matches, which is
+  what there were.
+- **Nothing is lost by leaving the app.** The journal is in the store after
+  every rally. A phone-scored match survives backgrounding, termination and a
+  flat battery, and resumes from the store.
+- **All of this is verifiable in a simulator**, which was not true of the design
+  this feature was cut out of. There is no `ready-for-human` ticket here.
 
 ## The tickets
 
 ```
-01  the storage seam splits away from GRDB
-02  what travels: the journal out, intents in
-03  the two ends: the host and the remote
-04  the transport becomes live
-05  the workout mirrors, and the phone stays awake
-06  the phone's new match screen
-07  the scoreboard
-08  the history: the live tile, the stale match, landscape
-09  the watch becomes a remote
-10  the delivery is removed
-11  the live pair run-through            (ready-for-human)
+01  the storage seam splits away from GRDB        done
+02  the storage modules get their names
+03  the phone's new match screen
+04  the scoreboard
+05  the history: the live tile, the stale match, landscape
 ```
 
-01 blocks 02, which blocks everything. 06, 07 and 08 are independent of one
-another; 09 waits on the transport; 10 waits on 09; 11 waits on all of it.
+01 is done. Nothing blocks anything else: 02 renames modules the three screens
+only ever reach through `any MatchStore`, and 03, 04 and 05 are independent of
+one another. 01 keeps the title it was closed under — it was worked before the
+word changed, and a closed ticket is a record of what happened.

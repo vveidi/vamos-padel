@@ -76,7 +76,7 @@ watch marks a tap made on the watch. The phone marks every rally, whatever its
 origin, because nobody is holding the phone and there is no "you know what you
 did" to lean on.
 
-**It fires from the journal, never from the tap.** ADR-0009's rule stands: the
+**It fires from the journal, never from the tap.** The rule pairing will bring: the
 watch draws nothing it has not been given. The haptic is the optimistic one; the
 mark is the honest one, and where they disagree — an intent the phone refuses —
 the wrist buzzes and nothing lights.
@@ -154,12 +154,12 @@ below the flashing thresholds that guidance is written around.
 The comment saying so is the deliverable. Without it this looks like an omission
 and gets "fixed".
 
-### The origin filter arrives with `phone-scoring` 09, not before it
+### The origin filter arrives with `paired-scoring` 05, not before it
 
 Today the watch holds the match and every rally on its screen is one it awarded,
 so "the watch marks its own" is true for free. It stops being free when the phone
 becomes the host and rallies start arriving. Ticket 02 therefore leaves a `TODO:`
-at the place the filter goes, naming `phone-scoring` 09 — the repo's own
+at the place the filter goes, naming `paired-scoring` 05 — the repo's own
 mechanism for exactly this, and visible in Xcode's jump bar rather than only in a
 spec nobody opens.
 
@@ -177,7 +177,7 @@ spec nobody opens.
 - **The match-winning rally is not marked in practice.** It would be marked on a
   screen replaced by the outcome in the same update. Consistent with the feature
   marking no match ending, and worth knowing before it is filed as a bug.
-- **A refused intent buzzes and does not light.** After `phone-scoring` 09 the
+- **A refused intent buzzes and does not light.** After `paired-scoring` 05 the
   two feedbacks can disagree, and the mark is the one telling the truth.
 - **The phone's ticket cannot unblock on the board.** `.scratch/status.sh` reads
   blockers as numbers within one feature, and ticket 03 waits on a ticket in
@@ -194,5 +194,5 @@ spec nobody opens.
 ```
 
 01 depends on nothing and is buildable today. 02 waits on 01. 03 waits on 01 and
-on `phone-scoring` 07, which has not been built — the scoreboard has to exist
+on `phone-scoring` 04, which has not been built — the scoreboard has to exist
 before anything can be laid over it.

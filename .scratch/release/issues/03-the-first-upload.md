@@ -17,11 +17,8 @@ a build that leaves the machine, finishes processing, and appears on a wrist.
 - [ ] The app installs from TestFlight onto a phone, and the watch app arrives
       with it rather than needing a second install
 - [ ] A match played on the pair reaches the phone's history on the installed
-      build — the one thing no simulator has ever proved. `phone-scoring`
-      rewrites what that sentence means: the match is recorded on the phone as
-      it is played, and nothing is delivered afterwards. Take this criterion
-      from that feature's ticket 11, not from the delivery this line was
-      written for
+      build — the one thing no simulator has ever proved: scored on the watch,
+      delivered when it is over, read on the phone
 - [ ] Anything that had to be done by hand is written into the closing note, so
       that the second upload does not rediscover it
 

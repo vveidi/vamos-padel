@@ -3,7 +3,7 @@
 **What to build:** the mark on the phone's scoreboard, on every rally whatever
 its origin — which is the case this whole feature was opened for.
 
-**Blocked by:** 01, and `phone-scoring` 07 — see the first note
+**Blocked by:** 01, and `phone-scoring` 04 — see the first note
 
 **Status:** ready-for-agent
 
@@ -34,9 +34,9 @@ its origin — which is the case this whole feature was opened for.
 
 **This ticket cannot unblock on the board, and that is deliberate.**
 `.scratch/status.sh` reads `**Blocked by:**` as numbers inside one feature, so
-the `07` above is read as this feature's 07, which does not exist and can never be
+the `04` above is read as this feature's 04, which does not exist and can never be
 done. The ticket therefore shows as waiting forever rather than falsely showing
-as takeable. **When `phone-scoring` 07 is done, change the `Blocked by` line to
+as takeable. **When `phone-scoring` 04 is done, change the `Blocked by` line to
 `01` and this becomes takeable.** That is the whole of the fix.
 
 **Why the phone marks what the watch does not.** The asymmetry is the room and
@@ -47,10 +47,17 @@ silently is the problem in the spec's first paragraph. Making the two devices
 behave alike would be a consistency nobody standing on a court would benefit
 from.
 
-**Do not add a second mechanism for the unreachable-watch case.**
-`phone-scoring` 07 already says the board says so in its top strip and goes on
-taking taps. A rally awarded on the board while the link is down marks the board
-like any other.
+**Half of this ticket is waiting on a feature that has not been specced yet.**
+It was written when the phone was about to hold every match and the watch was
+about to become its remote. That was cut: a match now has one scorer and it is
+the device it was started on (ADR-0009), so a phone scoreboard marks the rallies
+it records and there is no second origin to mark, no live link to arrive over,
+and no unreachable watch to draw around. Everything about two origins — the
+criterion about a rally tapped into the wrist, the one about the journal rather
+than the tap being the trigger, and the simulator run with a watch awarding the
+rallies — belongs to `paired-scoring`. Read this ticket again when
+`phone-scoring` 04 lands; what survives the re-read is a mark on a half, and it
+is most of the work.
 
 **The number may well differ from the watch's.** That is not a failure of ticket
 01 — strength is a property of the surface it is drawn on, and a phone in

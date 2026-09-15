@@ -11,8 +11,8 @@ growing and not by the finger.
       the zone that is marked is the one whose side won the rally
 - [ ] `ScoreView` is given what it needs to know a rally landed — which side won
       it and that it is a *new* one — and `MatchView` computes that from
-      `saved.match`'s journal. **Not from `record(rallyWonBy:)`**: ADR-0009 says
-      the watch draws nothing it has not been given, and ADR-0011 keeps the mark
+      `saved.match`'s journal. **Not from `record(rallyWonBy:)`**: `paired-scoring` will have
+      the watch draw nothing it has not been given, and ADR-0011 keeps the mark
       on the honest side of that line while the haptic stays on the other
 - [ ] The tier is the games or the sets having moved with the rally — both are
       already handed to `ScoreView`. A match to N points has no games, so it has
@@ -23,7 +23,7 @@ growing and not by the finger.
       interruption, or the score page swiped back to, opens at its score and does
       not replay the last rally
 - [ ] A `TODO:` where the origin filter will go, naming
-      `.scratch/phone-scoring/issues/09-the-watch-becomes-a-remote.md` — today
+      `.scratch/paired-scoring/issues/05-the-watch-becomes-a-remote.md` — today
       every rally on this screen is one the watch awarded, and after 09 it is
       not. One line, in the spelling Xcode's jump bar lists
 - [ ] The haptics of `watch-tap-mode` 02 are untouched wherever they have landed
@@ -37,11 +37,11 @@ growing and not by the finger.
 
 ## Notes
 
-**Why the trigger is the journal and not the tap.** ADR-0009: "The watch never
+**Why the trigger is the journal and not the tap.** `paired-scoring`: "The watch never
 draws a point it has not been given. No optimistic update: a scoreboard that
 shows 40 and takes it back is worse than one that is late." Today the watch holds
 the match, so the journal grows in the same update as the tap and the distinction
-costs nothing. It stops being free at `phone-scoring` 09, and the code written
+costs nothing. It stops being free at `paired-scoring` 05, and the code written
 here is the code that is still correct then — which is the only reason to write
 it this way now.
 

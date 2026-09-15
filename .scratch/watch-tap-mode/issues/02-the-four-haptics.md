@@ -38,7 +38,7 @@ modes, so that a rally needs no glance to be confirmed.
 
 **Why `MatchView` and not the gesture.** The buzz answers the finger, and
 `record`/`undo` are the same millisecond as the gesture today — and stay the same
-millisecond after `phone-scoring` 09, where the intent is sent rather than
+millisecond after `paired-scoring` 05, where the intent is sent rather than
 awaited. Firing from the funnel costs nothing and picks up the two paths a
 gesture recognizer would miss: the VoiceOver action on each zone, and the undo on
 the outcome screen after a match-ending mis-tap.

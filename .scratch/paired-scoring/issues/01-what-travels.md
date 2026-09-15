@@ -1,12 +1,12 @@
-# 02: What travels — the journal out, intents in
+# 01: What travels — the journal out, intents in
 
 **What to build:** the vocabulary of the live link. The match goes out to the
 watch as the journal it already is; a request to change it comes back as an
 **intent** carrying the journal length it was formed against.
 
-**Blocked by:** 01
+**Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** needs-triage
 
 - [ ] `MatchIntent` exists in `PadelDelivery`: `start(ruleset:firstServer:)`,
       `rally(wonBy:base:)`, `undo(base:)`, `end(base:)`

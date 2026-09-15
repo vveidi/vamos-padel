@@ -1,10 +1,10 @@
-# 07: The scoreboard
+# 04: The scoreboard
 
 **What to build:** the phone's landscape score screen — the court across the
 long axis, a half per side, both of them tapped to award a rally, the largest
 digits the screen allows, and the ball in the corner of the serving half.
 
-**Blocked by:** 03
+**Blocked by:** None
 
 **Status:** ready-for-agent
 
@@ -14,7 +14,8 @@ digits the screen allows, and the ball in the corner of the serving half.
 - [ ] Ours is on the left by default, theirs on the right, drawn on their own
       grounds — turf green and glass blue, both `PadelDesign`'s. The screen
       names no color of its own
-- [ ] A tap on a half records a rally for that side, through the host
+- [ ] A tap on a half records a rally for that side, and the journal is in the
+      store before the digits change
 - [ ] The points are the largest thing on the screen, from the `.score` ramp
       entry, with the games beside them and the sets at the half's outer edge —
       the arrangement `ScoreView` argues for, rotated
@@ -33,9 +34,9 @@ digits the screen allows, and the ball in the corner of the serving half.
       and lets go on the way out
 - [ ] The idle timer is disabled while the scoreboard is up and restored when it
       leaves
-- [ ] When the watch is unreachable the board says so in the top strip and goes
-      on taking taps: the phone holds the match and does not need the watch to
-      score it
+- [ ] Every mutation — record, undo, abandon — sits in one cluster of
+      `private func`s that persist after changing, the way `MatchView` does on
+      the watch. Nothing else in the file writes to the store
 - [ ] VoiceOver: each half is a button labelled by what tapping it does, valued
       with the score it shows, with undo as a custom action — `ScoreView`'s
       pattern, and its reasons
@@ -73,4 +74,11 @@ puzzled out, and takes the vertical the digits were the point of.
 **On the digit's size.** The half is roughly 426×393pt; the ceiling is the eye,
 not the glyph. Take the `.score` ramp entry and let `minimumScaleFactor` handle
 "AD" and a three-digit count; do not hand-write a point size — the redesign
-removed the last of those on purpose, and ADR-0006 says why the ramp is a seam.
+removed the last of those on purpose, and ADR-0006 says why the ramp is an
+interface.
+
+**Where the mutation cluster goes later.** `paired-scoring` 02 builds a
+`MatchHost` and moves every write behind it, so that the watch's intents and the
+board's own taps come through one door. Keeping the writes together here is the
+only thing this ticket does to make that a move rather than a rewrite — it is
+not a reason to build an abstraction now.

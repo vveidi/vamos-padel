@@ -1,9 +1,9 @@
-# 06: The phone's new match screen
+# 03: The phone's new match screen
 
 **What to build:** `PhoneNewMatch.dc.html`, at last — first server, ruleset,
 the numbers that shape it, and one button that starts the match.
 
-**Blocked by:** 03
+**Blocked by:** None
 
 **Status:** ready-for-agent
 
@@ -18,12 +18,12 @@ the numbers that shape it, and one button that starts the match.
       in both languages
 - [ ] The previous match's ruleset is filled in from `lastRuleset()` — asked of
       the store, never kept beside it
-- [ ] "Start match" starts it through the host (ticket 03) and opens the
-      scoreboard
+- [ ] "Start match" writes the new match to the store and opens the scoreboard,
+      which takes it from there
 - [ ] Reached from the history: the "New match" button the redesign drew and
       left out, because it led to this screen and this screen did not exist
 - [ ] It is not offered while a match is running — the live tile stands there
-      instead (ticket 08)
+      instead (ticket 05)
 - [ ] Works in both orientations, and at the largest Dynamic Type setting
 - [ ] Previews in both languages and at `.accessibility5`
 - [ ] The strings are in `Shared/Localizable.xcstrings`, English as the source

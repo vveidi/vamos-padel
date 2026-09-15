@@ -91,3 +91,14 @@ had to be told about the change.
   saying what the code does. A third — that the `AA`-prefixed runs in the
   pbxproj should stay sorted — was already fixed. The spec review found no
   defect and agreed with the reading of criterion five above.
+
+- **The watch's half of the payoff is deferred, not lost.** This ticket was
+  written when the watch was about to lose its database. The feature was since
+  cut so that each device scores a match of its own, and the watch keeps its
+  store. What the split still buys today is `PadelDelivery`'s product graph,
+  which has no GRDB in it; the watch drops to the interface in
+  `paired-scoring` 06.
+
+- **The word "seam" in the title is the word that was current when this closed.**
+  Ticket 02 renames the folders, the targets and the type to interface and
+  database. A closed ticket is left standing as the record of what was done.

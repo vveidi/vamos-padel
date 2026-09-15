@@ -1,11 +1,11 @@
-# 09: The watch becomes a remote
+# 05: The watch becomes a remote
 
 **What to build:** the watch keeps its score screen and loses its match. What it
 draws is the last journal the phone sent; what its taps do is ask.
 
-**Blocked by:** 03, 04
+**Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** needs-triage
 
 - [ ] `RootView` no longer asks a store what is in progress. It asks the remote,
       and the remote asks the phone
@@ -17,7 +17,7 @@ draws is the last journal the phone sent; what its taps do is ask.
 - [ ] The start screen sends `start(ruleset:firstServer:)` and waits for the
       match to arrive before showing the score
 - [ ] The start screen is refused while the phone is unreachable, and says so —
-      a match cannot begin without the phone (ADR-0009)
+      a match cannot begin without the phone once the pair holds the match
 - [ ] The ruleset it offers comes from the phone with the link, not from a store
       on the watch
 - [ ] Losing the link mid-match: the screen says the phone is unreachable and

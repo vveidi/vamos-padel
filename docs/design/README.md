@@ -5,8 +5,8 @@ have not been built yet. They came out of the redesign, which shipped; that
 feature's tickets are gone and these outlived them, because they are what
 `phone-scoring` will be drawn from.
 
-    PhoneScore.dc.html      phone · score      — phone-scoring ticket 07
-    PhoneNewMatch.dc.html   phone · new match  — phone-scoring ticket 06
+    PhoneScore.dc.html      phone · score      — phone-scoring ticket 04
+    PhoneNewMatch.dc.html   phone · new match  — phone-scoring ticket 03
 
 They live in `docs/` rather than under `.scratch/` because the tracker holds
 work in flight and is emptied as features close, while a board outlives the

@@ -111,14 +111,16 @@ what a player reads.
 a build with no icon during processing. The redesign drew the icon and both
 catalogs now carry it, so ticket 03 waits on nothing outside this feature.
 
-What it does wait on is `phone-scoring`: that feature moves the match onto the
-phone and removes delivery, which is what ticket 03's last criterion is written
-against.
+It now waits on nothing at all. It did briefly wait on `phone-scoring`, back
+when that feature was going to remove the delivery — ticket 03's last criterion
+is written against a match reaching the phone's history from the watch. The
+delivery stays (ADR-0009), so that criterion is true of the app exactly as it
+stands, and this feature is independent of every other one on the board.
 
 ## The tickets
 
 ```
 01  the three lanes, and the key they sign with
 02  what App Store Connect asks for before it will take a build
-03  the first upload                        (and on phone-scoring landing)
+03  the first upload
 ```

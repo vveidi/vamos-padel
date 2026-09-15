@@ -1,13 +1,13 @@
-# 03: The two ends — the host and the remote
+# 02: The two ends — the host and the remote
 
 **What to build:** the phone's end, which holds the match and judges intents,
 and the watch's end, which holds the last journal that arrived and sends them.
 Both pure, both tested against a stub transport, neither knowing what
 WatchConnectivity is.
 
-**Blocked by:** 02
+**Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** needs-triage
 
 - [ ] `MatchHost` in `PadelDelivery`: holds the running match, applies intents,
       writes to the store after every change, and broadcasts a `MatchUpdate`

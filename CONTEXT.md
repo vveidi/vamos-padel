@@ -1,10 +1,10 @@
 # Vamos
 
-A padel scorer that runs on a phone and a watch at once. The match lives on the
-phone: the journal is written there, the history is read there, and the
-scoreboard the four players read from the bench is there. The watch is the
-remote on the wrist — it shows the match and awards the rallies, and keeps
-nothing (ADR-0009). Neither device scores a match on its own.
+A padel scorer that runs on a phone and on a watch. Either device scores a match
+on its own: the one a match is started on holds its rally journal from the first
+rally to the last, and is called that match's scorer (ADR-0009). The history is
+the phone's — a match scored there is in it from its first point, and a match
+scored on the watch arrives once it is over.
 
 ## Written language
 
@@ -129,32 +129,35 @@ abandoned.
 _Avoid_: result, status, completeness
 
 **Workout**:
-The record of the match in Health — what the match pretends to be so that both
-apps can live through an hour and a half of play. It belongs to the watch, which
-has the sensors, and the phone mirrors it: while the workout runs the system
-does not unload either app, the watch keeps its screen in Always-On and returns
-to it when the wrist is raised, and the phone is allowed to go on holding the
-match in the background (ADR-0010). Heart rate, calories and activity rings come
-as a side effect. It starts and ends with the match, and neither the score nor
-the rally journal knows about it.
+The record of the match in Health — what the match pretends to be so that the
+app can live through an hour and a half of play. It belongs to the watch, which
+has the sensors: while the workout runs the system does not unload the app, the
+watch keeps its screen in Always-On and returns to it when the wrist is raised.
+Heart rate, calories and activity rings come as a side effect. It starts and
+ends with the match, and neither the score nor the rally journal knows about it.
+A match scored on the phone has none: the phone has neither the sensors nor a
+session to run them in, and gives up the workout in exchange for the board the
+four players read.
 _Avoid_: session (the glossary already keeps that word away from "match")
 
-**Live link**:
-The conversation between the phone and the watch while a match runs: the journal
-goes out to the watch after every change, intents come back from it. It is not a
-hand-off and not a backup — there is one match, in one place, and the link is
-how the other device sees it and reaches it. Lose the link and the match stands
-still: the watch says so and stops taking taps, and what is played in the
-meantime is recorded nowhere.
-_Avoid_: synchronization, sync, delivery (there is nothing to deliver any more)
+**Scorer**:
+The device that holds a match's rally journal and records its rallies. It is
+decided when the match starts — it is the device the match was started on — and
+never changes afterwards: a match has one scorer and never two. The phone and
+the watch say nothing to each other while a match runs, so each may be scoring
+one of its own, and neither is the other's backup.
+_Avoid_: host, source of truth, primary device
 
-**Intent**:
-A request from the watch to change the match — a rally to a side, an undo, an
-end, a start. It is not a rally until the phone records it, and the phone is the
-only judge: an intent is refused when the match is over, when there is no match,
-and when the journal it was formed against is no longer the journal the phone
-holds. The watch draws nothing until the journal comes back.
-_Avoid_: command, event, action, message
+**Match delivery**:
+The journey of a finished match from the watch to the phone, where it becomes
+history. It happens by itself, without the player, and at whatever moment the
+phone becomes reachable — during play it is not needed. A match counts as
+delivered when the phone has signed for having written it down, not when the
+watch sent it: until the receipt, the watch is the only place the match exists
+(ADR-0002). The same match may arrive twice — the phone recognizes it by its
+identifier and does not create a second one. A match scored on the phone is
+delivered nowhere: it is written into the history as it is played.
+_Avoid_: synchronization, sync (this is not a two-way exchange)
 
 **Scoreboard**:
 The phone's landscape screen showing the running match: the court across the
@@ -184,8 +187,7 @@ _Avoid_: input mode, tap scheme, scoring mode, gesture settings
 What the court does when a rally is recorded: the winning side's half brightens
 in its own color and falls back, so that a rally landing is seen and not only
 counted. It marks harder for one that also took a game or a set, and an undo is
-not marked at all. It belongs to the device the rally was awarded on — the watch
-marks the rallies it asked for and not those that arrive from the phone, the
-phone marks them all (ADR-0011).
+not marked at all. It belongs to the device the rally was awarded on, which is
+the match's scorer and therefore marks every rally in it (ADR-0011).
 _Avoid_: flash, point mark, highlight, glow (that is light, and this is the
 surface's own color)

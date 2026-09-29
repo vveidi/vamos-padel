@@ -7,14 +7,6 @@ import Testing
 
 @Suite("Match store")
 struct MatchStoreTests {
-    /// The round trip is the store's central check: the rally journal is the
-    /// single stored truth about a match (ADR-0001), and if it came back from
-    /// the database changed, everything else is computed from somebody else's
-    /// data.
-    ///
-    /// The ruleset is checked along with the journal, and in both cases: it is
-    /// spread across columns, each case owning its half, and mixing them up
-    /// means reading "16:14" as a tennis score.
     @Test(
         "A saved match reads back with the same journal and ruleset",
         arguments: [
@@ -56,9 +48,6 @@ struct MatchStoreTests {
         #expect(restored.duration == 90 * 60)
     }
 
-    /// The very criterion the store exists for: a match interrupted halfway is
-    /// already written — there would be nothing to write it with at the end,
-    /// since no end happened.
     @Test("The journal is written after every rally, not at the end of the match")
     func theJournalIsWrittenAfterEveryRally() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -75,10 +64,6 @@ struct MatchStoreTests {
         }
     }
 
-    /// A write works as "cut off what was undone, append what is missing", and
-    /// it is checked where the journal first shortens and then grows again: an
-    /// undone rally has to disappear rather than lie past the end of the
-    /// journal waiting for the next point.
     @Test("Undone rallies leave the database")
     func undoneRalliesLeaveTheDatabase() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -126,9 +111,6 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == nil)
     }
 
-    /// Being unfinished is asked of the last match, not of every match in
-    /// turn: one left at 3:2 a month ago must not rise from the dead on court
-    /// in place of a new one.
     @Test("The latest match is continued, not a forgotten one from before")
     func onlyTheLatestMatchIsContinued() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -158,9 +140,6 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == startedToday)
     }
 
-    /// Relaunching the app is a new connection to the same database and
-    /// nothing more: the store keeps no match in memory, so the second
-    /// connection sees exactly what the first one wrote.
     @Test("The match carries on after the app is relaunched")
     func theMatchSurvivesARelaunch() throws {
         let database = "relaunch-\(UUID().uuidString)"
@@ -174,16 +153,6 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.matchInProgress() == saved)
     }
 
-    /// The abandoned mark is the only thing about a match kept in a column,
-    /// and it is checked through what it exists for: before stopping, the match
-    /// is offered for continuation; afterwards it is not. The check catches
-    /// both legs of the trip at once. Had the mark not been written, the match
-    /// would come back from the database half-abandoned and land on court
-    /// again; had it not been read, the same.
-    ///
-    /// The stop arrives after the match has already been written by its first
-    /// rally, so the mark has to travel as a row update and not by an insert
-    /// alone.
     @Test("A stopped match is saved abandoned and not offered for continuation")
     func anAbandonedMatchIsSavedAndNotOfferedForContinuation() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -200,8 +169,6 @@ struct MatchStoreTests {
         #expect(try store.matchInProgress() == nil)
     }
 
-    /// The relaunch here is not decoration: without it the mark would be
-    /// visible from a row nobody had re-read.
     @Test("The abandoned mark survives a relaunch of the app")
     func theAbandonedMarkSurvivesARelaunch() throws {
         let database = "abandoned-\(UUID().uuidString)"
@@ -218,14 +185,6 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.matchInProgress() == nil)
     }
 
-    /// A saved match reads back with the same journal, ruleset and abandoned
-    /// mark. Comparing the whole thing checks all three at once, and the
-    /// journal matters most here: an hour of play must not be lost just
-    /// because the court time ran out.
-    ///
-    /// The stop arrives after the match has already been written by its first
-    /// rally, so the mark has to travel as a row update and not by an insert
-    /// alone.
     @Test(
         "An abandoned match reads back with its journal, ruleset and mark",
         arguments: [
@@ -257,9 +216,6 @@ struct MatchStoreTests {
 
     // MARK: The previous match's rules
 
-    /// Why the start screen asks the store at all: a group plays by the same
-    /// rules for months, and setting them afresh every time is a tax paid for
-    /// something that happens twice a year.
     @Test(
         "The previous match's rules are remembered",
         arguments: [
@@ -275,9 +231,6 @@ struct MatchStoreTests {
         #expect(try store.lastRuleset() == ruleset)
     }
 
-    /// A finished match is not offered for continuation, but its rules are:
-    /// that is the ordinary case — the next match is started after the last one
-    /// was played out.
     @Test("The rules are remembered from a finished match too")
     func theRulesetOfAFinishedMatchIsRemembered() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -302,8 +255,6 @@ struct MatchStoreTests {
         #expect(try store.lastRuleset() == today)
     }
 
-    /// The very criterion: the settings survive a relaunch of the app. A
-    /// second connection to the same database is that relaunch.
     @Test("The previous match's rules survive a relaunch of the app")
     func theLastRulesetSurvivesARelaunch() throws {
         let database = "ruleset-\(UUID().uuidString)"
@@ -317,8 +268,6 @@ struct MatchStoreTests {
         #expect(try afterRelaunch.lastRuleset() == ruleset)
     }
 
-    /// The first match on a new watch: there is nothing to fill in, and the
-    /// start screen shows the defaults.
     @Test("An empty store remembers no previous ruleset")
     func anEmptyStoreRemembersNoRuleset() throws {
         #expect(try DatabaseMatchStore.inMemory().lastRuleset() == nil)
@@ -338,12 +287,6 @@ struct MatchStoreTests {
         #expect(try store.matches() == [later, earlier])
     }
 
-    /// The order of the history and the dates in it have to agree: the row on
-    /// the phone shows the start of the match (ticket 11), so a match begun at
-    /// seven and finished at eleven — an hour of it spent waiting out the
-    /// rain — stands below a match played at nine, even though it was the last
-    /// one to be played out. Which match is the previous one is a different
-    /// question, and `matchInProgress` answers it by the last rally.
     @Test("The history is ordered by the start of the match, not by its end")
     func theHistoryIsOrderedByTheStartOfTheMatch() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -365,12 +308,6 @@ struct MatchStoreTests {
         #expect(try DatabaseMatchStore.inMemory().matches().isEmpty)
     }
 
-    /// The reason the history is watched rather than read: on the phone a
-    /// match is written by the reception, into an app woken by the system
-    /// (ticket 10). Nobody tells the screen, and a list read once would go on
-    /// showing yesterday's matches with today's lying beside it in the
-    /// database.
-    ///
     /// The first value is waited for before the second match is written, and
     /// not out of politeness: by the time it arrives the observation is
     /// watching, so the write that follows is one it cannot miss.
@@ -392,9 +329,6 @@ struct MatchStoreTests {
         #expect(try await history.next() == [later, earlier])
     }
 
-    /// The empty history is a value like any other: without it the screen
-    /// would have nothing to tell "there are no matches yet" from "the store
-    /// has not answered yet", and it shows different things for the two.
     @Test("The observed history of an empty store starts empty")
     func theObservedHistoryOfAnEmptyStoreStartsEmpty() async throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -404,11 +338,6 @@ struct MatchStoreTests {
         #expect(try await history.next() == [])
     }
 
-    /// A match replayed after a point was undone is no continuation of the
-    /// previous version but a different journal of the same length. Appending
-    /// it as a tail would mean assembling a journal nobody played, and doing so
-    /// silently: the length adds up. This happens on the phone, where the match
-    /// arrives a second time (ticket 10).
     @Test("A diverged journal is rewritten, not appended to")
     func aDivergedJournalIsRewritten() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -428,9 +357,6 @@ struct MatchStoreTests {
 
     // MARK: The delivery queue
 
-    /// The delivery queue is the store itself, not a list beside it: what is
-    /// already written after every rally need not be copied into a second
-    /// queue, which would diverge from the first.
     @Test("A finished match awaits delivery")
     func aFinishedMatchAwaitsDelivery() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -450,8 +376,6 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// An abandoned match is over too: play in it has ended, and its place in
-    /// the history on the phone is alongside the rest.
     @Test("An abandoned match awaits delivery")
     func anAbandonedMatchAwaitsDelivery() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -474,9 +398,6 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// The delivery mark is cleared by any write of the match: what stayed
-    /// delivered is a version that from this moment diverges from the one on
-    /// the watch.
     @Test("A match changed after delivery returns to the queue")
     func aChangedMatchReturnsToTheQueue() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -491,9 +412,6 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery() == [saved])
     }
 
-    /// A match begins with its first rally — that is how the glossary defines
-    /// it. One stopped earlier is saved honestly, but it has no business in the
-    /// history on the phone.
     @Test("A match without a single rally awaits nothing")
     func aMatchWithoutRalliesAwaitsNothing() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -506,9 +424,6 @@ struct MatchStoreTests {
         #expect(try store.matchesAwaitingDelivery().isEmpty)
     }
 
-    /// What gets delivered is a version, not a match: a receipt for a previous
-    /// version has no right to clear the queue the match returned to after a
-    /// point was undone.
     @Test("A stale delivery of a previous version is not marked")
     func aStaleDeliveryIsNotMarked() throws {
         let store = try DatabaseMatchStore.inMemory()

@@ -8,17 +8,8 @@ import Testing
 
 @Suite("Schema migrations")
 struct MigrationTests {
-    /// There is one version so far, and no new one appears before the first
-    /// release: the app has no users, so the schema is edited directly in
-    /// `v1`. The test lists the versions literally so that a second one does
-    /// not appear out of habit — "add a column" currently means appending it
-    /// to `v1`, not beside it.
-    ///
-    /// With the first release the rule inverts: the list of versions is
-    /// append-only, because a rewritten migration will be applied afresh to a
-    /// database where it has already been applied, and will crash the opening.
-    /// The database on the watch exists in a single copy and, until the
-    /// transfer to the phone, is the only copy of the match (ADR-0002).
+    /// The versions are listed literally so that a second one cannot appear
+    /// out of habit before the first release (ADR-0014).
     @Test("The schema is versioned from its first version")
     func theSchemaIsVersionedFromTheFirstVersion() {
         #expect(
@@ -26,17 +17,10 @@ struct MigrationTests {
             "before release the schema is edited in v1 — it is too early for a new version")
     }
 
-    /// GRDB was chosen for exactly this check (ADR-0003): a match written by
-    /// an old version of the app has to remain readable by today's. The
-    /// fixture is written in bare SQL on purpose — that is how that version
-    /// would have written it, and not today's store, which did not exist back
-    /// then.
-    ///
-    /// While there is only one schema version, "previous" and "first" are the
-    /// same thing, and the check rests on the reading not depending on today's
-    /// writing. Once a second version appears the test will start doing exactly
-    /// what its name promises without a line changing: `migrations.first` will
-    /// still be v1.
+    /// The fixture is bare SQL on purpose: that is how the old version would
+    /// have written it, and not today's store, which did not exist back then.
+    /// While there is one schema version, "previous" and "first" are the same
+    /// thing, and the test rests on reading not depending on today's writing.
     @Test("A database left at the previous schema version reads back after migrating")
     func aDatabaseLeftAtThePreviousVersionMigrates() throws {
         let queue = try DatabaseQueue()
@@ -91,9 +75,6 @@ struct MigrationTests {
         #expect(try reopened.matchInProgress() == saved)
     }
 
-    /// The ruleset is spread across columns, each case owning its half. The
-    /// check lives in the schema and not only in the code, because code other
-    /// than ours will read and write this file (ADR-0003).
     @Test("The schema turns away a half-assembled ruleset")
     func theSchemaRejectsAHalfRuleset() throws {
         let queue = try DatabaseQueue()

@@ -1,5 +1,6 @@
 import PadelScoring
 import SwiftUI
+import WatchKit
 
 /// The score screen owns every point of its own surface as a tap zone, so the
 /// controls cannot share it: a button there would swallow the tap that awards
@@ -61,7 +62,11 @@ private struct MatchControls: View {
             isPresented: $isConfirming,
             titleVisibility: .visible
         ) {
-            Button("End", role: .destructive, action: onAbandon)
+            Button("End", role: .destructive) {
+                WKInterfaceDevice.current().play(.stop)
+
+                onAbandon()
+            }
             Button("Keep playing", role: .cancel) {}
         } message: {
             Text("The match will be saved as unfinished.")

@@ -3,6 +3,7 @@ import PadelDelivery
 import PadelScoring
 import PadelStorage
 import SwiftUI
+import WatchKit
 
 struct MatchView: View {
     @State private var saved: SavedMatch
@@ -72,13 +73,21 @@ struct MatchView: View {
     }
 
     private func record(rallyWonBy side: Side) {
+        WKInterfaceDevice.current().play(side == .us ? .directionDown : .directionUp)
+
         saved.record(rallyWonBy: side, at: .now)
 
         persist()
     }
 
     private func undo() {
+        let ralliesBefore = saved.match.journal.count
+
         saved.undo(at: .now)
+
+        if saved.match.journal.count < ralliesBefore {
+            WKInterfaceDevice.current().play(.retry)
+        }
 
         persist()
     }

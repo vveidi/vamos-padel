@@ -100,9 +100,15 @@ One ticket per area, sized by what it holds:
 | 04| `Padel` (phone)       | 1,467 |   462 |     54 |
 | 05| `PadelStorage`        | 1,526 |   356 |    102 |
 | 06| `PadelDelivery`       | 1,177 |   245 |     34 |
+| 07| `PadelTests`          |   373 |   153 |      1 |
 
 Ordered by weight, heaviest first, so the expensive areas are cleared while the
 rule is freshest. None blocks another: they touch disjoint files.
+
+`PadelTests` is out of that order because it was missed. The phone's test target
+is hosted by the app and sits beside it rather than under it, so `04`'s scope —
+`Padel/Sources/` — did not reach it and no package's ticket owns it. It was
+added as `07` when `04` closed.
 
 `PadelDesign` goes first for a second reason — it is the package the other five
 read, and its doc comments are the ones an agent hits most often.
@@ -165,6 +171,7 @@ exists to move.
 04  the phone app
 05  PadelStorage
 06  PadelDelivery
+07  PadelTests
 ```
 
 None blocks another. Lowest number first is the recommended order, not a

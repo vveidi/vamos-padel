@@ -121,5 +121,5 @@ are meant to. The seeded matches are still on that simulator.
   puts test targets in scope — "every `.swift` file under `Packages/` and both
   app targets, including the test targets" — but this ticket's criteria and its
   1,467 lines are `Padel/Sources/` alone. `PadelTests/` is 373 lines with 153
-  doc-comment lines and belongs to no ticket. It wants one, or an amendment
-  here.
+  doc-comment lines and belonged to no ticket. It has one now: `07`, opened
+  after this ticket closed, and the spec's table carries it.

@@ -253,6 +253,25 @@ struct StepperRowTests {
             stacked.height > beside.height,
             "the label stayed beside the ± and was cut off instead")
     }
+
+    /// A two-digit number is where it shows: squeezed, "16" wraps to a 1 above
+    /// a 6, and the row grows a line without ever stacking.
+    @Test("A long label takes the row apart rather than wrapping the value")
+    func theValueKeepsItsLine() throws {
+        let label = "Очков до победы"
+
+        let oneDigit = try Self.row(value: 6, in: 5...40, label: label, width: Self.cardRow)
+        let twoDigits = try Self.row(value: 16, in: 5...40, label: label, width: Self.cardRow)
+        let stacked = try Self.row(value: 16, in: 5...40, label: label, width: 300)
+
+        #expect(
+            twoDigits.height == oneDigit.height || twoDigits.height == stacked.height,
+            "the second digit neither kept the row's line nor took the ± underneath, so it wrapped")
+    }
+
+    /// A card's row on a 402pt phone: the screen less its 20 each side and the
+    /// card's own 18 each side.
+    static let cardRow: CGFloat = 326
 }
 
 @Suite("The settings card")

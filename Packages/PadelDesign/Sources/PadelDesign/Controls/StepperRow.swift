@@ -68,6 +68,10 @@ public struct StepperRow: View {
                 .textStyle(.display)
                 .foregroundStyle(.ink)
                 .monospacedDigit()
+                // Fixed, or a long label squeezes the number until it wraps —
+                // "16" reads as a 1 above a 6 — instead of driving the stack
+                // below.
+                .fixedSize()
                 .frame(minWidth: ControlMetrics.stepperValue)
 
             stepButton(by: 1)

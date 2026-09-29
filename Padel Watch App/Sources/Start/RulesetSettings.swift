@@ -2,9 +2,9 @@ import PadelDesign
 import PadelScoring
 import SwiftUI
 
-/// The only place the rules are bounded: ``PadelScoring`` passes no judgment
-/// on a ruleset, and plays a match to zero sets out as a match to one rather
-/// than trapping on court.
+/// Where the watch bounds a ruleset: ``PadelScoring`` passes no judgment on
+/// one, and plays a match to zero sets out as a match to one rather than
+/// trapping on court.
 struct RulesetSettings: View {
     @Binding var ruleset: Ruleset
 

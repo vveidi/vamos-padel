@@ -1,7 +1,6 @@
 {
   "artboards": [
-    { "file": "PhoneNewMatch.dc.html", "x": 0, "y": 0, "w": 393, "h": 852, "title": "Phone · new match" },
-    { "file": "PhoneScore.dc.html", "x": 520, "y": 0, "w": 393, "h": 852, "title": "Phone · score" }
+    { "file": "PhoneScore.dc.html", "x": 0, "y": 0, "w": 393, "h": 852, "title": "Phone · score" }
   ],
   "annotations": [
     {
@@ -9,7 +8,7 @@
       "x": 0,
       "y": -320,
       "w": 900,
-      "text": "Court, taken further: the app lives on one court at dusk.\n\nDeep glass blue for their half, turf green for ours, warm floodlight spilling in from one corner, and the ball as the only bright thing on screen. Nothing here is a system list or a system button — full-bleed color, soft 20-24px shapes, hand-drawn icons.\n\nThe net is drawn as it looks from directly above: a bright tape line with a post at each end, not a band of mesh. Every screen split into two halves carries it, score screens included.\n\nThe boards are set in Unbounded and Golos Text; the app is not. Both faces were declined (ADR-0006) and every size goes through the ramp in PadelDesign — the board decides which ramp entry a thing gets, not how many points it is.\n\nThe four boards for screens that have shipped were deleted: the screen is the design once it exists. These two are what phone-scoring tickets 06 and 07 build."
+      "text": "Court, taken further: the app lives on one court at dusk.\n\nDeep glass blue for their half, turf green for ours, warm floodlight spilling in from one corner, and the ball as the only bright thing on screen. Nothing here is a system list or a system button — full-bleed color, soft 20-24px shapes, hand-drawn icons.\n\nThe net is drawn as it looks from directly above: a bright tape line with a post at each end, not a band of mesh. Every screen split into two halves carries it, score screens included.\n\nThe boards are set in Unbounded and Golos Text; the app is not. Both faces were declined (ADR-0006) and every size goes through the ramp in PadelDesign — the board decides which ramp entry a thing gets, not how many points it is.\n\nThe boards for screens that have shipped were deleted: the screen is the design once it exists. This one is what phone-scoring ticket 04 builds."
     },
     {
       "id": "ball",
@@ -20,7 +19,7 @@
     },
     {
       "id": "warmth",
-      "x": 520,
+      "x": 420,
       "y": -150,
       "w": 393,
       "text": "One colour only. The light is warm white — light, not a hue — and the ball's yellow is the single colour in the app. It marks what is yours and what is chosen: your serve, your half, your start button. Losses go cold and grey. Nothing needs a red, and nothing needs a second accent to argue with."

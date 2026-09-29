@@ -525,6 +525,16 @@
         }
       }
     },
+    "Opponents" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Соперники"
+          }
+        }
+      }
+    },
     "Opponents serve" : {
       "localizations" : {
         "ru" : {
@@ -801,12 +811,32 @@
         }
       }
     },
+    "Sets to win" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сетов до победы"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Настройки"
+          }
+        }
+      }
+    },
+    "Start match" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать матч"
           }
         }
       }
@@ -881,6 +911,16 @@
         }
       }
     },
+    "Us" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мы"
+          }
+        }
+      }
+    },
     "us %@, opponents %@" : {
       "localizations" : {
         "ru" : {
@@ -927,6 +967,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Мы выиграли"
+          }
+        }
+      }
+    },
+    "Who serves first?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кто подаёт первым?"
           }
         }
       }

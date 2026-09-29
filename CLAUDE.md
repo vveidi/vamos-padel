@@ -24,8 +24,8 @@ emptied when it closes, and a board outlives the ticket that reads it.
 
 **Only screens that have not been built have a board.** A board is deleted once
 its screen ships — after that the screen is the design, and a second drawing of
-it is a second source of truth that goes stale without anyone noticing. Two are
-left, both waiting on `phone-scoring`.
+it is a second source of truth that goes stale without anyone noticing. One is
+left, waiting on `phone-scoring`.
 
 `docs/design/README.md` carries the one rule the doc comments in `PadelDesign`
 and both apps cite by name — layout transfers off a board, type sizes and

@@ -1,14 +1,13 @@
 # The boards
 
-Two artboards and the canvas that lays them out — the two phone screens that
-have not been built yet. They came out of the redesign, which shipped; that
-feature's tickets are gone and these outlived them, because they are what
-`phone-scoring` will be drawn from.
+One artboard and the canvas that lays it out — the phone screen that has not
+been built yet. It came out of the redesign, which shipped; that feature's
+tickets are gone and this outlived them, because it is what `phone-scoring`
+will be drawn from.
 
     PhoneScore.dc.html      phone · score      — phone-scoring ticket 04
-    PhoneNewMatch.dc.html   phone · new match  — phone-scoring ticket 03
 
-They live in `docs/` rather than under `.scratch/` because the tracker holds
+It lives in `docs/` rather than under `.scratch/` because the tracker holds
 work in flight and is emptied as features close, while a board outlives the
 ticket that reads it.
 
@@ -20,11 +19,11 @@ payload, regenerable from the `.dc.html` sources beside it.
 
 ## A board is deleted when its screen is built
 
-There were six. The four that shipped — the watch's start, rules and score
-screens, and the phone's history — were deleted once the screens existed,
-because after that the screen is the design and a second drawing of it is a
-second source of truth that quietly goes stale. What they were is in the git
-history (`git show c349a34:docs/design/Main.dc.html`); what they *are* is in
+There were six. The five that shipped — the watch's start, rules and score
+screens, and the phone's history and new match — were deleted once the screens
+existed, because after that the screen is the design and a second drawing of it
+is a second source of truth that quietly goes stale. What they were is in the
+git history (`git show c349a34:docs/design/Main.dc.html`); what they *are* is in
 `PadelDesign` and in the screens themselves.
 
 What stayed behind is the numbers they gave: each built screen keeps a private
@@ -40,7 +39,7 @@ one rule and it is not obvious:
 > **Layout, proportion and hierarchy transfer from the boards. Type sizes do
 > not, and neither do the typefaces.**
 
-Both remaining boards are phone boards, drawn 1x, and their numbers are honest —
+The remaining board is a phone board, drawn 1x, and its numbers are honest —
 31pt titles, 128pt score, 13–15pt supporting text. Every size still goes through
 the ramp in `PadelDesign/Tokens/Typography.swift`, at the platform's own scale,
 and the board decides only which ramp entry a thing gets. The two faces the

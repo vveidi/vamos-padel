@@ -66,6 +66,11 @@ unless somebody says it was chosen.
   battery cost the old near-black screen did not carry, so the court primitives
   gained a dimmed variant: the geometry and the score survive, the light and the
   texture go.
+- **Nothing is a `List`.** The phone's history is a `LazyVStack` of court tiles
+  and the match card a column of bands. A `List` would rule a table over the
+  court — separators, chevrons, an inset ground — and a tile's tint already says
+  where one match ends and the next begins. What is kept of it is the laziness:
+  a season is a few hundred tiles, each drawing a weave and possibly a glow.
 - **The screens no longer get accessibility for free.** `List` rows, `Picker`s
   and `Toggle`s came with VoiceOver and Dynamic Type built in; a floating
   control on a full-bleed court does not. Every affordance the system gave has

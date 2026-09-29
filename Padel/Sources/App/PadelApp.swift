@@ -6,15 +6,10 @@ import SwiftUI
 
 @main
 struct PadelApp: App {
-    /// The phone's store — its own, not the one on the watch: each app has a
-    /// container of its own, and they have nothing to agree about. Matches
-    /// arrive here from the watch and stay here for good.
     private let store: any MatchStore
 
-    /// Receiving matches. Lives as long as the app: a match arrives into an
-    /// app woken by the system for its sake alone rather than into one opened
-    /// by its owner — and subscribing to that has to happen before any screen
-    /// appears.
+    /// Held for as long as the app: nothing reads it, and letting it go would
+    /// drop the subscription.
     private let reception: MatchReception
 
     init() {

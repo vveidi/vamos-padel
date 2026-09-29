@@ -7,9 +7,6 @@ import Testing
 
 @Suite("The match parcel")
 struct MatchPayloadTests {
-    /// The round trip through the one thing the transport can carry — a
-    /// dictionary. The match has to come back the same: identifier, ruleset,
-    /// first server, rally journal, times and abandoned mark.
     @Test(
         "A match decodes back unchanged",
         arguments: [
@@ -21,9 +18,6 @@ struct MatchPayloadTests {
         #expect(try MatchPayload.decode(MatchPayload.encode(.match(saved))) == .match(saved))
     }
 
-    /// The receipt travels over the same channel and in the same format as the
-    /// match, so telling them apart is the parcel's own job: the receiving side
-    /// only knows that it was handed a dictionary.
     @Test("A receipt is not mistaken for a match")
     func aReceiptIsNotMistakenForAMatch() throws {
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
@@ -49,14 +43,8 @@ struct MatchPayloadTests {
         #expect(arrived.match.isAbandoned)
     }
 
-    /// The apps on the watch and on the phone are updated separately, so one
-    /// day the older one will receive a parcel it does not understand. Losing a
-    /// match with a line in the log is better than showing a score assembled
-    /// out of defaults in the history.
-    ///
-    /// The cases are listed inside the test rather than as arguments: a
-    /// dictionary of `Any` cannot be passed between threads, and test
-    /// parameters require exactly that.
+    /// The cases are listed in the body rather than as arguments: a
+    /// `[String: Any]` is not `Sendable`, and test parameters must be.
     @Test("An unreadable parcel does not turn into a match")
     func anUnreadablePayloadIsRefused() {
         let id = UUID().uuidString

@@ -4,46 +4,26 @@
     import PadelStorage
     import WatchConnectivity
 
-    /// The transport on WatchConnectivity: the only implementation of the
-    /// interface from ADR-0002, and the only place in the whole codebase that
-    /// knows about it.
-    ///
-    /// The match is enqueued through `transferUserInfo` rather than sent as a
-    /// message: a message requires the phone to be reachable right now, and it
-    /// is lying in a bag behind the net. The queue is kept by the system — it
-    /// survives both the app being unloaded and the watch being restarted,
-    /// delivers in the order things were enqueued, and wakes the app on the
-    /// phone for every parcel. The receipt comes back the same way: the phone
-    /// may just as well be the first to wake up.
-    ///
-    /// One and the same object stands at both ends: a device has a single
-    /// session, and there is nothing to split it between sending and receiving
-    /// with. The apps use different halves of it — the watch sends, the phone
-    /// receives.
+    /// Parcels are enqueued with `transferUserInfo`, not sent as messages: a
+    /// message needs the phone reachable right now. The system's queue keeps
+    /// its order and survives the app being unloaded and the watch restarting.
+    /// One object stands at both ends because a device has a single session.
     public final class WatchConnectivityTransport: NSObject, MatchSender, MatchReceiver {
-        /// The handlers are set when the app is assembled and called from the
-        /// session's queue. The lock here is not against a race over them but
-        /// so that this claim is one the compiler can check.
+        /// Set when the app is assembled, called from the session's queue,
+        /// which is not the main one.
         private let handlers = Handlers()
 
-        /// The session, if the device supports one.
-        ///
-        /// `nil` on an iPad and other devices without a pair: a match neither
-        /// arrives on them nor leaves them, and everything else works.
+        /// `nil` on a device without a pair, such as an iPad: nothing arrives
+        /// and nothing leaves, and the rest of the app works.
         private var session: WCSession? { WCSession.isSupported() ? WCSession.default : nil }
 
         public override init() {
             super.init()
         }
 
-        /// Turns the session on.
-        ///
-        /// Called after the handlers are set: a parcel that arrives into an app
-        /// without a handler will not arrive a second time.
-        ///
-        /// Readiness comes not from here but later, from
-        /// `activationDidComplete`: activation is asynchronous, and until it
-        /// finishes the session will carry nothing.
+        /// Call after the handlers are set: a parcel that arrives into an app
+        /// with no handler registered does not arrive a second time. Readiness
+        /// follows later, from `activationDidCompleteWith`.
         public func activate() {
             guard let session else {
                 logger.notice("WatchConnectivity is unavailable, there will be no delivery")
@@ -74,11 +54,8 @@
             handlers.setReceive(receive)
         }
 
-        /// Puts the parcel into the system queue.
-        ///
-        /// An unactivated session undertakes to carry nothing, so whatever is
-        /// handed to it before readiness would vanish silently. In that case
-        /// the match simply stays in the store's queue and leaves once ready.
+        /// An unactivated session drops what it is handed, silently; the match
+        /// then stays in the store's queue and leaves once ready.
         private func transfer(_ arrival: Arrival) {
             guard let session, session.activationState == .activated else {
                 logger.notice("the session is not activated, the parcel stayed in the queue")
@@ -90,7 +67,6 @@
     }
 
     extension WatchConnectivityTransport: WCSessionDelegate {
-        /// The session came up — and only now can anything be handed to it.
         public func session(
             _ session: WCSession,
             activationDidCompleteWith state: WCSessionActivationState,
@@ -105,11 +81,8 @@
             handlers.ready()
         }
 
-        /// The parcel went out — or did not.
-        ///
-        /// This confirms no delivery: the system only knows that it carried a
-        /// dictionary to the app on the other side, whereas the watch needs to
-        /// know that the match reached the history. The phone signs for that,
+        /// Not a delivery confirmation: the system only knows the dictionary
+        /// reached the app on the other side. The phone signs for the history
         /// in a parcel of its own.
         public func session(
             _ session: WCSession,
@@ -133,9 +106,9 @@
         }
 
         #if os(iOS)
-            // Required by the protocol on the phone: the session breaks when
-            // the paired watch changes. We need nothing from that beyond coming
-            // back up — the history is already written into its own database.
+            // Required by the protocol on iOS, where the session breaks when
+            // the paired watch changes. Nothing but reactivation is needed:
+            // the history is already in the phone's own database.
             public func sessionDidBecomeInactive(_ session: WCSession) {}
 
             public func sessionDidDeactivate(_ session: WCSession) {
@@ -144,8 +117,6 @@
         #endif
     }
 
-    /// Three closures under a lock — exactly as much state as the transport
-    /// has.
     private final class Handlers: @unchecked Sendable {
         private let lock = NSLock()
         private var transportReady: (@Sendable () -> Void)?

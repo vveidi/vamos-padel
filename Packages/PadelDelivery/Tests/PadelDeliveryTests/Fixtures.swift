@@ -4,13 +4,10 @@ import PadelStorage
 
 @testable import PadelDelivery
 
-/// The moment the matches in these tests start from. A round second on
-/// purpose: the store keeps time to millisecond precision, and the round trip
-/// through the database and the parcel has to return exactly the same value.
+/// A round second on purpose: the store keeps time to milliseconds, and the
+/// round trip through the database and the parcel has to return it unchanged.
 let aMoment = Date(timeIntervalSince1970: 1_800_000_000)
 
-/// The match ends on the second point: the delivery tests care that it ended,
-/// not about the score it ended on.
 let toTwo = Ruleset.pointsTo(target: 2, serveChangesEvery: 4)
 
 extension SavedMatch {
@@ -32,12 +29,6 @@ extension SavedMatch {
     }
 }
 
-/// A transport that carries nothing anywhere but remembers what it was handed,
-/// and can confirm delivery on the test's demand.
-///
-/// The stub is possible precisely because the transport is hidden behind a
-/// protocol (ADR-0002): were `WCSession` in its place, the delivery queue could
-/// only be checked by a pair of devices on the desk.
 final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     private let lock = NSLock()
     private var queued: [SavedMatch] = []
@@ -46,10 +37,10 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     private var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
     private var receiveMatch: (@Sendable (SavedMatch) -> Void)?
 
-    /// What the watch handed to the transport since the last `forget()`.
+    /// What the watch handed over since the last ``forget()``.
     var sent: [SavedMatch] { lock.withLock { queued } }
 
-    /// What the phone signed for since the last `forget()`.
+    /// What the phone signed for since the last ``forget()``.
     var receipts: [SavedMatch] { lock.withLock { written } }
 
     func send(_ match: SavedMatch) {
@@ -77,8 +68,6 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
         lock.withLock { transportReady }?()
     }
 
-    /// The phone signed for everything it was handed, and the receipts got
-    /// through.
     func confirmDelivered() {
         deliverReceipts(for: sent)
     }
@@ -95,7 +84,6 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
         lock.withLock { receiveMatch }?(match)
     }
 
-    /// Forgets what was sent, so that the next check speaks about what is new.
     func forget() {
         lock.withLock {
             queued = []
@@ -104,8 +92,6 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     }
 }
 
-/// A store that cannot write. It exists for a single question: what the phone
-/// does with a match it failed to save.
 struct FailingMatchStore: MatchStore {
     struct Failure: Error {}
 
@@ -119,9 +105,8 @@ struct FailingMatchStore: MatchStore {
 
     func matches() throws -> [SavedMatch] { [] }
 
-    /// The empty history first, then the end of the stream: the protocol
-    /// promises a first value, and a double that quietly skips it would leave
-    /// a screen waiting for a list forever.
+    /// Yields an empty history before finishing: the protocol promises a first
+    /// value, and a double that skips it leaves its reader waiting forever.
     func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error> {
         AsyncThrowingStream { continuation in
             continuation.yield([])

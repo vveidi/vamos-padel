@@ -8,9 +8,6 @@ import Testing
 
 @Suite("Delivering matches to the phone")
 struct MatchDeliveryTests {
-    /// What the ticket was written for: the player never presses "sync". The
-    /// match ended and left, and the phone may be lying in the changing room
-    /// all the while.
     @Test("A finished match is put in the queue")
     func aFinishedMatchIsQueued() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -23,9 +20,6 @@ struct MatchDeliveryTests {
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// The whole match leaves, not just a score: the rally journal is the
-    /// single stored truth about a match (ADR-0001), and the match card on the
-    /// phone (ticket 12) needs it, not "6:4".
     @Test("The whole match travels, not its result")
     func theWholeMatchTravels() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -54,8 +48,8 @@ struct MatchDeliveryTests {
         #expect(transport.sent.isEmpty)
     }
 
-    /// The queue is the store itself, so it survives a relaunch along with the
-    /// matches. A second connection to the same database is that relaunch.
+    /// A second connection to the same in-memory database stands in for the
+    /// relaunch.
     @Test("The queue survives a relaunch of the app")
     func theQueueSurvivesARelaunch() throws {
         let database = "delivery-\(UUID().uuidString)"
@@ -67,18 +61,12 @@ struct MatchDeliveryTests {
         let afterRelaunch = try DatabaseMatchStore.inMemory(named: database)
         let transport = FakeTransport()
 
-        // Nobody calls delivery by hand: the app launched, the transport came
-        // up — that is enough.
         _ = MatchDelivery(queue: afterRelaunch, sender: transport)
         transport.becomeReady()
 
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// The session to the phone comes up asynchronously. A match handed to it
-    /// before that would go nowhere, and there would be no second attempt in
-    /// that launch — which is why the queue waits for readiness and not the
-    /// other way round.
     @Test("Nothing leaves before the transport is ready")
     func nothingIsSentBeforeTheTransportIsReady() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -94,9 +82,6 @@ struct MatchDeliveryTests {
         #expect(transport.sent.count == 1)
     }
 
-    /// The watch is the source of truth until delivery is confirmed
-    /// (ADR-0002), so what takes a match off the queue is the confirmation,
-    /// not the sending.
     @Test("A confirmed match is not sent again")
     func aConfirmedMatchIsNotSentAgain() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -113,8 +98,6 @@ struct MatchDeliveryTests {
         #expect(transport.sent.isEmpty)
     }
 
-    /// The phone was away all evening and the app was unloaded. An unconfirmed
-    /// match has to leave again — otherwise it will never leave at all.
     @Test("An unconfirmed match is sent again")
     func anUnconfirmedMatchIsSentAgain() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -131,11 +114,8 @@ struct MatchDeliveryTests {
         #expect(transport.sent.map(\.id) == [saved.id])
     }
 
-    /// Undoing a point in a finished match (ticket 05) brings it back into
-    /// play, and once played out again it diverges from what is already on the
-    /// phone. The delivery mark is cleared by any write of the match, so it
-    /// leaves a second time — and on the phone the second arrival overwrites
-    /// the first.
+    /// Any write of the match clears its delivery mark, which is what sends a
+    /// match played on after delivery a second time.
     @Test("A match changed after delivery is sent again")
     func aMatchChangedAfterDeliveryIsSentAgain() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -148,8 +128,6 @@ struct MatchDeliveryTests {
         transport.confirmDelivered()
         transport.forget()
 
-        // The last point was a mistake: it is undone, and the match is played
-        // out again.
         saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
@@ -161,10 +139,6 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [saved])
     }
 
-    /// The receipt arrives whenever, including an hour after the sending. In
-    /// that time the match may have changed — and a receipt for a previous
-    /// version has no right to clear the queue it returned to because of that
-    /// edit.
     @Test("A receipt for an older version of the match does not clear the queue")
     func aReceiptForAnOlderVersionDoesNotClearTheQueue() throws {
         let store = try DatabaseMatchStore.inMemory()
@@ -177,8 +151,7 @@ struct MatchDeliveryTests {
 
         let delivered = saved
 
-        // While the receipt was traveling, the last point was undone and the
-        // match played out again.
+        // The match changes while the receipt is in flight.
         saved.undo(at: aMoment.addingTimeInterval(30))
         try store.save(saved)
         saved.record(rallyWonBy: .them, at: aMoment.addingTimeInterval(60))
@@ -192,10 +165,6 @@ struct MatchDeliveryTests {
         #expect(transport.sent == [saved])
     }
 
-    /// A match begins with its first rally — that is how the glossary defines
-    /// it. One stopped earlier is saved honestly, but it has no business in the
-    /// history on the phone: "0:0, 0 minutes" is not history but the trace of a
-    /// mis-tap.
     @Test("A match without a single rally is not sent")
     func aMatchWithoutRalliesIsNotSent() throws {
         let store = try DatabaseMatchStore.inMemory()

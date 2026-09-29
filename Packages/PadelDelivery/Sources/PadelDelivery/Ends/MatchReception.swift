@@ -1,22 +1,9 @@
 import Foundation
 import PadelStorage
 
-/// Receiving matches from the watch — the phone's side.
-///
-/// Writes the match that arrived and signs for it to the watch. The receipt is
-/// no formality: until it arrives, the match on the watch stands in the queue
-/// and will leave again (ADR-0002), so a match not written here is not lost —
-/// it arrives once more.
-///
-/// The history screen (tickets 11, 12) later gets the match from the store
-/// rather than from here: it arrives into an app woken by the system for its
-/// sake alone, and there may be no screen at all at that moment.
-///
-/// The same match arrives twice if the receipt did not get through. The second
-/// arrival does not create a second match: the store recognizes it by its
-/// identifier and updates the record — with the same journal if it did not
-/// change, and with a continued one if a point was undone after delivery and
-/// the match played on.
+/// The phone's end; ``MatchDelivery`` is the watch's. The same match arrives
+/// twice when a receipt is lost, and the second arrival updates the record
+/// rather than adding one.
 public final class MatchReception: Sendable {
     private let store: any MatchStore
     private let receiver: any MatchReceiver
@@ -30,7 +17,6 @@ public final class MatchReception: Sendable {
         }
     }
 
-    /// Writes the match that arrived and signs for it.
     public func receive(_ match: SavedMatch) {
         Self.receive(match, into: store, confirmingTo: receiver)
     }
@@ -41,8 +27,8 @@ public final class MatchReception: Sendable {
         do {
             try store.save(match)
         } catch {
-            // The receipt does not go out, and the watch will bring the match
-            // again — with the next launch of the app on the watch.
+            // No receipt goes out, so the watch brings the match again on its
+            // next launch.
             logger.error("the match that arrived was not saved: \(error.localizedDescription)")
             return
         }

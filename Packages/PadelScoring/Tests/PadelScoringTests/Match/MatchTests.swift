@@ -68,8 +68,6 @@ struct MatchTests {
         #expect(match.state.outcome.winner == nil)
     }
 
-    /// The hour of play is not lost: stopping changes the outcome, not what
-    /// was played.
     @Test("Stopping leaves the journal and the score as they were")
     func abandoningKeepsTheJournalAndTheScore() {
         var match = Match(ruleset: .defaultPointsTo)
@@ -95,9 +93,6 @@ struct MatchTests {
         #expect(match == abandoned)
     }
 
-    /// The win has already happened, and there is nothing to declare
-    /// abandoned: the ruleset ended the match before the player made to leave
-    /// the court.
     @Test("A won match cannot be stopped early")
     func aWonMatchCannotBeAbandoned() {
         var match = Match(ruleset: .pointsTo(target: 2, serveChangesEvery: 4))
@@ -110,9 +105,6 @@ struct MatchTests {
         #expect(match.state.outcome == .finished(winner: .us))
     }
 
-    /// Undo brings back into play a match finished by a mistaken tap — but not
-    /// a match stopped early: an accidental stop is guarded against by the
-    /// confirmation on screen, not by undoing a point.
     @Test("Undo does not resume an abandoned match")
     func undoDoesNotResumeAnAbandonedMatch() {
         var match = Match(ruleset: .defaultPointsTo)
@@ -125,10 +117,6 @@ struct MatchTests {
         #expect(match == abandoned)
     }
 
-    /// There is no start screen yet and the app opens straight onto the score:
-    /// a match can be stopped before its first rally. There is deliberately no
-    /// special rule for that case — an abandoned match with an empty journal is
-    /// the exact description of what happened.
     @Test("A match stopped before the first rally is abandoned at a nil score")
     func abandoningBeforeTheFirstRallyLeavesAnEmptyMatch() {
         var match = Match(ruleset: .defaultClassic)

@@ -1,23 +1,12 @@
 import Foundation
 import Testing
 
-/// The package is pure domain logic: it knows nothing about the UI, the store
-/// or the watch's system frameworks (ticket 01, ADR-0003).
-///
-/// The check is built as an allowlist, not a denylist. A denylist is incomplete
-/// by its very nature: today it holds nine modules, tomorrow a tenth appears,
-/// and the guard silently lets a violation through. What is allowed, on the
-/// other hand, is known exactly.
-///
 /// The compiler covers only part of the ban on its own: UIKit, WatchKit,
 /// HealthKit and WatchConnectivity are unavailable on macOS, where the tests
 /// run. SwiftUI and SwiftData are available to every target on every Apple
-/// platform — the compiler will never complain about them, and it is exactly
-/// that gap the tests below close.
+/// platform — the compiler will never complain about them.
 @Suite("Package isolation")
 struct PackageIsolationTests {
-    /// The engine currently needs no module at all, Foundation included.
-    ///
     /// A line appearing here should be a deliberate decision, not a side
     /// effect of somebody else's edit — that is the whole point of an
     /// allowlist.
@@ -53,8 +42,7 @@ struct PackageIsolationTests {
 
     /// Checking imports is not enough: a dependency can be declared in the
     /// manifest and imported in no file at all — the linking has happened
-    /// regardless. The ban from ADR-0003 is structural, so it has to be
-    /// checked structurally.
+    /// regardless.
     @Test("The package declares no external dependencies")
     func packageDeclaresNoExternalDependencies() throws {
         let manifest = try String(
@@ -65,9 +53,8 @@ struct PackageIsolationTests {
             "an external dependency appeared in Package.swift — the engine must stay pure")
     }
 
-    /// The names of the modules imported in a source file. Comment lines are
-    /// skipped so that mentioning a module in documentation does not fail the
-    /// test.
+    /// Comment lines are skipped so that mentioning a module in documentation
+    /// does not fail the test.
     static func importedModules(in source: String) -> [String] {
         source.split(separator: "\n").compactMap { line in
             let trimmed = line.trimmingCharacters(in: .whitespaces)

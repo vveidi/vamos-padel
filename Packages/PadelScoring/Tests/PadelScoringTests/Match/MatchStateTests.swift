@@ -48,9 +48,6 @@ struct MatchStateTests {
         #expect(MatchState(ruleset: ruleset, journal: journal(.them)).outcome == .finished(winner: .them))
     }
 
-    /// An N below one is senseless, but it comes from outside (ticket 06), so
-    /// the engine has to behave predictably: neither crash the app nor leave
-    /// behind a match that can never be finished.
     @Test("An N below one does not break the match but behaves like N = 1", arguments: [0, -3])
     func targetBelowOneBehavesLikeOne(target: Int) {
         let ruleset = Ruleset.pointsTo(target: target, serveChangesEvery: 4)
@@ -73,7 +70,6 @@ struct MatchStateTests {
     }
 }
 
-/// A journal in which the listed sides win the rallies in order.
 private func journal(_ winners: Side...) -> RallyJournal {
     RallyJournal(winners.map(Rally.init(wonBy:)))
 }

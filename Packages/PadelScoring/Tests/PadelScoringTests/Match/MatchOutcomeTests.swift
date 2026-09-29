@@ -18,8 +18,6 @@ struct MatchOutcomeTests {
         #expect(outcome.isOver)
     }
 
-    /// This is why the outcome became a third value: an abandoned match has
-    /// ended, but not in anybody's favor.
     @Test("An abandoned match is over, won by neither side")
     func abandonedMatchIsOverWithoutAWinner() {
         let outcome = MatchOutcome.abandoned

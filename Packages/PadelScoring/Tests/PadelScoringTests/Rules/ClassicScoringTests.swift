@@ -40,19 +40,16 @@ struct ClassicScoringTests {
     func withoutGoldenPointDeuceRunsUntilTwoClear() {
         let deuce = rallies(.us, 3) + rallies(.them, 3)
 
-        // The advantage is ours: the game is not won yet.
         let advantage = classicState(deuce + [.us], goldenPoint: false)
         #expect(advantage.points.label(for: .us) == "AD")
         #expect(advantage.points.label(for: .them) == "40")
         #expect(advantage.games == SideCounts())
 
-        // The opponents pulled it back — deuce again, not a game.
         let backToDeuce = classicState(deuce + [.us, .them], goldenPoint: false)
         #expect(backToDeuce.points.label(for: .us) == "40")
         #expect(backToDeuce.points.label(for: .them) == "40")
         #expect(backToDeuce.games == SideCounts())
 
-        // Two in a row after deuce is a game.
         let won = classicState(deuce + [.us, .us], goldenPoint: false)
         #expect(won.games == SideCounts(us: 1, them: 0))
     }
@@ -133,7 +130,6 @@ struct ClassicScoringTests {
         #expect(nineSeven.sets == SideCounts(us: 1, them: 0))
     }
 
-    /// The golden point is a rule of the game, and a tiebreak is not a game.
     @Test("The golden point does not shorten a tiebreak")
     func goldenPointDoesNotShortenATieBreak() {
         let atSixAll = toSixAll + rallies(.us, 6) + rallies(.them, 6)
@@ -174,9 +170,6 @@ struct ClassicScoringTests {
         #expect(classicState(set + rallies(.them, 9)) == finished)
     }
 
-    /// The number of sets comes from the start screen (ticket 06) and may turn
-    /// out to be senseless; a match that can never be finished is not the way
-    /// to report that.
     @Test("A set count below one behaves like a single set", arguments: [0, -2])
     func setsBelowOneBehaveLikeOne(setsToWin: Int) {
         let state = classicState(gamesWonBy([.us, .us, .us, .us, .us, .us]), setsToWin: setsToWin)
@@ -250,11 +243,10 @@ struct ClassicScoringTests {
 
 // MARK: - Building journals
 
-/// The rallies that bring the games to 6:6. Every game here is won to love:
-/// the road to 6:6 does not matter in these tests, what starts after it does.
+/// Every game here is won to love: the road to 6:6 does not matter in these
+/// tests, what starts after it does.
 private let toSixAll = gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
 
-/// The state of a classic match, given the listed rally winners.
 private func classicState(
     _ winners: [Side], goldenPoint: Bool = true, setsToWin: Int = 1
 ) -> MatchState {
@@ -267,7 +259,6 @@ private func journal(_ winners: [Side]) -> RallyJournal {
     RallyJournal(winners.map(Rally.init(wonBy:)))
 }
 
-/// `count` rallies in a row, won by one side.
 private func rallies(_ side: Side, _ count: Int) -> [Side] {
     Array(repeating: side, count: count)
 }

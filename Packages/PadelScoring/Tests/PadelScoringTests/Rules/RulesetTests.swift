@@ -14,10 +14,6 @@ struct RulesetTests {
         #expect(Ruleset.defaultClassic == .classic(setsToWin: 1, goldenPoint: true))
     }
 
-    /// This answer decides both which score the match is remembered by and
-    /// whether the screen shows a set score: in a match to one set there is
-    /// nothing to show, and in a match to two, games without sets do not say
-    /// who is ahead.
     @Test("A match longer than one set is told apart from a short one")
     func onlyAMatchLongerThanOneSetHasSetsWorthShowing() {
         #expect(Ruleset.classic(setsToWin: 2, goldenPoint: true).isMultiSet)

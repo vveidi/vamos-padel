@@ -4,11 +4,6 @@ import Testing
 
 @Suite("Undoing the last point")
 struct UndoTests {
-    /// The strongest check in the ticket: not "undo works on a game
-    /// boundary" but "undo cannot go wrong anywhere". The journal below runs
-    /// through a game, deuce, a set boundary and a tiebreak, and on every
-    /// rally the state before the record is compared with the state after the
-    /// undo — serve and outcome included.
     @Test("Undo restores exactly the state that preceded the rally")
     func undoRestoresTheStateExactly() {
         var match = Match(ruleset: .classic(setsToWin: 2, goldenPoint: false), firstServer: .them)
@@ -61,8 +56,6 @@ struct UndoTests {
         for _ in 0..<3 { match.record(rallyWonBy: .us) }
         let atFortyLove = match.state
 
-        // The game is won: the points are zeroed, the serve went to the
-        // opponents.
         match.record(rallyWonBy: .us)
         #expect(match.state.games == SideCounts(us: 1, them: 0))
         #expect(match.state.servingSide == .them)
@@ -99,8 +92,6 @@ struct UndoTests {
         for _ in 0..<6 { match.record(rallyWonBy: .us) }
         let inTheTieBreak = match.state
 
-        // The seventh point takes the tiebreak and the set, and zeroes the
-        // games.
         match.record(rallyWonBy: .us)
         #expect(match.state.sets == SideCounts(us: 1, them: 0))
 
@@ -127,8 +118,6 @@ struct UndoTests {
         #expect(match.state == beforeTheEnd)
         #expect(match.state.outcome == .inProgress)
 
-        // And the match accepts rallies again: before the undo, `record` was
-        // not writing them.
         match.record(rallyWonBy: .them)
         #expect(match.state.points == .count(SideCounts(us: 2, them: 1)))
     }
@@ -177,7 +166,6 @@ struct UndoTests {
         #expect(match.journal.isEmpty)
         #expect(match.state.outcome == .inProgress)
 
-        // And the match is still alive.
         match.record(rallyWonBy: .them)
         #expect(match.state.points.label(for: .them) == "15")
     }

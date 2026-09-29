@@ -47,10 +47,6 @@ struct MatchCourseTests {
             ])
     }
 
-    /// The course is made of what was played out. A game abandoned at 40:30 is
-    /// not a step of it — the card says as much from the state's points, and
-    /// inventing a step for it would put a game into the course that nobody
-    /// won.
     @Test("Rallies of a game not carried to its end are no step")
     func anUnfinishedGameIsNoStep() {
         let course = classicCourse(gamesWonBy([.us]) + rallies(.them, 3))
@@ -102,10 +98,7 @@ struct MatchCourseTests {
     }
 
     /// One rally is enough to make a set one that was played, even though a
-    /// rally is no step of the course. The card hangs "the game was not
-    /// finished" off the last set it is handed, and that has to be the set
-    /// play actually stopped in: hanging it off the set before would say a
-    /// match was stopped mid-game inside a set that was played out to its end.
+    /// rally is no step of the course.
     @Test("A set played in without a single game finished is part of the course")
     func aSetPlayedInWithoutAFinishedGameIsPartOfTheCourse() {
         let firstSet = gamesWonBy([.us, .us, .us, .us, .us, .us])
@@ -140,9 +133,6 @@ struct MatchCourseTests {
 
     // MARK: Shared with the engine
 
-    /// The point of the whole thing: the card rebuilds the score from the
-    /// journal instead of being told it, so the two have to arrive at the same
-    /// number — on the phone as on the watch.
     @Test(
         "The course ends on the score the match is remembered by",
         arguments: [
@@ -163,9 +153,6 @@ struct MatchCourseTests {
         }
     }
 
-    /// What "a match restored on the phone shows the same score as it had on
-    /// the watch" comes down to: the course depends on nothing but the ruleset
-    /// and the journal, so what travels is enough to rebuild it.
     @Test("The same journal always yields the same course")
     func theSameJournalAlwaysYieldsTheSameCourse() {
         var replayed = RallyJournal()
@@ -191,8 +178,6 @@ struct MatchCourseTests {
 // MARK: - Reading a course
 
 extension MatchCourse {
-    /// The score the match is remembered by, read off the course.
-    ///
     /// Lives in the test and not in the engine on purpose: a test that asked
     /// the engine for the answer it is checking would be checking nothing.
     fileprivate func finalScore(of ruleset: Ruleset) -> SideCounts {
@@ -242,7 +227,6 @@ private func classicCourse(
     return sets
 }
 
-/// The rallies that bring the games to 6:6.
 private let toSixAll = gamesWonBy([.us, .them, .us, .them, .us, .them, .us, .them, .us, .them, .us, .them])
 
 /// A journal long enough to reach into every corner of both rulesets: past a

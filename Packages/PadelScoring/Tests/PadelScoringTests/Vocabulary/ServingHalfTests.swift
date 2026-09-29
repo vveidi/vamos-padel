@@ -32,13 +32,8 @@ struct ServingHalfTests {
 
     // MARK: The tiebreak
 
-    /// The one place where the two rhythms are visibly different: the serve
-    /// passes after one rally and every two after that, while the half goes on
-    /// flipping every single rally. A counter shared between them would look
-    /// right everywhere else.
-    ///
-    /// It is also where the golden point does not reach: 3:3 in a tiebreak —
-    /// six rallies played — is an ordinary rally from the right.
+    /// The golden point does not reach a tiebreak: 3:3 there — six rallies
+    /// played — is an ordinary rally from the right.
     @Test("In a tiebreak the half flips every rally while the serve does not")
     func theTieBreakKeepsTheHalfAlternating() {
         let sides: [Side] = [.us, .them, .them, .us, .us, .them, .them, .us, .us]
@@ -57,8 +52,6 @@ struct ServingHalfTests {
 
     // MARK: Deuce
 
-    /// The receiving pair picks the side on a golden point, and the app is
-    /// never told which.
     @Test("The golden point has no half, and the rally before it does")
     func theGoldenPointHasNoHalf() {
         let toFortyThirty: [Side] = [.us, .us, .us, .them, .them]
@@ -72,8 +65,6 @@ struct ServingHalfTests {
         #expect(atDeuce.servingHalf == nil)
     }
 
-    /// Without the golden point, 3:3 is just another rally: the game plays on
-    /// for a two-point lead and every one of those rallies has a half.
     @Test("Advantage scoring never leaves the half unknown")
     func advantageScoringAlwaysHasAHalf() {
         let toDeuce: [Side] = [.us, .us, .us, .them, .them, .them]
@@ -109,8 +100,6 @@ struct ServingHalfTests {
         }
     }
 
-    /// X reaches the engine from the start screen and may be nonsense; the
-    /// half answers it the way the side already does.
     @Test("An X below one behaves like X = 1", arguments: [0, -2])
     func serveChangeBelowOneBehavesLikeOne(every: Int) {
         // Every rally opens a service turn of its own, so every rally is
@@ -122,8 +111,6 @@ struct ServingHalfTests {
 
     // MARK: Undo
 
-    /// No code of its own rolls the half back: it is computed from the journal
-    /// like the rest of the state, so shortening the journal is all it takes.
     @Test("Undo restores the half across a game boundary and a golden point")
     func undoRestoresTheHalf() {
         var match = Match(ruleset: .defaultClassic)

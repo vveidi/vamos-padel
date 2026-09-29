@@ -31,8 +31,6 @@ struct ServingSideTests {
         #expect(pointsToState([.them, .them, .us], every: 1).servingSide == .them)
     }
 
-    /// X comes from the start screen (ticket 06) and may turn out to be zero;
-    /// dividing by it is not the way to report that.
     @Test("An X below one does not crash the match but behaves like X = 1", arguments: [0, -2])
     func serveChangeBelowOneBehavesLikeOne(every: Int) {
         #expect(pointsToState([.us], every: every).servingSide == .them)
@@ -42,7 +40,6 @@ struct ServingSideTests {
 
     @Test("In classic scoring the serve passes after every game")
     func serveChangesAfterEveryGame() {
-        // Inside a game the serve does not move.
         for played in 0...3 {
             #expect(classicState(rallies(.us, played)).servingSide == .us)
         }
@@ -70,9 +67,6 @@ struct ServingSideTests {
 
     // MARK: The tiebreak
 
-    /// The tiebreak is the one place where the serve does not move on game
-    /// boundaries: the first rally is served by whoever's turn it is, after
-    /// that it changes every two.
     @Test("In a tiebreak the serve passes after one point, then every two")
     func theTieBreakServeChangesAfterOnePointThenEveryTwo() {
         // Twelve games in, it is our turn again.
@@ -112,7 +106,7 @@ private func pointsToState(
     _ winners: [Side], every: Int = 4, firstServer: Side = .us
 ) -> MatchState {
     MatchState(
-        // The target is deliberately out of reach: this ticket is about the
+        // The target is deliberately out of reach: these tests are about the
         // serve, not about the end of the match.
         ruleset: .pointsTo(target: 99, serveChangesEvery: every),
         journal: journal(winners),

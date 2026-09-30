@@ -50,12 +50,29 @@ than missing a break, so both widen to `all`. So does an empty diff.
 Ask the scheme which destinations it takes rather than guessing its platform:
 
     xcodebuild -project <name>.xcodeproj -scheme "<scheme>" -showdestinations 2>&1 |
-      grep 'platform:.* Simulator' | grep -v placeholder | head -1
+      grep 'platform:.* Simulator' | grep -v placeholder
 
-The `id:` field is the UUID, and `-destination "id=<uuid>"` is the whole
-destination — the platform is the simulator's own and need not be repeated.
-Find one per scheme per session and reuse it after. No simulator for a scheme
-is a stop-and-report error.
+The list is ordered by device name, so its first iOS row is an iPad — pick the
+device the app is for, on the newest OS offered, rather than the first line. The
+`id:` field is the UUID, and `-destination "id=<uuid>"` is the whole destination
+— the platform is the simulator's own and need not be repeated. No simulator for
+a scheme is a stop-and-report error.
+
+Outside a worktree, take that row's `id:` and reuse it for the session.
+
+**Inside a worktree, make your own device instead.** Every tab's `xcodebuild`
+resolves the same list, so the device that row names is shared, and two tabs
+installing the same bundle id onto it clobber each other's app and each other's
+taps. Create one from the row's device name and OS:
+
+    xcrun simctl list devicetypes      # the name → SimDeviceType.<id> mapping
+    xcrun simctl list runtimes         # the OS   → SimRuntime.<id> mapping
+    xcrun simctl create "padel-<feature>-<NN>-<platform>" <devicetype> <runtime>
+    xcrun simctl boot <the new uuid>
+
+Use that UUID for every `-destination`, `simctl` and UI call for the rest of the
+session. The name carries the ticket so `/next-ticket`'s sweep can tell whose
+device it is and delete it when the ticket lands.
 
 ## A scheme's test action
 

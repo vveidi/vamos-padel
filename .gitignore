@@ -47,6 +47,9 @@ fastlane/test_output
 *.swp
 *~.nib
 
+# Per-ticket worktrees, one per running session
+.claude/worktrees/
+
 # Design references — other apps' screenshots, kept out of git
 .scratch/*/references/
 

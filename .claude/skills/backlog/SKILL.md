@@ -43,6 +43,34 @@ something the ticket file alone does not:
 `Up for grabs` on the footer line counts both green states together. A ticket
 sitting at 9/11 criteria is not half-free: the label decides, not the count.
 
+## The board is only as fresh as `main`
+
+A ticket is closed on its own branch and reaches `main` only when its pull
+request merges, so a ticket a session is three hours into still reads
+`ready-for-agent` in its file. Two things follow.
+
+**Read the board from `origin/main`, not from here.** Inside a worktree the
+`.scratch/` you have is your branch's, frozen at whatever `origin/main` held
+when the session started. `status.sh` finds the features next to itself, so the
+board has to be run where a current `main` is checked out — the repository's own
+directory, which `git worktree list` prints first:
+
+    root=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
+    git -C "$root" pull --ff-only
+    "$root/.scratch/status.sh" <feature>
+
+That directory holds no session's work, so fast-forwarding it disturbs nobody.
+
+**Mark the rows that are in flight.** An open pull request is a ticket someone
+has, and its branch carries the ticket in its name:
+
+    gh pr list --state open --json number,headRefName,updatedAt
+
+A row whose `<feature>/<NN>` matches an open PR is not up for grabs however
+green the board prints it — say so on the row, with the PR number. This is the
+one place the board lies, and it lies exactly when the user is deciding what the
+next tab gets.
+
 ## What to say back
 
 Show the board's own output — the columns are the answer, and rewriting them

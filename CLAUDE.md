@@ -33,9 +33,12 @@ typefaces do not.
 
 ### Working a backlog
 
-`/next-ticket [feature]` takes one ticket, builds it, drives it on a simulator,
-runs `code-review` over it and commits it — then stops, because the review
-between two tickets is the owner's. See `.claude/skills/next-ticket/SKILL.md`.
+`/next-ticket <feature>/<NN>` takes one ticket, builds it in a worktree of its
+own, drives it on simulators of its own, runs `code-review` over it and hands it
+back as a pull request — then stops, because the merge is the owner's. It names
+the ticket rather than the feature: several tabs run it at once, and which tab
+gets which ticket is the owner's call. See
+`.claude/skills/next-ticket/SKILL.md`.
 
 `/backlog [feature]` reads the board — `.scratch/status.sh` — and says what is
 takeable, what is blocked and on what. See `.claude/skills/backlog/SKILL.md`.
@@ -246,11 +249,29 @@ leaves lookalike text inside strings alone:
 
 It prints a diff and writes nothing until you add `-U`.
 
+## Branches, worktrees and merging
+
+`main` only ever fast-forwards, and nothing is committed to it in this
+directory. A ticket is built on a branch named `<feature>/<NN>-<slug>`, in a git
+worktree created for it under `.claude/worktrees/`, and reaches `main` only as a
+squash-merged pull request the owner merges on GitHub. One ticket is one branch,
+one PR and one commit on `main`, whatever the review rounds did on the way.
+
+**Work a ticket in a worktree, never in this directory.** Several sessions run
+at once and they share these files: a `git checkout` here changes what another
+session is mid-build on. The worktree is what makes the branch mean anything.
+
+The same goes for what a session builds on. A simulator, like this directory, is
+shared by every running session — see `docs/agents/targets.md` for the device a
+session makes for itself.
+
 ## Session scope
 
-One ticket per session, one session per ticket. Every model call resends the
-whole conversation, so a session carrying three tickets pays for the first
-ticket's context while working on the third — length costs as much as work.
+One ticket per session, one session per ticket — structurally now, since the
+worktree is created at the session's start and removed once its PR lands. Every
+model call resends the whole conversation, so a session carrying three tickets
+pays for the first ticket's context while working on the third — length costs as
+much as work.
 
 Run `/compact` once the context passes ~150k tokens, and open a fresh session
 when the next ticket is unrelated to the one just finished.

@@ -9,7 +9,7 @@ enum CourtDimming {
     /// Measured: the dimmed surface lands at 0.119 luminance against `night`'s
     /// 0.079, stays blue at rgb(7, 34, 51), and holds `courtInk` at 5.8 : 1. A
     /// wrist has not confirmed it
-    /// (`.scratch/court-surface/issues/03-the-dimming-on-a-wrist.md`).
+    /// (`.scratch/court-surface/issues/01-the-one-surface.md`).
     static let surface = 0.72
 
     static let felt = 0.15

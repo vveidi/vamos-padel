@@ -36,10 +36,26 @@ tile's four grounds redrawn on top of it.
 - [x] `courtWeave` is one value. Pick one of the two it collapses (0.028 / 0.032)
       or the round number between them, and say in the comment that the weave is
       now the only texture on the surface
-- [ ] `CourtDimming.surface` is re-picked on a device and its doc comment
-      **rewritten**. The current sentence — "at 0.72 the two halves measured 0.021
-      apart in luminance and read as one black rectangle" — is about a constraint
-      this ticket removes, and must not be left standing
+- [ ] The court is looked at in **Always-On on a real Apple Watch**, mid-match, at
+      arm's length — the state a match spends most of its ninety minutes in, and
+      the only place this question answers. The watchOS simulator offers no
+      Always-On state: not through the Device or Features menus, not through
+      `simctl ui`, which has only `appearance`, `increase_contrast` and
+      `content_size`, and the last of those the runtime refuses outright
+- [ ] `CourtDimming.surface` is confirmed at 0.72 or moved, and the number that
+      ships is the one that was **seen** rather than the one that was computed.
+      Too dark and it comes down; ink haloing, or the surface still bright enough
+      to worry about burn-in over ninety minutes, and it goes up. What to look
+      for: whether the court still reads as a court rather than as the app's
+      ground with a net across it, and whether the score is findable without
+      raising the wrist
+- [ ] Its doc comment says what was settled **on the wrist**, replacing the
+      rendered measurements standing in for it now — the dimmed surface at 0.119
+      luminance against `night`'s 0.079, blue at rgb(7, 34, 51), `courtInk` at
+      5.8 : 1. All three are necessary and none of them is sufficient
+- [ ] `AlwaysOnTests`' `fell > 0.6` floor still holds, or moves with the number
+      and says why, and `swift test --package-path Packages/PadelDesign` is clean
+      again
 - [x] `CourtTile` draws four grounds and no new hue: **won** is `court` with the
       ball's glow it already has; **lost** is `night` with a `hairline` border and
       nothing else — no lift, no floodlight; **abandoned** is the existing
@@ -152,9 +168,10 @@ surface at 0.119 luminance against `night`'s 0.079, still blue at rgb(7, 34, 51)
 `courtInk` standing off it at 5.8 : 1 — and the doc comment says exactly that
 rather than claiming a wrist. Neither the watch simulator nor `simctl` offers a
 way into Always-On, and `simctl ui … content_size` is refused by the watchOS
-runtime, so the watch's largest-type pass did not happen either. It is now
-ticket 03 of this feature, `ready-for-human`. (It was a `TODO:` above the
-constant until `CLAUDE.md` stopped allowing those.)
+runtime, so the watch's largest-type pass did not happen either. It stays on
+this ticket, as four criteria above, and holds it at `ready-for-human` until a
+wrist answers. (It was a `TODO:` above the constant until `CLAUDE.md` stopped
+allowing those.)
 
 **For the owner to arbitrate.**
 

@@ -1,6 +1,6 @@
 ---
 name: submit-ticket
-description: Close a finished ticket and hand it back as one commit and one pull request, in Conventional Commits format. Use when the user invokes /submit-ticket, or asks to open the PR, send the work for review, or hand the ticket back.
+description: Close a finished ticket and hand it back as one commit and one pull request the owner can read on a phone. Use when the user invokes /submit-ticket, or asks to open the PR, send the work for review, or hand the ticket back.
 ---
 
 # Submit a ticket
@@ -35,50 +35,43 @@ decide. It is not a retelling of the work.
 
 ## 2. The commit
 
-One commit, [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
+One commit:
 
-    <type>(<scope>): <description>
+    <feature>/<NN>: <description>
 
     <body>
 
     <footers>
 
-### Type
+### Subject
 
-`feat` and `fix` are the spec's own. Also allowed here: `docs`, `refactor`,
-`test`, `build`, `ci`, `chore`, `perf`, `style`.
+The ticket, then the description:
 
-A breaking change takes `!` after the scope — `feat(storage)!:` — or a
-`BREAKING CHANGE:` footer. That footer is uppercase, and it is the one
-case-sensitive thing in the spec.
+    court-surface/02: draw the app icon as a ball on the court
+    watch-tap-mode/03: store the tap mode and read it back
+    phone-scoring/04: draw the scoreboard in landscape
 
-### Scope
+`<feature>/<NN>` is the ticket, spelled the way everything else spells it —
+the branch, the board, and `/next-ticket`'s own argument. One spelling, so
+`git log` and `.scratch/` can be read against each other.
 
-The part of the repo the ticket is about:
+The description is imperative, lower case, no full stop, and about 60
+characters or fewer including the ticket. It says what the commit does, not
+what the ticket was called.
 
-    scoring  storage  delivery              the packages
-    design                                  PadelDesign, docs/design, the app icon
-    watch    phone                          the app targets
-    docs                                    CONTEXT.md, docs/adr, docs/agents
-    board                                   .scratch/
-    project                                 Padel.xcodeproj and the build settings
+**No `feat:` or `fix:`.** This is deliberately not Conventional Commits: the
+ticket already says where the change lands and what it is for, and a type in
+front of it is a second, coarser answer to a question `.scratch/` answers
+better. Nothing here consumes a changelog generator.
 
-`design` is the design system wherever it lives — the package, the boards and
-studies beside it, and the artwork both targets ship. It is not `docs`, even
-though half of it sits under `docs/`: a change there is a design decision that
-happens to be written down, not documentation about something else.
+### A commit with no ticket
 
-Touching several, name the one the ticket is about. Genuinely spanning
-everything, leave the scope out — the spec makes it optional.
+Board fixes, doc edits, anything asked for in conversation — these commit
+straight to `main` with no branch, and there is no ticket to name. Write the
+description alone:
 
-### Description
-
-Imperative, lower case, no full stop, about 60 characters or fewer. What the
-commit does, not what the ticket was called.
-
-    feat(design): draw the app icon as a ball on the court
-    fix(watch): keep the score legible in Always-On
-    docs(board): open the two ADR tickets court-surface owes
+    settle which scope owns docs/design
+    reopen the one surface as ready-for-human
 
 ### Body
 
@@ -141,9 +134,8 @@ Reply in the tab with the PR URL and one line. Then stop.
 ## A fix round
 
 Review findings arrive on the PR or in the tab. Fix them, drive anything that
-touched a screen again, and commit to the same branch. The commit is
-Conventional like any other — usually `fix(<scope>):`, or the type that matches
-what you actually changed.
+touched a screen again, and commit to the same branch. The subject names the
+same ticket as the first commit, because it is the same ticket.
 
 Then reply to each thread you addressed, one line each. **Do not resolve
 them** — resolving is the reviewer's verb.

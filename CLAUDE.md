@@ -267,10 +267,15 @@ session makes for itself.
 
 ## Writing a commit, and a pull request
 
-Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
-— `<type>(<scope>): <description>`. The types, the scopes this repo uses and the
-shape of the PR body are in `.claude/skills/submit-ticket/SKILL.md`, which also
-does the work: closing the ticket, the commit, the PR and the handoff.
+A commit made for a ticket names it first — `<feature>/<NN>: <description>`, as
+in `court-surface/02: draw the app icon as a ball on the court`. The ticket is
+spelled the way the branch and the board spell it, so `git log` and `.scratch/`
+can be read against each other. A commit with no ticket behind it is the
+description alone. There is no `feat:`/`fix:` prefix; the ticket says where the
+change lands, and nothing here reads a changelog generator.
+
+`.claude/skills/submit-ticket/SKILL.md` has the rest and does the work: closing
+the ticket, the commit, the PR and the handoff.
 
 **Five lines is the ceiling for a commit body**, the same ceiling the comments
 above get, and for the same reason. The diff says what changed; the body says

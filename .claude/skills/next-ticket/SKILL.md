@@ -118,7 +118,7 @@ removed, because that tab will fail confusingly if the user types into it.
      not quietly drop it.
 
 10. **Hand it back — run the `submit-ticket` skill.** It owns the rest: closing
-    the ticket file, the one commit in Conventional Commits format, the pull
+    the ticket file, the one commit named for the ticket, the pull
     request, the "what to look at first" comment, and the reply in this tab.
     Then stop.
 

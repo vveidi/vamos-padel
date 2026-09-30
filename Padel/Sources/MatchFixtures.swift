@@ -11,10 +11,13 @@ extension SavedMatch {
     /// A match played at a rally a minute, so that the length of a preview
     /// match is the length of a real one — rallies and the walking between
     /// them included.
-    static func preview(_ winners: [Side], ruleset: Ruleset, abandoned: Bool = false) -> SavedMatch {
-        let start = Date(timeIntervalSinceNow: -3 * 24 * 60 * 60)
-
-        var saved = SavedMatch(match: Match(ruleset: ruleset), startedAt: start)
+    static func preview(
+        _ winners: [Side], ruleset: Ruleset, abandoned: Bool = false,
+        firstServer: Side = .us,
+        startedAt start: Date = Date(timeIntervalSinceNow: -3 * 24 * 60 * 60)
+    ) -> SavedMatch {
+        var saved = SavedMatch(
+            match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: start)
 
         for (played, winner) in winners.enumerated() {
             saved.record(
@@ -84,9 +87,61 @@ extension SavedMatch {
         .preview([], ruleset: .classic(setsToWin: 1, goldenPoint: true))
     }
 
+    // MARK: Matches still in play
+
+    static var previewInPlay: SavedMatch {
+        .preview(
+            games([.us, .them, .us]) + [.us, .us, .them],
+            ruleset: .classic(setsToWin: 1, goldenPoint: false), startedAt: .previewKickOff)
+    }
+
+    static var previewInTieBreak: SavedMatch {
+        .preview(
+            games(Array(repeating: [Side.us, .them], count: 6).flatMap { $0 })
+                + [.us, .us, .them, .us, .them, .them, .us],
+            ruleset: .classic(setsToWin: 1, goldenPoint: true), startedAt: .previewKickOff)
+    }
+
+    /// Three points each with a golden point in force, which is the one state
+    /// where the engine has no serving half to hand over.
+    static var previewAtGoldenPoint: SavedMatch {
+        .preview(
+            games([.us, .them]) + [.us, .us, .us, .them, .them, .them],
+            ruleset: .classic(setsToWin: 2, goldenPoint: true), startedAt: .previewKickOff)
+    }
+
+    static var previewInSecondSet: SavedMatch {
+        .preview(
+            games(Array(repeating: Side.us, count: 6)) + games([.them, .us]) + [.them, .them],
+            ruleset: .classic(setsToWin: 2, goldenPoint: true), startedAt: .previewKickOff)
+    }
+
+    static var previewCountingPoints: SavedMatch {
+        .preview(
+            Array(repeating: [Side.us, .them], count: 5).flatMap { $0 } + [.us, .us],
+            ruleset: .pointsTo(target: 16, serveChangesEvery: 4), startedAt: .previewKickOff)
+    }
+
+    // MARK: One serve each, for the four corners
+
+    /// The server's own half, which the engine alternates rally by rally: the
+    /// first serve of a game is from the right and the second from the left.
+    static func preview(serving side: Side, from half: ServingHalf) -> SavedMatch {
+        .preview(
+            half == .right ? [] : [side],
+            ruleset: .classic(setsToWin: 1, goldenPoint: false),
+            firstServer: side, startedAt: .previewKickOff)
+    }
+
     private static func games(_ winners: [Side]) -> [Side] {
         winners.flatMap { Array(repeating: $0, count: 4) }
     }
+}
+
+extension Date {
+    /// A match in play began this long ago, so a preview of the scoreboard
+    /// carries a clock reading like a real one's rather than like Tuesday's.
+    static var previewKickOff: Date { Date(timeIntervalSinceNow: -48 * 60) }
 }
 
 #endif

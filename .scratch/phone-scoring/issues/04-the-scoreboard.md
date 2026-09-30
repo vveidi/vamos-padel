@@ -6,45 +6,45 @@ digits the screen allows, and the ball in the corner of the serving half.
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The net crosses the long axis: in landscape it stands vertical and the
+- [x] The net crosses the long axis: in landscape it stands vertical and the
       halves lie left and right. `NetLine` from `PadelDesign` turned, not
       redrawn
-- [ ] Ours is on the left by default and theirs on the right, both drawn on the
+- [x] Ours is on the left by default and theirs on the right, both drawn on the
       one surface with the net between them — `court-surface` 01 collapsed the
       two grounds into one and deleted the painted lines, so this draws the
       plain surface from the start. Which half is ours is said by position and
       by the net. The screen names no color of its own
-- [ ] A tap on a half records a rally for that side, and the journal is in the
+- [x] A tap on a half records a rally for that side, and the journal is in the
       store before the digits change
-- [ ] The points are the largest thing on the screen, from the `.score` ramp
+- [x] The points are the largest thing on the screen, from the `.score` ramp
       entry, with the games beside them and the sets at the half's outer edge —
       the arrangement `ScoreView` argues for, rotated
-- [ ] The ball sits in a corner of the serving half and the corner says which
+- [x] The ball sits in a corner of the serving half and the corner says which
       half of the court is served from, mirrored between the two sides so a
       serve reads as a diagonal. The golden point puts it mid-edge, saying who
       serves and no longer from where
-- [ ] Mirroring the board swaps which side is drawn left, the ball's corners
+- [x] Mirroring the board swaps which side is drawn left, the ball's corners
       with it, and is remembered for the length of the match only
-- [ ] A quiet strip along the top: the ruleset in words, the match duration, and
+- [x] A quiet strip along the top: the ruleset in words, the match duration, and
       the way out
-- [ ] Controls along the bottom over a scrim: undo, mirror the board, end the
+- [x] Controls along the bottom over a scrim: undo, mirror the board, end the
       match. "End" asks for confirmation, as the watch's control page does
-- [ ] No control steals a tap from a half, and no half swallows a control
-- [ ] The screen asks for landscape on the way in with `requestGeometryUpdate`
+- [x] No control steals a tap from a half, and no half swallows a control
+- [x] The screen asks for landscape on the way in with `requestGeometryUpdate`
       and lets go on the way out
-- [ ] The idle timer is disabled while the scoreboard is up and restored when it
+- [x] The idle timer is disabled while the scoreboard is up and restored when it
       leaves
-- [ ] Every mutation — record, undo, abandon — sits in one cluster of
+- [x] Every mutation — record, undo, abandon — sits in one cluster of
       `private func`s that persist after changing, the way `MatchView` does on
       the watch. Nothing else in the file writes to the store
-- [ ] VoiceOver: each half is a button labelled by what tapping it does, valued
+- [x] VoiceOver: each half is a button labelled by what tapping it does, valued
       with the score it shows, with undo as a custom action — `ScoreView`'s
       pattern, and its reasons
-- [ ] Previews: both rulesets, a tiebreak, a golden point, two sets, mirrored
+- [x] Previews: both rulesets, a tiebreak, a golden point, two sets, mirrored
       and not, both languages
-- [ ] The strings are in `Shared/Localizable.xcstrings`, English as the source
+- [x] The strings are in `Shared/Localizable.xcstrings`, English as the source
 
 ## The corners
 
@@ -84,3 +84,27 @@ interface.
 board's own taps come through one door. Keeping the writes together here is the
 only thing this ticket does to make that a move rather than a rewrite — it is
 not a reason to build an abstraction now.
+
+## Comments
+
+All fifteen criteria are met. `ScoreboardView.swift` is the screen; `NetLine`
+took an `Axis` so the net could be turned rather than redrawn.
+
+**Three departures, each in the PR for the owner to rule on.**
+`requestGeometryUpdate` is silently refused on its own, so an `AppDelegate`
+holds the orientation while the board is up — without it the criterion is a
+no-op. The End confirmation is an `alert`, because in landscape the watch's
+`confirmationDialog` drops its cancel and leaves "End" standing alone. The
+ball's 108 from each end is measured against the strip and the controls, not
+turned off the board, which gives that number for the other axis.
+
+**One thing left open.** Leaving the board lands on the history with its large
+title collapsed, until the list is pulled down or the app relaunches. The cause
+is a stale scroll offset the landscape trip leaves behind; three fixes failed
+and the one that works trades away a deliberately scrolled list. Not a
+criterion here, and it is the owner's call —
+`.scratch/phone-scoring/issues/06-the-history-comes-home-collapsed.md`.
+
+**`code-review` raised six judgment calls that were left alone**, the largest
+being that `ScoreZone` repeats the watch's accessibility triple and wants one
+home. They are listed in the PR.

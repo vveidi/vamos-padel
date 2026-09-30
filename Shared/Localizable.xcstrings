@@ -220,6 +220,16 @@
         }
       }
     },
+    "Back to your matches" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "К списку матчей"
+          }
+        }
+      }
+    },
     "By points" : {
       "localizations" : {
         "ru" : {
@@ -481,6 +491,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Матч не доигран"
+          }
+        }
+      }
+    },
+    "Mirror" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отразить"
+          }
+        }
+      }
+    },
+    "Mirror the board" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поменять стороны местами"
           }
         }
       }
@@ -871,12 +901,32 @@
         }
       }
     },
+    "Time played" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время матча"
+          }
+        }
+      }
+    },
     "Try again" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Попробовать снова"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить"
           }
         }
       }

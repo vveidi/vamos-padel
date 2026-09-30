@@ -3,9 +3,12 @@ import PadelDelivery
 import PadelStorage
 import PadelStorageDatabase
 import SwiftUI
+import UIKit
 
 @main
 struct PadelApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
     private let store: any MatchStore
 
     /// Held for as long as the app: nothing reads it, and letting it go would
@@ -39,6 +42,21 @@ struct PadelApp: App {
                 // sheet — a white ground inside a night screen.
                 .preferredColorScheme(.dark)
         }
+    }
+}
+
+/// Where the app answers what it may be turned to. UIKit asks on every
+/// rotation and again on a geometry request, and it refuses a request for an
+/// orientation the answer does not name.
+@MainActor
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    /// Narrowed to landscape by the scoreboard for as long as it is up.
+    static var orientations = UIInterfaceOrientationMask.allButUpsideDown
+
+    nonisolated func application(
+        _ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        MainActor.assumeIsolated { Self.orientations }
     }
 }
 

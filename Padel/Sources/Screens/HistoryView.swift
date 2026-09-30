@@ -15,6 +15,8 @@ struct HistoryView: View {
 
     @State private var isStarting = false
 
+    @State private var running: SavedMatch?
+
     init(store: any MatchStore) {
         self.store = store
     }
@@ -27,7 +29,7 @@ struct HistoryView: View {
                 .background { ground }
                 .navigationTitle("History")
                 .navigationDestination(isPresented: $isStarting) {
-                    NewMatchView(store: store) { _ in isStarting = false }
+                    NewMatchView(store: store) { running = $0 }
                 }
                 .toolbar {
                     // Bare, because it is a label and not a control: iOS 26
@@ -41,6 +43,12 @@ struct HistoryView: View {
                         ToolbarItem(placement: .topBarTrailing) { count }
                     }
                 }
+        }
+        // The new match screen stays on the stack under the cover and is popped
+        // as it goes, so leaving the board lands on the history and not on the
+        // rules that started it.
+        .fullScreenCover(item: $running, onDismiss: { isStarting = false }) { match in
+            ScoreboardView(match: match, store: store) { running = nil }
         }
         .task(id: attempt) { await watch() }
     }

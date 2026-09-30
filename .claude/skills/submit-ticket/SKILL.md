@@ -56,11 +56,17 @@ case-sensitive thing in the spec.
 
 The part of the repo the ticket is about:
 
-    scoring  storage  delivery  design    the packages
-    watch    phone                        the app targets
-    docs                                  CONTEXT.md, docs/adr, docs/agents, docs/design
-    board                                 .scratch/
-    project                               Padel.xcodeproj and the build settings
+    scoring  storage  delivery              the packages
+    design                                  PadelDesign, docs/design, the app icon
+    watch    phone                          the app targets
+    docs                                    CONTEXT.md, docs/adr, docs/agents
+    board                                   .scratch/
+    project                                 Padel.xcodeproj and the build settings
+
+`design` is the design system wherever it lives — the package, the boards and
+studies beside it, and the artwork both targets ship. It is not `docs`, even
+though half of it sits under `docs/`: a change there is a design decision that
+happens to be written down, not documentation about something else.
 
 Touching several, name the one the ticket is about. Genuinely spanning
 everything, leave the scope out — the spec makes it optional.

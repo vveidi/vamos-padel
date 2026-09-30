@@ -11,7 +11,7 @@ It lives in `docs/` rather than under `.scratch/` because the tracker holds
 work in flight and is emptied as features close, while a board outlives the
 ticket that reads it.
 
-Beside them sits one **study** — a page that is not an artboard and is not in
+Beside them sit two **studies** — pages that are not artboards and are not in
 the canvas. See "The studies" below.
 
 `padel-night-court.html` renders the canvas and is not in git: it is the seeded
@@ -71,6 +71,7 @@ drawn, because there was no phone scoring to undo. They are in scope now.
 ## The studies
 
     RallyMark.html   the rally mark, and the four candidates it beat — ADR-0011
+    AppIcon.html     the app icon, the candidate it beat, and the icon it replaced
 
 A study is not a board. A board draws a screen that has not been built and is
 deleted the day it ships; a study answers one question that several screens will

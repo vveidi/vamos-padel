@@ -183,11 +183,20 @@ by whoever is about to write the line back.
 ```
 01  the one surface
 02  the icon
+03  the icon's ADR
+04  ADR-0011 stops contradicting the court
 ```
 
 01 depends on nothing. 02 depends on nothing either — the icon is drawn against
 the same blue but touches none of the same files — though 01 going first means
 the icon is chosen next to a court that already looks the way it will ship.
+
+03 and 04 are the paper this feature owes. 03 waits on 02, because an ADR for the
+icon cites the study 02 writes. 04 waits on nothing: it corrects the two
+sentences in ADR-0011 that 01 made wrong and then flagged rather than rewrote,
+per `docs/agents/domain.md`. Both exist because `.scratch/` is emptied when a
+feature closes, and both arguments currently live only in closing notes that go
+with it.
 
 Both go ahead of `rally-mark`, `phone-scoring` 04 and `watch-tap-mode` 04, all of
 which draw this surface.

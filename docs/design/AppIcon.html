@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The icon — two candidates</title>
+<style>
+  :root {
+    --night: #04181F;
+    --ball: #DDF35C;
+    --ink: #EEF7F5;
+  }
+
+  html { background: var(--night); }
+
+  body {
+    margin: 0;
+    padding: 56px 40px 120px;
+    background: var(--night);
+    color: var(--ink);
+    font: 15px/1.6 ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet { max-width: 1120px; margin: 0 auto; }
+
+  h1 { font-size: 30px; font-weight: 640; letter-spacing: -0.4px; margin: 0 0 4px; }
+  h2 { font-size: 20px; font-weight: 620; letter-spacing: -0.2px; margin: 56px 0 14px; }
+  h3 { font-size: 15px; font-weight: 620; margin: 26px 0 6px; }
+
+  p { margin: 0 0 12px; max-width: 68ch; color: rgba(238, 247, 245, 0.82); }
+  p.lede { color: rgba(238, 247, 245, 0.7); }
+  strong { color: var(--ink); font-weight: 620; }
+  em { color: var(--ball); font-style: normal; font-weight: 600; }
+
+  code {
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(238, 247, 245, 0.08);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* --- The size rows ------------------------------------------------- */
+
+  .row {
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
+    padding: 26px 0;
+    border-top: 1px solid rgba(238, 247, 245, 0.12);
+  }
+
+  .row.hero { align-items: flex-start; }
+
+  .row-label {
+    flex: 0 0 96px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 620;
+    color: rgba(238, 247, 245, 0.55);
+    padding-bottom: 4px;
+  }
+
+  .row.decisive .row-label { color: var(--ball); }
+
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+  .cell .name {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: rgba(238, 247, 245, 0.45);
+  }
+
+  /* 22.37% of the side is iOS's own icon corner radius. */
+  .tile { border-radius: 22.37%; overflow: hidden; display: block; }
+  .tile.px1024 { width: 1024px; height: 1024px; }
+  .tile.px180 { width: 180px; height: 180px; }
+  .tile.px80 { width: 80px; height: 80px; }
+  .tile.px29 { width: 29px; height: 29px; }
+
+  .note {
+    margin-top: 10px;
+    padding: 14px 16px;
+    border-left: 2px solid var(--ball);
+    background: rgba(221, 243, 92, 0.05);
+    max-width: 68ch;
+  }
+  .note p:last-child { margin-bottom: 0; }
+
+  .verdict {
+    margin: 22px 0 0;
+    padding: 18px 20px;
+    border: 1px solid rgba(238, 247, 245, 0.16);
+    border-radius: 12px;
+    background: rgba(23, 64, 111, 0.28);
+    max-width: 68ch;
+  }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* --- Export mode: one tile, 1024 square, no page chrome ------------- */
+
+  body.export {
+    padding: 0;
+    background: transparent;
+  }
+  body.export .sheet > * { display: none; }
+  body.export .export-stage { display: block; }
+  .export-stage { display: none; }
+  .export-stage .tile { border-radius: 0; }
+</style>
+</head>
+<body>
+
+<!--
+  Exported with: Chrome --headless --screenshot --window-size=1024,1024
+  'AppIcon.html?export=a'. Both candidates are vector, so every row here is
+  the artwork the export writes rather than a resampled copy of it.
+-->
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+
+    <!-- The court's weave. The app draws 2pt stripes on a 6pt period; at icon
+         scale that density moirés on the 29pt row, so the period is 30 units
+         in 1024 — the same 1-on-2-off rhythm, read at an icon's distance. -->
+    <pattern id="weave" width="30" height="30" patternUnits="userSpaceOnUse"
+             patternTransform="rotate(25)">
+      <rect width="10" height="30" fill="#FFFFFF" fill-opacity="0.03"/>
+    </pattern>
+
+    <!-- Floodlight: the token's own falloff — 0.14 at the corner, gone by 0.62
+         of the reach. Elliptical in the app; on a square icon that is a circle. -->
+    <radialGradient id="flood" cx="1" cy="0" r="1">
+      <stop offset="0" stop-color="#FFF8D6" stop-opacity="0.14"/>
+      <stop offset="0.62" stop-color="#FFF8D6" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="flood-b" cx="1" cy="0" r="1">
+      <stop offset="0" stop-color="#FFF8D6" stop-opacity="0.17"/>
+      <stop offset="0.62" stop-color="#FFF8D6" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="flood-tinted" cx="1" cy="0" r="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="0.62" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- The near glass catching that light, across the panel rather than from
+         a point: glass returns a sheet of light, not a hotspot. -->
+    <linearGradient id="glass-sheen" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF8D6" stop-opacity="0.20"/>
+      <stop offset="0.55" stop-color="#FFF8D6" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#FFF8D6" stop-opacity="0.015"/>
+    </linearGradient>
+
+    <linearGradient id="glass-far" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF8D6" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#FFF8D6" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <filter id="ball-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="70" stdDeviation="41" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- In the ball's own 24-unit box, so both balls below clip against it. -->
+    <clipPath id="felt" clipPathUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="11"/>
+    </clipPath>
+
+    <!-- ===== Candidate A — the ball on the court ===================== -->
+    <symbol id="cand-a" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" fill="#17406F"/>
+      <rect width="1024" height="1024" fill="url(#weave)"/>
+      <rect width="1024" height="1024" fill="url(#flood)"/>
+
+      <!-- ``Ball``'s box at 46% of the icon; the felt it draws inside that box
+           is r11 of 24, so the disc itself lands at 42%. -->
+      <g filter="url(#ball-shadow)">
+        <svg x="276.5" y="276.5" width="471" height="471" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="11" fill="#DDF35C"/>
+          <!-- The seams' round caps sit a unit proud of the felt: nothing at
+               10pt in a score corner, four dark nubs at 1024. -->
+          <g fill="none" stroke="#142812" stroke-opacity="0.4"
+             stroke-width="1.5" stroke-linecap="round" clip-path="url(#felt)">
+            <path d="M3.6 4.3 c 3.9 3 3.9 12.4 0 15.4"/>
+            <path d="M20.4 4.3 c -3.9 3 -3.9 12.4 0 15.4"/>
+          </g>
+        </svg>
+      </g>
+    </symbol>
+
+    <!-- ===== A, drawn for the tinted slot ============================= -->
+    <!-- Ground at 0.15 rather than the 0.24 a straight desaturation of A
+         gives, so iOS's re-tint lands on the ball and not on the whole tile. -->
+    <symbol id="cand-a-tinted" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" fill="#242424"/>
+      <rect width="1024" height="1024" fill="url(#weave)"/>
+      <rect width="1024" height="1024" fill="url(#flood-tinted)"/>
+
+      <g filter="url(#ball-shadow)">
+        <svg x="276.5" y="276.5" width="471" height="471" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="11" fill="#F0F0F0"/>
+          <g fill="none" stroke="#5A5A5A" stroke-opacity="0.75"
+             stroke-width="1.5" stroke-linecap="round" clip-path="url(#felt)">
+            <path d="M3.6 4.3 c 3.9 3 3.9 12.4 0 15.4"/>
+            <path d="M20.4 4.3 c -3.9 3 -3.9 12.4 0 15.4"/>
+          </g>
+        </svg>
+      </g>
+    </symbol>
+
+    <!-- ===== Candidate B — the court from a high corner =============== -->
+    <!-- Axonometric rather than a vanishing point: a 20x10m court projected
+         as P(u,v) = (512 + (u - v - 5)*27, 560 + (u + v - 15)*19), with 22
+         units to the metre vertically. A graphic, not a photograph, and the
+         projection is the one thing here that could be recomputed. -->
+    <symbol id="cand-b" viewBox="0 0 1024 1024">
+      <rect width="1024" height="1024" fill="#04181F"/>
+
+      <!-- The projection lands the court 810 wide and centred on y 524; this
+           sits it on the tile's own centre and fills as much of it as the
+           diamond can without the corners running off the mask. -->
+      <g transform="translate(512 512) scale(1.2) translate(-512 -524)">
+
+      <!-- The floor, and the white lines a real court has and the app does not
+           draw: the outline, both service lines, the centre service line. -->
+      <g>
+        <path d="M377 275 L917 655 L647 845 L107 465 Z" fill="#17406F"/>
+        <path d="M377 275 L917 655 L647 845 L107 465 Z" fill="url(#weave)"/>
+        <g stroke="#EEF7F5" stroke-opacity="0.82" fill="none" stroke-linejoin="round">
+          <path d="M377 275 L917 655 L647 845 L107 465 Z" stroke-width="5"/>
+          <path d="M458 332 L188 522" stroke-width="4"/>
+          <path d="M836 598 L566 788" stroke-width="4"/>
+          <path d="M323 427 L701 693" stroke-width="3.6"/>
+        </g>
+      </g>
+
+      <!-- The two far walls, 3m of glass standing off the far edges. -->
+      <g>
+        <path d="M377 275 L107 465 L107 393 L377 203 Z" fill="url(#glass-far)"/>
+        <path d="M377 275 L917 655 L917 583 L377 203 Z" fill="url(#glass-far)"/>
+      </g>
+
+      <!-- The net, across the middle: 0.92m, so 20 units at this scale. -->
+      <g>
+        <path d="M647 465 L377 655 L377 635 L647 445 Z" fill="#EEF7F5" fill-opacity="0.12"/>
+        <path d="M647 445 L377 635" stroke="#EEF7F5" stroke-opacity="0.92" stroke-width="6"/>
+      </g>
+
+      <!-- The two near walls. The glass is what makes this padel rather than
+           tennis, and the court reads through it because it is glass. -->
+      <g>
+        <path d="M107 465 L647 845 L647 773 L107 393 Z" fill="#FFFFFF" fill-opacity="0.05"/>
+        <path d="M107 465 L647 845 L647 773 L107 393 Z" fill="url(#glass-sheen)"/>
+        <path d="M917 655 L647 845 L647 773 L917 583 Z" fill="#FFFFFF" fill-opacity="0.05"/>
+        <path d="M917 655 L647 845 L647 773 L917 583 Z" fill="url(#glass-sheen)"/>
+      </g>
+
+      <!-- The frame: the top rail all the way round, and the six posts. -->
+      <g stroke="#0A2030" stroke-opacity="0.95" fill="none" stroke-linecap="square">
+        <path d="M377 203 L917 583 L647 773 L107 393 Z" stroke-width="7"/>
+        <path d="M377 275 L377 203 M917 655 L917 583 M647 845 L647 773
+                 M107 465 L107 393 M647 465 L647 393 M377 655 L377 583"
+              stroke-width="7"/>
+      </g>
+      <path d="M377 203 L917 583" stroke="#FFF8D6" stroke-opacity="0.20" stroke-width="2.5"/>
+      <path d="M107 393 L647 773" stroke="#FFF8D6" stroke-opacity="0.16" stroke-width="2.5"/>
+
+      </g>
+
+      <rect width="1024" height="1024" fill="url(#flood-b)"/>
+    </symbol>
+
+  </defs>
+</svg>
+
+<div class="sheet">
+
+  <h1>The icon</h1>
+  <p class="lede">
+    Two candidates for the app icon, and the icon that ships today beside them.
+    This is a <strong>study</strong>, not a board: it keeps the loser, because a
+    decision with its rejected option thrown away is an assertion — see
+    <code>docs/design/README.md</code>.
+  </p>
+
+  <div class="note">
+    <p>
+      <strong>The current icon is not a third candidate.</strong> It draws two
+      court halves in two colors, the painted lines, and the net — all three of
+      which <code>court-surface</code> 01 removed from the app. It is here as the
+      thing being replaced and as the scale reference, not as an option.
+    </p>
+    <p>
+      It is kept beside this page as <code>icon-superseded.png</code> rather than
+      linked into the asset catalog, because the export in this same change
+      overwrote the catalog's copy: a study that points at a live file stops
+      showing what it was drawn to compare against the moment the file wins.
+    </p>
+  </div>
+
+  <div class="verdict">
+    <p><strong><em>A — the ball on the court — ships.</em></strong> Picked by the
+      owner at the 29pt row.</p>
+    <p>
+      <strong>Why B lost, and it was not for being the worse picture.</strong> At
+      1024 and at 180 B is the better drawing and the only one of the two that
+      says <em>padel</em>: the glass back wall is the one thing in the sport no
+      other racket sport has, and nothing else in this app draws it. It lost on
+      the row the study was built to settle. At 29 points the lines, the net, the
+      six posts and both panes are gone, and what is left is a dark lozenge — and
+      because its ground is <code>night</code>, the tile's own edge disappears
+      into a dark Settings list, so it does not even read as an icon. It was
+      enlarged to 1.2 of its projected size to give it the fairest shot at that
+      row, and it still failed there.
+    </p>
+    <p>
+      B's second cost was going to be paid forever: a perspective court is a
+      second drawing of a thing <code>PadelDesign</code> already owns, and no test
+      keeps it honest. That argued against it but did not decide it — a picture
+      good enough at 29pt would have been worth the maintenance.
+    </p>
+  </div>
+
+  <h2>At the four sizes</h2>
+  <p>
+    1024 is the export. 180 is the home screen at 3x, 80 is Spotlight, and 29 is
+    a Settings row. <strong>The 29pt row is where the decision is made</strong> —
+    everything above it is flattery.
+  </p>
+
+  <div class="row decisive">
+    <div class="row-label">29 pt</div>
+    <div class="cell">
+      <img class="tile px29" src="icon-superseded.png" alt="current icon at 29pt">
+      <div class="name">Current</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px29" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">A · ball</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px29" viewBox="0 0 1024 1024"><use href="#cand-b"/></svg>
+      <div class="name">B · glass</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="row-label">80 pt</div>
+    <div class="cell">
+      <img class="tile px80" src="icon-superseded.png" alt="current icon at 80pt">
+      <div class="name">Current</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px80" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">A · ball</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px80" viewBox="0 0 1024 1024"><use href="#cand-b"/></svg>
+      <div class="name">B · glass</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="row-label">180 pt</div>
+    <div class="cell">
+      <img class="tile px180" src="icon-superseded.png" alt="current icon at 180pt">
+      <div class="name">Current</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px180" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">A · ball</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px180" viewBox="0 0 1024 1024"><use href="#cand-b"/></svg>
+      <div class="name">B · glass</div>
+    </div>
+  </div>
+
+  <div class="row hero">
+    <div class="row-label">1024</div>
+    <div class="cell">
+      <img class="tile px1024" src="icon-superseded.png" alt="the superseded icon at 1024">
+      <div class="name">Current · the icon being replaced</div>
+    </div>
+  </div>
+
+  <div class="row hero">
+    <div class="row-label">1024</div>
+    <div class="cell">
+      <svg class="tile px1024" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">A · the ball on the court</div>
+    </div>
+  </div>
+
+  <div class="row hero">
+    <div class="row-label">1024</div>
+    <div class="cell">
+      <svg class="tile px1024" viewBox="0 0 1024 1024"><use href="#cand-b"/></svg>
+      <div class="name">B · the court from a high corner</div>
+    </div>
+  </div>
+
+  <h2>What the two are arguing about</h2>
+
+  <h3>A — the ball on the court</h3>
+  <p>
+    The app's own material and nothing else: <code>court</code> full bleed with
+    the weave, the <code>Ball</code> primitive at 46% with its two seam arcs, one
+    floodlight from the top-trailing corner. No net, no lines. Every value in it
+    is a token, and the ball is the same path <code>Ball.swift</code> strokes, so
+    the icon cannot drift from the app without someone editing both.
+  </p>
+  <p>
+    It reads at any size, because it is one round bright shape on one flat dark
+    field. What it does not say is <em>padel</em>. A yellow ball on a blue court
+    is every racket sport, and the App Store is where that distinction is worth
+    something.
+  </p>
+
+  <h3>B — the court from a high corner</h3>
+  <p>
+    The whole court in three-quarter perspective, seen from above one corner:
+    the near <strong>glass</strong> catching the floodlight, the frame's posts,
+    the net, and the white lines a real court has. No ball — the glass is what
+    makes it padel, and a ball on top of it is a second subject competing for the
+    same 29 points.
+  </p>
+  <p>
+    The glass back wall is the one thing in the sport that no other racket sport
+    has, and nothing else in this app draws it. That is B's whole case.
+  </p>
+  <p>
+    Its cost is real and is why this is a study and not a preference:
+    <strong>B is a second source of truth.</strong> The court exists in
+    <code>PadelDesign</code> as a top-down primitive; a perspective court is a
+    second drawing of the same thing, and no code keeps it honest. The day the
+    court's blue is re-tuned or a theme lands, the icon is a hand-edited file
+    that nobody's test will catch.
+  </p>
+  <p>
+    B also spends detail the small sizes cannot hold: four white lines, three
+    posts, a net and two panes of glass, all of which must survive being 29
+    points across. Whether it does is exactly what the top row is for.
+  </p>
+
+  <h2>The three slots the phone asks for</h2>
+
+  <div class="row">
+    <div class="row-label">180 pt</div>
+    <div class="cell">
+      <svg class="tile px180" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">Default</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px180" viewBox="0 0 1024 1024"><use href="#cand-a"/></svg>
+      <div class="name">Dark</div>
+    </div>
+    <div class="cell">
+      <svg class="tile px180" viewBox="0 0 1024 1024"><use href="#cand-a-tinted"/></svg>
+      <div class="name">Tinted</div>
+    </div>
+  </div>
+
+  <p>
+    <strong>Dark is byte-identical to the default, and that is the design.</strong>
+    The app pins <code>.dark</code> and has no light variant (ADR-0006), so there
+    is no second appearance for a second icon to answer. A different dark icon
+    would be answering a question the app does not ask.
+  </p>
+  <p>
+    <strong>Tinted is drawn, not desaturated.</strong> iOS grayscales this slot
+    and re-tints it by luminance, so the artwork has to carry its own value
+    separation. A straight desaturation of the default already separates — the
+    ball reads 0.892 against a 0.238 ground — but that ground is light enough to
+    take the tint across the whole tile. The shipped tinted file drops the ground
+    to 0.150 and lifts the ball to 0.941, a separation of <strong>0.791</strong>
+    against the default's 0.654, so the tint lands on the ball, which is the
+    figure at every other size too. Its maximum saturation is 0.000: it is
+    already gray, and the system's own desaturation has nothing left to remove.
+  </p>
+  <p>
+    Those are Rec. 709 luma, read off the two exported PNGs — not off the source
+    hexes, which omit the weave and the floodlight sitting on top of them. They
+    are means over a region rather than single pixels, because the weave alone
+    moves a point sample by about 0.03: the ball over its middle 164 units, the
+    ground over a 260 × 284 box in the bottom-leading corner, clear of the felt
+    and of the top-trailing floodlight.
+  </p>
+
+  <h2>What was drawn from what</h2>
+  <p>
+    Both candidates are vector and use the palette's own values —
+    <code>#17406F</code> court, <code>#04181F</code> night, <code>#DDF35C</code>
+    ball, <code>#142812</code> at 0.4 for the seams, <code>#FFF8D6</code> for the
+    light with the token's 0.14 → 0-by-0.62 falloff. A's ball is the 24-unit box
+    and the two curves from <code>Ball.swift</code>, scaled, not redrawn.
+  </p>
+  <p>
+    Two things are deliberately <em>not</em> faithful, and both are about size.
+    The weave runs on a 30-unit period rather than the app's 6pt one, because the
+    app's density moirés when an icon is resampled to 29 points. And B's court is
+    a drawing of a court, not <code>Court</code> — there is no primitive for a
+    perspective court, which is the cost named above.
+  </p>
+
+</div>
+
+<div class="export-stage">
+  <svg class="tile" width="1024" height="1024" viewBox="0 0 1024 1024"><use id="export-use"/></svg>
+</div>
+
+<script>
+  // ?export=a|b|a-tinted strips the page to one 1024 tile for the screenshot.
+  const which = new URLSearchParams(location.search).get("export");
+  if (["a", "b", "a-tinted"].includes(which)) {
+    document.body.classList.add("export");
+    document.getElementById("export-use").setAttribute("href", "#cand-" + which);
+  }
+</script>
+
+</body>
+</html>

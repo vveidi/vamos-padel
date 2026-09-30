@@ -265,6 +265,21 @@ The same goes for what a session builds on. A simulator, like this directory, is
 shared by every running session — see `docs/agents/targets.md` for the device a
 session makes for itself.
 
+## Writing a commit, and a pull request
+
+Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+— `<type>(<scope>): <description>`. The types, the scopes this repo uses and the
+shape of the PR body are in `.claude/skills/submit-ticket/SKILL.md`, which also
+does the work: closing the ticket, the commit, the PR and the handoff.
+
+**Five lines is the ceiling for a commit body**, the same ceiling the comments
+above get, and for the same reason. The diff says what changed; the body says
+why, when why is not obvious. Anything longer is an ADR.
+
+A pull request is read on a phone by the person deciding whether to merge it. It
+says what changed and what he has to decide, and nothing else — reasoning he
+cannot act on is noise, and the diff is one tap away.
+
 ## Session scope
 
 One ticket per session, one session per ticket — structurally now, since the

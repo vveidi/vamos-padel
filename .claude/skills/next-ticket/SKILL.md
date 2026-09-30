@@ -117,27 +117,14 @@ removed, because that tab will fail confusingly if the user types into it.
      in the PR body for the user to arbitrate. Do not quietly act on it and do
      not quietly drop it.
 
-10. **Close the ticket.** Tick the acceptance criteria, write the closing note
-    under `## Comments`, and set `Status: done` — all three, in the ticket file,
-    on your branch. The board on `main` only learns about it when the PR merges.
+10. **Hand it back — run the `submit-ticket` skill.** It owns the rest: closing
+    the ticket file, the one commit in Conventional Commits format, the pull
+    request, the "what to look at first" comment, and the reply in this tab.
+    Then stop.
 
-11. **Commit and open the PR.** One commit, in the repo's style: an imperative
-    subject, then prose saying what changed and what argued for it. Then:
-
-        git push -u origin <branch>
-        gh pr create --base main --title "<the commit subject>" --body "<below>"
-
-    The user merges this squashed, so **the PR title and body become the commit
-    message on `main`**. Write them as one: the subject imperative, the body the
-    prose that would have been the commit's, followed by anything that is true
-    forever — what departed from the ticket as written, what `code-review`
-    raised and what you did with each finding.
-
-12. **Post "what to look at first" as a PR comment**, not in the body. It is the
-    one part of the handoff that reads oddly as a commit message six months on.
-
-13. **Reply in the tab with the PR URL and one line.** The handoff is the PR
-    now; the user reads it on a phone. Then stop.
+    Its rule is worth knowing before you get there, because it decides what you
+    write down along the way: the owner reads the PR on a phone, and he needs
+    what changed and what he has to decide. Reasoning he cannot act on is noise.
 
 ## A fix round
 
@@ -147,11 +134,10 @@ GitHub, whatever the user typed:
     gh pr view --comments
     gh api repos/{owner}/{repo}/pulls/<n>/comments
 
-Fold those together with anything in the user's message, fix them, drive
-anything that touched a screen again, and commit. Push to the same branch, then
-**reply to each thread you addressed** with one line saying what you did. Do not
-resolve them — resolving is the reviewer's verb, and a thread you resolve is one
-the user never sees again.
+Fold those together with anything in the user's message, fix them, and drive
+anything that touched a screen again. The `submit-ticket` skill's **A fix
+round** covers the rest — the commit's format, the push, and replying to each
+thread without resolving it.
 
 Then stop. Do not take another ticket: this session has one.
 

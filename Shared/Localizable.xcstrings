@@ -105,59 +105,6 @@
         }
       }
     },
-    "%lld points" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld point"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld points"
-                }
-              }
-            }
-          }
-        },
-        "ru" : {
-          "variations" : {
-            "plural" : {
-              "few" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очка"
-                }
-              },
-              "many" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очков"
-                }
-              },
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очко"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очка"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld sets" : {
       "localizations" : {
         "en" : {
@@ -256,17 +203,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Классический"
-          }
-        }
-      }
-    },
-    "Classic scoring" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Классический счёт"
           }
         }
       }
@@ -595,17 +531,6 @@
         }
       }
     },
-    "Point scoring" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Счёт по очкам"
-          }
-        }
-      }
-    },
     "Point to the opponents" : {
       "localizations" : {
         "ru" : {
@@ -657,7 +582,6 @@
       }
     },
     "Rules" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {

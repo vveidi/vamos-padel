@@ -35,6 +35,7 @@ rather than two.
 - **`CourtMetrics` holds thicknesses and no proportions.** The one proportion it
   used to hold was the service line's, and it was deleted along with the shape
   it was measured in.
-- **ADR-0011's closing warning is sharper than it reads there.** The rally mark
-  brightens a surface whose color is the only thing saying whose surface it is,
-  and with the lines gone there is nothing else on the half to carry that.
+- **ADR-0011's warning about the mark and a half's identity is retired rather
+  than inherited.** It was that the rally mark brightens the surface whose color
+  says whose half it is. Position and the net say that now, and no theme reaches
+  either, so the mark has nothing left to dilute.

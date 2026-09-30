@@ -28,11 +28,6 @@ struct PluralFormsTests {
         #expect(reading.matches(Catalog.text("\(reading.number) sets", in: reading.language)))
     }
 
-    @Test("N points", arguments: Reading.points)
-    func points(_ reading: Reading) {
-        #expect(reading.matches(Catalog.text("\(reading.number) points", in: reading.language)))
-    }
-
     @Test("First to N sets", arguments: Reading.matchToSets)
     func matchToSets(_ reading: Reading) {
         #expect(
@@ -107,16 +102,6 @@ extension Reading {
             + spread(.en, 2...3, { "Classic scoring · \($0) sets" })
             + spread(.ru, 1...1, { "Классический счёт · \($0) сет" })
             + spread(.ru, 2...3, { "Классический счёт · \($0) сета" })
-
-    static let points: [Reading] =
-        spread(.en, 5...40, { "\($0) points" })
-            + spread(.ru, 5...20, { "\($0) очков" })
-            + spread(.ru, 21...21, { "\($0) очко" })
-            + spread(.ru, 22...24, { "\($0) очка" })
-            + spread(.ru, 25...30, { "\($0) очков" })
-            + spread(.ru, 31...31, { "\($0) очко" })
-            + spread(.ru, 32...34, { "\($0) очка" })
-            + spread(.ru, 35...40, { "\($0) очков" })
 
     static let sets: [Reading] =
         spread(.en, 0...0, { "\($0) sets" })

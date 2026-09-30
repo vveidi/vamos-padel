@@ -105,59 +105,6 @@
         }
       }
     },
-    "%lld points" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld point"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld points"
-                }
-              }
-            }
-          }
-        },
-        "ru" : {
-          "variations" : {
-            "plural" : {
-              "few" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очка"
-                }
-              },
-              "many" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очков"
-                }
-              },
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очко"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld очка"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld sets" : {
       "localizations" : {
         "en" : {
@@ -220,6 +167,16 @@
         }
       }
     },
+    "Back to your matches" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "К списку матчей"
+          }
+        }
+      }
+    },
     "By points" : {
       "localizations" : {
         "ru" : {
@@ -246,17 +203,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Классический"
-          }
-        }
-      }
-    },
-    "Classic scoring" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Классический счёт"
           }
         }
       }
@@ -485,6 +431,26 @@
         }
       }
     },
+    "Mirror" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отразить"
+          }
+        }
+      }
+    },
+    "Mirror the board" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поменять стороны местами"
+          }
+        }
+      }
+    },
     "New match" : {
       "localizations" : {
         "ru" : {
@@ -565,17 +531,6 @@
         }
       }
     },
-    "Point scoring" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Счёт по очкам"
-          }
-        }
-      }
-    },
     "Point to the opponents" : {
       "localizations" : {
         "ru" : {
@@ -627,7 +582,6 @@
       }
     },
     "Rules" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ru" : {
           "stringUnit" : {
@@ -871,12 +825,32 @@
         }
       }
     },
+    "Time played" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время матча"
+          }
+        }
+      }
+    },
     "Try again" : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Попробовать снова"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отменить"
           }
         }
       }

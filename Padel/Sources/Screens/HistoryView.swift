@@ -11,10 +11,6 @@ struct HistoryView: View {
 
     @State private var attempt = 0
 
-    @State private var isMatchRunning = false
-
-    @State private var isStarting = false
-
     init(store: any MatchStore) {
         self.store = store
     }
@@ -23,12 +19,8 @@ struct HistoryView: View {
         NavigationStack {
             what
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .safeAreaInset(edge: .bottom) { newMatch }
                 .background { ground }
                 .navigationTitle("History")
-                .navigationDestination(isPresented: $isStarting) {
-                    NewMatchView(store: store) { _ in isStarting = false }
-                }
                 .toolbar {
                     // Bare, because it is a label and not a control: iOS 26
                     // stands every bar item on a glass capsule, and a count
@@ -58,19 +50,6 @@ struct HistoryView: View {
             Text("\(matches.count) matches")
                 .textStyle(.caption)
                 .foregroundStyle(.ink.weight(.tertiary))
-        }
-    }
-
-    // MARK: The way into a match
-
-    @ViewBuilder private var newMatch: some View {
-        if case .known = history, !isMatchRunning {
-            PillButton(Text("New match"), carriesBall: true) { isStarting = true }
-                .padding(.horizontal, Board.inset)
-                .background {
-                    LinearGradient(gradient: .nightScrim, startPoint: .top, endPoint: .bottom)
-                        .ignoresSafeArea()
-                }
         }
     }
 
@@ -147,13 +126,6 @@ struct HistoryView: View {
         do {
             for try await matches in store.matchesObserved() {
                 history = .known(matches)
-
-                // The last match played and not any unfinished one, which is
-                // `matchInProgress()`'s own rule: a match left at 3:2 a month
-                // ago must not take the button away for good.
-                isMatchRunning =
-                    matches.max { $0.lastRallyAt < $1.lastRallyAt }
-                        .map { !$0.match.state.outcome.isOver } ?? false
             }
         } catch {
             logger.error("the history stopped arriving: \(error.localizedDescription)")

@@ -127,7 +127,7 @@ sources are grouped by what the player is doing at the time:
                                Match/     the match while it runs, and how it ends
                                Workout/   the workout the match runs inside
 
-    Padel/Sources/             App/       the entry point, the store and reception
+    Padel/Sources/             App/       the entry point, the store, reception and the two tabs
                                Screens/   the history, its rows and the match card
 
 `MatchWording.swift` and `MatchFixtures.swift` sit at `Padel/Sources/`'s root

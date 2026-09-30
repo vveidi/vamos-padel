@@ -35,7 +35,7 @@ struct PadelApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HistoryView(store: store)
+            RootView(store: store)
                 // The app is one court at dusk and there is no second design
                 // for noon (ADR-0006). A phone set to light would otherwise
                 // hand the system's own views — a navigation bar, a spinner, a

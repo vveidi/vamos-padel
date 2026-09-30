@@ -105,6 +105,12 @@ and the one that works trades away a deliberately scrolled list. Not a
 criterion here, and it is the owner's call —
 `.scratch/phone-scoring/issues/06-the-history-comes-home-collapsed.md`.
 
+**The way in changed after the first review round.** The history's "New match"
+pill hid itself while a match was unfinished, which left the screen with no way
+to start one. The owner asked for a tab bar instead: `RootView` now holds a New
+match tab and a History tab, and the board is presented over both. No criterion
+here names the way in, and the ticket's own are unaffected.
+
 **`code-review` raised six judgment calls that were left alone**, the largest
 being that `ScoreZone` repeats the watch's accessibility triple and wants one
 home. They are listed in the PR.

@@ -6,7 +6,7 @@ tile's four grounds redrawn on top of it.
 
 **Blocked by:** None
 
-**Status:** done
+**Status:** ready-for-human
 
 - [x] `Color.court` is `#17406F` and replaces `theirHalf` and `ourHalf`, which are
       deleted. Its doc comment says the court is one color because a court is one
@@ -112,8 +112,8 @@ from a canvas: it is an Always-On question and answers only on a watch.
 
 ## Comments
 
-Built and closed, with one criterion left open and three things for the owner to
-arbitrate.
+Built and merged, with one criterion left open and three things for the owner to
+arbitrate. Not closed — see the status correction at the end.
 
 **What shipped.** `Color.court` (`#17406F`), `Color.courtInk` (`#E6EEF8`) and
 `Color.courtLit` (`#2C70AE`) replace the six per-half tokens. `courtSurface`,
@@ -191,3 +191,11 @@ trimmed. Left for the owner as judgment calls: that `CourtHalf` now takes no
 argument and draws no half (the ticket required the name), that `CourtTile.tint`
 keeps a word the rest of the change retired for "ground", and the repeated
 `MatchOutcome` switches.
+
+**Status corrected, 2026-09-30.** This was set to `done` at 19/20.
+`triage-labels.md` and `issue-tracker.md` both make `done` conditional on *every*
+criterion being checked off, so a ticket holding an open one cannot carry it:
+`done` is terminal, and a terminal label on unfinished work is how the work stops
+being visible. It is `ready-for-human` until `CourtDimming.surface` is seen on a
+wrist. The nineteen built criteria are on `main` regardless — the label describes
+what is left, not what shipped.

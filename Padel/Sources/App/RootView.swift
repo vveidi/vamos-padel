@@ -14,6 +14,19 @@ struct RootView: View {
     }
 
     var body: some View {
+        ZStack {
+            if let running {
+                ScoreboardView(match: running, store: store, onLeave: leave)
+                    .transition(.opacity)
+            } else {
+                tabs
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: crossFade), value: running?.id)
+    }
+
+    private var tabs: some View {
         TabView(selection: $tab) {
             Tab("New match", systemImage: "plus.circle", value: Screen.newMatch) {
                 NavigationStack {
@@ -26,14 +39,12 @@ struct RootView: View {
             }
         }
         .tint(.ball)
-        // Over the bar as well as the screens, so the board keeps the whole
-        // display while it holds the phone in landscape.
-        .fullScreenCover(item: $running) { match in
-            ScoreboardView(match: match, store: store) {
-                running = nil
-                tab = .history
-            }
-        }
+    }
+
+    /// The tabs are built afresh here, so the history opens at the top.
+    private func leave() {
+        tab = .history
+        running = nil
     }
 
     private enum Screen {
@@ -41,6 +52,8 @@ struct RootView: View {
         case history
     }
 }
+
+private let crossFade: TimeInterval = 0.25
 
 #if DEBUG
 

@@ -16,4 +16,5 @@ The app does not turn the phone. The player does, and the board follows with the
 - **One frame for the ball's corners.** Stacked, the corners are the watch's (ADR-0013) unturned: our right at screen trailing, theirs at screen leading. Side by side is the same frame turned a quarter turn clockwise, and mirroring is a half turn of either. Nothing else converts a `ServingHalf` for the phone.
 - **Mirroring swaps top and bottom when stacked**, and the corners turn with it: mirrored, our serve from the right sits at the bottom leading corner of our half, by the net.
 - **VoiceOver reads ours, then theirs**, whichever half the arrangement draws first.
-- **The turn goes in `any-window` 02**, not here: until then the app still asks for landscape, and the stacked board is seen only where that request is refused.
+- **Nothing in the app asks for an orientation or narrows one.** The declared orientations are portrait and both landscapes, and the window the system gives is the one the board draws in.
+- **The board replaces the tabs at the root rather than covering them.** Nothing is laid out behind it, so nothing is laid out in a window the player is not looking at, and the history comes back built fresh, at the top.

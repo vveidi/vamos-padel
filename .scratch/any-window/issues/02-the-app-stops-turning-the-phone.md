@@ -5,24 +5,24 @@ orientation, and replaces the tabs instead of covering them.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Nothing in the app requests or narrows an orientation:
+- [x] Nothing in the app requests or narrows an orientation:
       `AppDelegate.orientations`, `supportedInterfaceOrientationsFor` and the
       board's `turn(to:)` are gone, and the `AppDelegate` with them if nothing
       else needs it
-- [ ] The declared orientations stay as they are: portrait and both landscapes
-- [ ] `RootView` shows either the tabs or the board, never one over the other,
+- [x] The declared orientations stay as they are: portrait and both landscapes
+- [x] `RootView` shows either the tabs or the board, never one over the other,
       and the change between them is a short cross-fade. The full-screen cover
       is gone
-- [ ] Leaving the board lands on the history, at the top, with its large title
+- [x] Leaving the board lands on the history, at the top, with its large title
       standing the way a fresh launch draws it
-- [ ] The idle timer is still held while the board is up and released when it
+- [x] The idle timer is still held while the board is up and released when it
       leaves
-- [ ] On a real iPhone: opening a match held upright shows the stacked board
+- [x] On a real iPhone: opening a match held upright shows the stacked board
       with no jump; turning the phone rotates it with the system's animation;
       leaving it never shows the history sideways
-- [ ] `docs/design/PhoneScore.dc.html` is deleted, with its entry in
+- [x] `docs/design/PhoneScore.dc.html` is deleted, with its entry in
       `canvas.json`, its section in `docs/design/README.md`, and the line in
       `CLAUDE.md` that says one board is left waiting on `phone-scoring`
 
@@ -37,3 +37,18 @@ here, on the device.
 **The history's scroll position does not survive a match**, and that is
 accepted: the tabs are rebuilt when the board leaves. The player left from New
 match, not from the history.
+
+## Comments
+
+**Done.** The `AppDelegate` and `turn(to:)` are gone. `RootView` swaps
+the tabs and the board with a 0.25 s cross-fade. The fade was filmed both ways
+on an iPhone 17 Pro simulator. Back and End both land on the history at the top
+with its title standing, in English and Russian and at the largest type size.
+That includes a history that was scrolled before the match.
+
+**The real-iPhone criterion was checked by the owner on a phone.** A turn
+stretched the net into a pale block across the court. The net is now a new
+view per axis, so it fades instead.
+
+The idle-timer criterion is ticked from the code, not from a test or a recording:
+`onAppear` and `onDisappear` still hold the timer and let it go.

@@ -248,34 +248,10 @@ struct ScoreboardView: View {
 
     private func takeTheScreen() {
         UIApplication.shared.isIdleTimerDisabled = true
-
-        turn(to: .landscape)
     }
 
     private func releaseTheScreen() {
         UIApplication.shared.isIdleTimerDisabled = false
-
-        turn(to: .allButUpsideDown)
-    }
-
-    /// The narrowing comes first and the request second: UIKit re-reads the
-    /// app's own answer when it is told to, and refuses a request for an
-    /// orientation that answer does not name.
-    private func turn(to orientations: UIInterfaceOrientationMask) {
-        AppDelegate.orientations = orientations
-
-        scene?.keyWindow?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
-
-        scene?.requestGeometryUpdate(.iOS(interfaceOrientations: orientations)) { error in
-            logger.error("the screen would not turn: \(error.localizedDescription)")
-        }
-    }
-
-    /// - Returns: `nil` in a preview, which runs in no scene of its own.
-    private var scene: UIWindowScene? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
     }
 }
 

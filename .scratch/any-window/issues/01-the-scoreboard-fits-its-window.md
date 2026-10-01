@@ -61,12 +61,11 @@ corners are one frame — the watch's, unturned when stacked, a quarter turn
 clockwise side by side, a half turn when mirrored. Side by side is unchanged.
 ADR-0015 records the reversal; `CONTEXT.md` and `docs/design/README.md` follow.
 
-**Two departures from the board.** Stacked, the three controls span the width,
-each at its own width plus an equal share of the rest, not the board's growing
-Undo beside a fixed End — the board draws no Mirror. And they shrink to one
-line rather than wrap: at the largest type in Russian they come down to about
-their default size (`controlMinimumScale` 0.3). The floodlight moves to our
-bottom trailing corner when stacked, as on the board and the watch.
+**Departures from the board.** At the owner's request the three controls are
+icons, not words: an undo arrow, two arrows across the net for Mirror, and the
+watch's `xmark` for End; VoiceOver still names each. Stacked they share the
+width equally; side by side they keep to the board's 118 apiece. The floodlight
+moves to our bottom trailing corner when stacked, as on the board and the watch.
 
 **Checked on reasoning, not by ear.** VoiceOver order is set with a sort
 priority inside a `.contain` container; no VoiceOver pass was run. The stacked

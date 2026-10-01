@@ -188,36 +188,27 @@ struct ScoreboardView: View {
 
     // MARK: The controls along the bottom
 
-    /// Side by side the three keep their own widths, centred under the net;
-    /// stacked they span the window, as the stacked board draws them.
-    @ViewBuilder
+    /// Stacked they span the window, as the stacked board draws them; side by
+    /// side they keep to the middle, under the net.
     private func controls(_ arrangement: Arrangement, safeArea: EdgeInsets) -> some View {
-        switch arrangement {
-        case .sideBySide:
-            HStack(spacing: Board.controlGap) { controlButtons }
-                .fixedSize(horizontal: true, vertical: false)
-                .padding(.bottom, safeArea.bottom + Board.controlInset)
+        HStack(spacing: Board.controlGap) {
+            PillButton(icon("arrow.uturn.backward"), variant: .quiet, action: undo)
+                .accessibilityLabel("Undo the last rally")
 
-        case .stacked:
-            SpanningRow(spacing: Board.controlGap) { controlButtons }
-                // One word a label, so a squeeze shrinks it rather than
-                // breaking "Завершить" across two lines.
-                .lineLimit(1)
-                .minimumScaleFactor(Board.controlMinimumScale)
-                .padding(.leading, safeArea.leading + Board.inset)
-                .padding(.trailing, safeArea.trailing + Board.inset)
-                .padding(.bottom, safeArea.bottom + Board.controlInset)
+            PillButton(icon(arrangement.mirrorSymbol), variant: .quiet) { isMirrored.toggle() }
+                .accessibilityLabel("Mirror the board")
+
+            PillButton(icon("xmark"), variant: .quiet) { isConfirmingEnd = true }
+                .accessibilityLabel("End")
         }
+        .frame(maxWidth: arrangement == .sideBySide ? Board.controlsWidth : .infinity)
+        .padding(.leading, safeArea.leading + Board.inset)
+        .padding(.trailing, safeArea.trailing + Board.inset)
+        .padding(.bottom, safeArea.bottom + Board.controlInset)
     }
 
-    @ViewBuilder private var controlButtons: some View {
-        PillButton(Text("Undo"), variant: .quiet, action: undo)
-            .accessibilityLabel("Undo the last rally")
-
-        PillButton(Text("Mirror"), variant: .quiet) { isMirrored.toggle() }
-            .accessibilityLabel("Mirror the board")
-
-        PillButton(Text("End"), variant: .quiet) { isConfirmingEnd = true }
+    private func icon(_ systemName: String) -> Text {
+        Text(Image(systemName: systemName))
     }
 
     // MARK: The writes
@@ -415,55 +406,6 @@ private struct ScoreZone: View {
     }
 }
 
-// MARK: - The stacked controls
-
-/// A row as wide as it is offered, each view at its own width plus an equal
-/// share of what is left. Short of room, all of them narrow by the same ratio.
-private struct SpanningRow: Layout {
-    let spacing: CGFloat
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let widths = widths(across: proposal.width, of: subviews)
-        let height = zip(subviews, widths)
-            .map { $0.sizeThatFits(ProposedViewSize(width: $1, height: proposal.height)).height }
-            .max() ?? 0
-
-        return CGSize(width: widths.reduce(0, +) + gaps(subviews), height: height)
-    }
-
-    func placeSubviews(
-        in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
-    ) {
-        var x = bounds.minX
-
-        for (subview, width) in zip(subviews, widths(across: bounds.width, of: subviews)) {
-            subview.place(
-                at: CGPoint(x: x, y: bounds.midY), anchor: .leading,
-                proposal: ProposedViewSize(width: width, height: bounds.height))
-
-            x += width + spacing
-        }
-    }
-
-    /// - Parameter width: `nil` asks for the ideal row, with nothing to share.
-    private func widths(across width: CGFloat?, of subviews: Subviews) -> [CGFloat] {
-        let ideal = subviews.map { $0.sizeThatFits(.unspecified).width }
-        let total = ideal.reduce(0, +)
-
-        guard let width, total > 0 else { return ideal }
-
-        let room = max(width - gaps(subviews), 0)
-
-        return room >= total
-            ? ideal.map { $0 + (room - total) / CGFloat(ideal.count) }
-            : ideal.map { $0 * room / total }
-    }
-
-    private func gaps(_ subviews: Subviews) -> CGFloat {
-        spacing * CGFloat(max(subviews.count - 1, 0))
-    }
-}
-
 // MARK: - The arrangement
 
 private enum CourtPiece: Hashable {
@@ -493,6 +435,14 @@ private enum Arrangement {
         switch self {
         case .sideBySide: AnyLayout(HStackLayout(spacing: 0))
         case .stacked: AnyLayout(VStackLayout(spacing: 0))
+        }
+    }
+
+    /// The halves swap across the net, so the arrows cross it.
+    var mirrorSymbol: String {
+        switch self {
+        case .sideBySide: "arrow.left.arrow.right"
+        case .stacked: "arrow.up.arrow.down"
         }
     }
 
@@ -621,10 +571,8 @@ private enum Board {
 
     static let controlGap: CGFloat = 10
 
-    /// Enough for the Russian labels three abreast on a portrait phone at the
-    /// largest type, where they come back to about their default size.
-    /// Measured on the simulator, not read off the board.
-    static let controlMinimumScale: CGFloat = 0.3
+    /// The board's 118 for End, three abreast with their gaps.
+    static let controlsWidth: CGFloat = 3 * 118 + 2 * controlGap
 
     /// The board's 34 from the foot of a portrait screen, where the home
     /// indicator takes none of it and the safe area here does.

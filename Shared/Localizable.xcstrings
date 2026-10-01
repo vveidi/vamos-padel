@@ -431,16 +431,6 @@
         }
       }
     },
-    "Mirror" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отразить"
-          }
-        }
-      }
-    },
     "Mirror the board" : {
       "localizations" : {
         "ru" : {
@@ -841,16 +831,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Попробовать снова"
-          }
-        }
-      }
-    },
-    "Undo" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отменить"
           }
         }
       }

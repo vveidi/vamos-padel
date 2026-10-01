@@ -1,6 +1,6 @@
 # Phone scoring: the phone scores a match of its own (v1)
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

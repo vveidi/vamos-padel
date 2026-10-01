@@ -51,11 +51,12 @@ pt), which is why the watch's `Board` enums halve every number they quote.
 
 ## What `PhoneScore.dc.html` says that the app will not do
 
-It is portrait, with the net horizontal and the halves stacked. The scoreboard
-`phone-scoring` builds is landscape, with the net vertical and the halves side
-by side. Both follow one rule — the net crosses the long axis — and the board is
-the reference for everything else on it: the scrim, the top strip, the corner
-ball, the bottom controls.
+It is portrait, with the net horizontal and the halves stacked — the
+scoreboard's arrangement in any window that is not wider than it is tall. A wide
+window turns it, the net vertical and the halves side by side. Both follow one
+rule — the net crosses the long axis (ADR-0015) — and the board is the reference
+for everything else on it: the scrim, the top strip, the bottom controls. Its
+ball is not: the corners are the watch's (ADR-0013).
 
 It also labels the halves "Them" and "Us". The watch's score screen decided
 otherwise and the phone follows it: which half is ours is said by where it is —

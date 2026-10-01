@@ -5,7 +5,7 @@ orientation, and replaces the tabs instead of covering them.
 
 **Blocked by:** 01
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Nothing in the app requests or narrows an orientation:
       `AppDelegate.orientations`, `supportedInterfaceOrientationsFor` and the
@@ -19,7 +19,7 @@ orientation, and replaces the tabs instead of covering them.
       standing the way a fresh launch draws it
 - [x] The idle timer is still held while the board is up and released when it
       leaves
-- [ ] On a real iPhone: opening a match held upright shows the stacked board
+- [x] On a real iPhone: opening a match held upright shows the stacked board
       with no jump; turning the phone rotates it with the system's animation;
       leaving it never shows the history sideways
 - [x] `docs/design/PhoneScore.dc.html` is deleted, with its entry in
@@ -40,15 +40,15 @@ match, not from the history.
 
 ## Comments
 
-**Built; 6/7.** The `AppDelegate` and `turn(to:)` are gone. `RootView` swaps
+**Done.** The `AppDelegate` and `turn(to:)` are gone. `RootView` swaps
 the tabs and the board with a 0.25 s cross-fade. The fade was filmed both ways
 on an iPhone 17 Pro simulator. Back and End both land on the history at the top
 with its title standing, in English and Russian and at the largest type size.
 That includes a history that was scrolled before the match.
 
-**Open: the real-iPhone criterion**, and `phone-scoring/06`'s first criterion
-with it. There is no device here, and the simulator cannot be turned by a
-script. The owner checks these on a phone, ticks the box and sets `done`.
+**The real-iPhone criterion was checked by the owner on a phone.** A turn
+stretched the net into a pale block across the court. The net is now a new
+view per axis, so it fades instead.
 
 The idle-timer criterion is ticked from the code, not from a test or a recording:
 `onAppear` and `onDisappear` still hold the timer and let it go.

@@ -174,19 +174,20 @@ delivered nowhere: it is written into the history as it is played.
 _Avoid_: synchronization, sync (this is not a two-way exchange)
 
 **Scoreboard**:
-The phone's landscape screen showing the running match: the court across the
-long axis, a half per side, both of them tapped to award a rally. It is what the
-players on the bench read, and it is the phone's screen alone — the watch's is
-the score screen, which is a different size and a different argument.
+The phone's screen showing the running match: the court across the long axis of
+its window, a half per side of the net, both of them tapped to award a rally —
+side by side in a wide window, one above the other in any other (ADR-0015). It
+is what the players on the bench read, and it is the phone's screen alone — the
+watch's is the score screen, which is a different size and a different argument.
 _Avoid_: score screen (that is the watch's), display, board
 
 **Mirroring the board**:
-Swapping which half of the scoreboard is drawn on which side, so that a phone
-lying on a bench can be read from where the players happen to be standing. A
-setting of one screen and nothing else: the sides keep their identity and their
-colors, and nothing is written down. It is emphatically not the change of ends
-that padel has after odd games — the app does not know which end anybody is
-standing at.
+Swapping which half of the scoreboard is drawn on which side of the net, so that
+a phone lying on a bench can be read from where the players happen to be
+standing. A setting of one screen and nothing else: the sides keep their
+identity and their colors, and nothing is written down. It is emphatically not
+the change of ends that padel has after odd games — the app does not know which
+end anybody is standing at.
 _Avoid_: swap sides, change of ends, switching sides
 
 **Tap mode**:

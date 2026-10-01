@@ -37,7 +37,11 @@ struct ScoreboardView: View {
         // ignores it, so the court bleeds while the words keep clear of the
         // sensor housing, which in landscape is inset from both long edges.
         GeometryReader { geometry in
-            board(safeArea: geometry.safeAreaInsets).ignoresSafeArea()
+            board(
+                Arrangement(window: geometry.size, safeArea: geometry.safeAreaInsets),
+                safeArea: geometry.safeAreaInsets
+            )
+            .ignoresSafeArea()
         }
         .background(Color.night)
         // An alert and not the watch's confirmation dialog, which in landscape
@@ -59,30 +63,43 @@ struct ScoreboardView: View {
         .onDisappear { releaseTheScreen() }
     }
 
-    private var leftSide: Side { isMirrored ? .them : .us }
-
-    private func board(safeArea: EdgeInsets) -> some View {
-        let state = saved.match.state
-
-        return HStack(spacing: 0) {
-            zone(leftSide, state, safeArea: safeArea)
-
-            NetLine(.vertical).zIndex(1)
-
-            zone(leftSide.opposite, state, safeArea: safeArea)
+    /// The half drawn first: the left one side by side, the top one stacked.
+    private func firstSide(in arrangement: Arrangement) -> Side {
+        switch arrangement {
+        case .sideBySide: isMirrored ? .them : .us
+        case .stacked: isMirrored ? .us : .them
         }
-        .overlay { Floodlight(corner: .bottomLeading, strength: Board.floodlight) }
+    }
+
+    private func board(_ arrangement: Arrangement, safeArea: EdgeInsets) -> some View {
+        let state = saved.match.state
+        let first = firstSide(in: arrangement)
+
+        // Identified by what they are rather than by their slot, so a rotation
+        // that changes which half comes first moves each half to its place
+        // instead of handing its slot to the other one.
+        return arrangement.layout {
+            ForEach([CourtPiece.half(first), .net, .half(first.opposite)], id: \.self) { piece in
+                switch piece {
+                case .half(let side): zone(side, state, arrangement, safeArea: safeArea)
+                case .net: NetLine(arrangement.net).zIndex(1)
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .overlay { Floodlight(corner: arrangement.floodlit, strength: Board.floodlight) }
         .overlay { NightScrim(edge: .top) }
         .overlay { NightScrim(edge: .bottom) }
         .overlay(alignment: .top) { strip(safeArea: safeArea) }
-        .overlay(alignment: .bottom) { controls(safeArea: safeArea) }
+        .overlay(alignment: .bottom) { controls(arrangement, safeArea: safeArea) }
     }
 
     // MARK: The two halves
 
-    private func zone(_ side: Side, _ state: MatchState, safeArea: EdgeInsets) -> some View {
-        let isOnTheLeft = side == leftSide
-        let netEdge: HorizontalAlignment = isOnTheLeft ? .trailing : .leading
+    private func zone(
+        _ side: Side, _ state: MatchState, _ arrangement: Arrangement, safeArea: EdgeInsets
+    ) -> some View {
+        let isFirst = side == firstSide(in: arrangement)
 
         return ScoreZone(
             side: side,
@@ -93,15 +110,14 @@ struct ScoreboardView: View {
             // stand there naming a serve that will not be played.
             isServing: !state.outcome.isOver && side == state.servingSide,
             servingHalf: state.servingHalf,
-            netEdge: netEdge,
-            // Composed here and not in the half, so the edge the ball sits on
-            // and the end it sits at cannot come to disagree.
-            ballCorner: Alignment(
-                horizontal: netEdge,
-                vertical: serveEnd(for: side, from: state.servingHalf, mirrored: isMirrored)),
-            outerInset: isOnTheLeft ? safeArea.leading : safeArea.trailing,
+            setsEdge: arrangement == .sideBySide && isFirst ? .leading : .trailing,
+            setsInset: arrangement == .sideBySide && isFirst ? safeArea.leading : safeArea.trailing,
+            ballCorner: ballCorner(
+                for: side, from: state.servingHalf, in: arrangement, mirrored: isMirrored),
+            ballFromTheEnd: arrangement.ballFromTheEnd,
             onRallyWon: record(rallyWonBy:),
             onUndo: undo)
+        .accessibilitySortPriority(side == .us ? 1 : 0)
     }
 
     /// Asked of the ruleset, not of the sets played: a multi-set match
@@ -172,18 +188,27 @@ struct ScoreboardView: View {
 
     // MARK: The controls along the bottom
 
-    private func controls(safeArea: EdgeInsets) -> some View {
+    /// Stacked they span the window, as the stacked board draws them; side by
+    /// side they keep to the middle, under the net.
+    private func controls(_ arrangement: Arrangement, safeArea: EdgeInsets) -> some View {
         HStack(spacing: Board.controlGap) {
-            PillButton(Text("Undo"), variant: .quiet, action: undo)
+            PillButton(icon("arrow.uturn.backward"), variant: .quiet, action: undo)
                 .accessibilityLabel("Undo the last rally")
 
-            PillButton(Text("Mirror"), variant: .quiet) { isMirrored.toggle() }
+            PillButton(icon(arrangement.mirrorSymbol), variant: .quiet) { isMirrored.toggle() }
                 .accessibilityLabel("Mirror the board")
 
-            PillButton(Text("End"), variant: .quiet) { isConfirmingEnd = true }
+            PillButton(icon("xmark"), variant: .quiet) { isConfirmingEnd = true }
+                .accessibilityLabel("End")
         }
-        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: arrangement == .sideBySide ? Board.controlsWidth : .infinity)
+        .padding(.leading, safeArea.leading + Board.inset)
+        .padding(.trailing, safeArea.trailing + Board.inset)
         .padding(.bottom, safeArea.bottom + Board.controlInset)
+    }
+
+    private func icon(_ systemName: String) -> Text {
+        Text(Image(systemName: systemName))
     }
 
     // MARK: The writes
@@ -268,14 +293,17 @@ private struct ScoreZone: View {
     /// The same value in both halves; only the serving one reads it.
     let servingHalf: ServingHalf?
 
-    /// The half's edge against the net. The sets digit stands at the other one,
-    /// which leaves the corners by the net to the ball.
-    let netEdge: HorizontalAlignment
+    /// Away from the net side by side, and the trailing edge stacked, as the
+    /// watch has it: either way the corners by the net are left to the ball.
+    let setsEdge: HorizontalAlignment
+
+    /// What the notch takes off ``setsEdge`` in landscape.
+    let setsInset: CGFloat
 
     let ballCorner: Alignment
 
-    /// What the notch takes off this half's outer edge in landscape.
-    let outerInset: CGFloat
+    /// Off the half's top and bottom, whichever of them the net is.
+    let ballFromTheEnd: CGFloat
 
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
@@ -293,7 +321,7 @@ private struct ScoreZone: View {
     private var content: some View {
         score
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: Alignment(horizontal: outerEdge, vertical: .center)) { setsWon }
+            .overlay(alignment: Alignment(horizontal: setsEdge, vertical: .center)) { setsWon }
             .overlay { ball }
             .background { CourtHalf() }
             // Otherwise the gesture catches only the score itself, not the
@@ -326,7 +354,7 @@ private struct ScoreZone: View {
             Text(verbatim: "\(sets)")
                 .textStyle(.scoreAside)
                 .foregroundStyle(Color.courtInk.weight(.control))
-                .padding(outerEdge == .leading ? .leading : .trailing, outerInset + Board.inset)
+                .padding(setsEdge == .leading ? .leading : .trailing, setsInset + Board.inset)
         }
     }
 
@@ -337,11 +365,9 @@ private struct ScoreZone: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: ballCorner)
                 // Both ends and not one, or a golden point's ball leaves the
                 // middle of the edge it belongs on.
-                .padding(.vertical, Board.ballFromTheEnd)
+                .padding(.vertical, ballFromTheEnd)
         }
     }
-
-    private var outerEdge: HorizontalAlignment { netEdge == .trailing ? .leading : .trailing }
 
     /// Said as what the tap does rather than as whose half it is: a bare "us"
     /// is a name, and the two languages decline names differently.
@@ -380,19 +406,121 @@ private struct ScoreZone: View {
     }
 }
 
+// MARK: - The arrangement
+
+private enum CourtPiece: Hashable {
+    case half(Side)
+    case net
+}
+
+/// Which way the net runs: across the long axis of the board's window, so a
+/// half is never the narrow one (ADR-0015).
+private enum Arrangement {
+    case sideBySide
+    case stacked
+
+    /// - Parameters:
+    ///   - window: The size inside `safeArea`, which is added back: the board
+    ///     bleeds to the window's edges and is shaped by them.
+    init(window: CGSize, safeArea: EdgeInsets) {
+        let width = window.width + safeArea.leading + safeArea.trailing
+        let height = window.height + safeArea.top + safeArea.bottom
+
+        self = width > height ? .sideBySide : .stacked
+    }
+
+    /// One layout that changes kind rather than two stacks, so the board keeps
+    /// its identity and moves with the system's rotation.
+    var layout: AnyLayout {
+        switch self {
+        case .sideBySide: AnyLayout(HStackLayout(spacing: 0))
+        case .stacked: AnyLayout(VStackLayout(spacing: 0))
+        }
+    }
+
+    /// The halves swap across the net, so the arrows cross it.
+    var mirrorSymbol: String {
+        switch self {
+        case .sideBySide: "arrow.left.arrow.right"
+        case .stacked: "arrow.up.arrow.down"
+        }
+    }
+
+    var net: Axis {
+        switch self {
+        case .sideBySide: .vertical
+        case .stacked: .horizontal
+        }
+    }
+
+    /// Side by side the ends are where the strip and the controls are, and the
+    /// ball clears them; stacked they are the net, and it sits as near as it
+    /// sits to the side.
+    var ballFromTheEnd: CGFloat {
+        switch self {
+        case .sideBySide: Board.ballFromTheEnd
+        case .stacked: Board.ballFromTheSide
+        }
+    }
+
+    /// Our near corner, the watch's, turned with the court.
+    var floodlit: Floodlight.Corner {
+        switch self {
+        case .sideBySide: .bottomLeading
+        case .stacked: .bottomTrailing
+        }
+    }
+}
+
 // MARK: - The corners
 
-/// The watch's serve corners turned a quarter turn: the server's right and left
-/// are the *ends* of a half rather than its sides, and our right shares an end
-/// with their left, which is what draws a serve as a diagonal (ADR-0013).
-/// Mirroring is a half turn of the court, so the ends swap with the halves.
-private func serveEnd(
-    for side: Side, from half: ServingHalf?, mirrored: Bool
-) -> VerticalAlignment {
+/// The watch's corners, turned with the court: a quarter turn clockwise lays it
+/// side by side, and mirroring is a half turn, so the ends swap with the halves
+/// and the corners with them.
+private func ballCorner(
+    for side: Side, from half: ServingHalf?, in arrangement: Arrangement, mirrored: Bool
+) -> Alignment {
+    var corner = serveAlignment(for: side, from: half)
+
+    if arrangement == .sideBySide { corner = corner.quarterTurned }
+    if mirrored { corner = corner.quarterTurned.quarterTurned }
+
+    return corner
+}
+
+/// The watch's own frame, unturned: our half below the net, our right at screen
+/// trailing and theirs at screen leading, which draws a serve as a diagonal
+/// (ADR-0013). One case per ``ServingHalf`` is the wrong correction.
+private func serveAlignment(for side: Side, from half: ServingHalf?) -> Alignment {
     switch (side, half) {
-    case (.us, .right), (.them, .left): mirrored ? .top : .bottom
-    case (.us, .left), (.them, .right): mirrored ? .bottom : .top
-    case (_, nil): .center
+    case (.us, .right): .topTrailing
+    case (.us, .left): .topLeading
+    case (.us, nil): .top
+    case (.them, .right): .bottomLeading
+    case (.them, .left): .bottomTrailing
+    case (.them, nil): .bottom
+    }
+}
+
+extension Alignment {
+    /// A quarter turn clockwise on the screen: the top goes to the trailing
+    /// edge and the trailing edge to the bottom.
+    fileprivate var quarterTurned: Alignment {
+        let horizontal: HorizontalAlignment =
+            switch self.vertical {
+            case .top: .trailing
+            case .bottom: .leading
+            default: .center
+            }
+
+        let vertical: VerticalAlignment =
+            switch self.horizontal {
+            case .leading: .top
+            case .trailing: .bottom
+            default: .center
+            }
+
+        return Alignment(horizontal: horizontal, vertical: vertical)
     }
 }
 
@@ -443,6 +571,9 @@ private enum Board {
 
     static let controlGap: CGFloat = 10
 
+    /// The board's 118 for End, three abreast with their gaps.
+    static let controlsWidth: CGFloat = 3 * 118 + 2 * controlGap
+
     /// The board's 34 from the foot of a portrait screen, where the home
     /// indicator takes none of it and the safe area here does.
     static let controlInset: CGFloat = 12
@@ -451,6 +582,8 @@ private enum Board {
 }
 
 #if DEBUG
+
+// MARK: Side by side
 
 // The four corners, named for the surprise rather than for the state: our
 // right is the bottom of the board and theirs is the top, and no test in this
@@ -517,6 +650,99 @@ private enum Board {
 #Preview("In Russian, at the largest type", traits: .landscapeLeft) {
     atLargestType(inRussian(board(.previewCountingPoints)))
 }
+
+// MARK: Stacked
+
+// Named for the surprise again: stacked, our right is the top trailing corner
+// of our half and theirs the bottom leading corner of theirs (ADR-0013).
+
+#Preview("Stacked, we serve from our right (our top trailing)", traits: .portrait) {
+    board(.preview(serving: .us, from: .right))
+}
+
+#Preview("Stacked, we serve from our left (our top leading)", traits: .portrait) {
+    board(.preview(serving: .us, from: .left))
+}
+
+#Preview("Stacked, the opponents serve from their right (their bottom leading)", traits: .portrait) {
+    board(.preview(serving: .them, from: .right))
+}
+
+#Preview("Stacked, the opponents serve from their left (their bottom trailing)", traits: .portrait) {
+    board(.preview(serving: .them, from: .left))
+}
+
+#Preview("Stacked and mirrored, we serve from our right (our bottom leading)", traits: .portrait) {
+    board(.preview(serving: .us, from: .right), mirrored: true)
+}
+
+#Preview(
+    "Stacked and mirrored, the opponents serve from their right (their top trailing)",
+    traits: .portrait
+) {
+    board(.preview(serving: .them, from: .right), mirrored: true)
+}
+
+#Preview("Stacked: a game in play", traits: .portrait) { board(.previewInPlay) }
+
+#Preview("Stacked, in Russian: a game in play", traits: .portrait) {
+    inRussian(board(.previewInPlay))
+}
+
+#Preview("Stacked and mirrored: ours on top", traits: .portrait) {
+    board(.previewInPlay, mirrored: true)
+}
+
+#Preview("Stacked, in Russian, mirrored", traits: .portrait) {
+    inRussian(board(.previewInPlay, mirrored: true))
+}
+
+#Preview("Stacked: a golden point", traits: .portrait) { board(.previewAtGoldenPoint) }
+
+#Preview("Stacked: a match to two sets", traits: .portrait) { board(.previewInSecondSet) }
+
+#Preview("Stacked, in Russian: a match to two sets", traits: .portrait) {
+    inRussian(board(.previewInSecondSet))
+}
+
+#Preview("Stacked: the match to N points", traits: .portrait) {
+    board(.previewCountingPoints)
+}
+
+#Preview("Stacked, in Russian: the match to N points", traits: .portrait) {
+    inRussian(board(.previewCountingPoints))
+}
+
+#Preview("Stacked, at the largest type", traits: .portrait) {
+    atLargestType(board(.previewInSecondSet))
+}
+
+#Preview("Stacked, in Russian, at the largest type", traits: .portrait) {
+    atLargestType(inRussian(board(.previewCountingPoints)))
+}
+
+#Preview("Split View half: a match to two sets", traits: splitViewHalf) {
+    board(.previewInSecondSet)
+}
+
+#Preview("Split View half, in Russian, mirrored: a golden point", traits: splitViewHalf) {
+    inRussian(board(.previewAtGoldenPoint, mirrored: true))
+}
+
+#Preview("Split View half: the match to N points", traits: splitViewHalf) {
+    board(.previewCountingPoints)
+}
+
+#Preview("Split View half, in Russian, at the largest type", traits: splitViewHalf) {
+    atLargestType(inRussian(board(.previewInSecondSet)))
+}
+
+#Preview("Split View half, at the largest type, mirrored", traits: splitViewHalf) {
+    atLargestType(board(.previewCountingPoints, mirrored: true))
+}
+
+/// Half of a phone opened flat, about: no Duo simulator exists to measure one.
+private let splitViewHalf: PreviewTrait<Preview.ViewTraits> = .fixedLayout(width: 340, height: 720)
 
 private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
     ScoreboardView(match: match, store: NoMatchStore(), mirrored: mirrored, onLeave: {})

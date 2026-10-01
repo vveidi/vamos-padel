@@ -111,12 +111,12 @@ page.
 
 ### The trailing edge
 
-`.verticalPage` draws its page indicator on the trailing edge, level with the
-middle of the screen. That is occupied twice on the score screen: the sets digit
-sits at `.trailing`, and the serve ball's inner corners are `.topTrailing` in our
-zone and `.bottomTrailing` in theirs. All of it is indented to clear the
-indicator, by a number read off a screenshot of a real screen rather than
-reasoned to.
+`.verticalPage` draws its page indicator on the trailing edge, up by the crown:
+on a 45mm simulator its dots are 6pt, 2pt apart and 2pt in, centred about 66pt
+down a 242pt screen. On the score screen that is their half, beside their sets
+digit at `.trailing`; the serve balls' inner corners sit at the net, clear of
+it. The board indents the trailing furniture from 12pt to 16pt, and ticket 04
+checks that number against a screenshot of the real three-page stack.
 
 ## Implementation Decisions
 

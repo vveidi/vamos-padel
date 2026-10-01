@@ -1,5 +1,7 @@
 {
-  "artboards": [],
+  "artboards": [
+    { "file": "WatchTapMode.dc.html", "x": 0, "y": 0, "w": 1952, "h": 2591, "title": "Watch · tap mode" }
+  ],
   "annotations": [
     {
       "id": "brief",

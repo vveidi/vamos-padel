@@ -1,6 +1,6 @@
 # Any window: every phone screen lays itself out from the window it is given
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

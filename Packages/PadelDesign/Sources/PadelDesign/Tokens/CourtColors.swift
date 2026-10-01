@@ -6,10 +6,9 @@ import SwiftUI
 /// - Important: Opaque surfaces mix toward ``SwiftUI/Color/night``; paint goes
 ///   thinner instead, because mixing would move its alpha along with its hue.
 enum CourtDimming {
-    /// Measured: the dimmed surface lands at 0.119 luminance against `night`'s
-    /// 0.079, stays blue at rgb(7, 34, 51), and holds `courtInk` at 5.8 : 1. A
-    /// wrist has not confirmed it
-    /// (`.scratch/court-surface/issues/01-the-one-surface.md`).
+    /// Settled on a real Apple Watch in Always-On, mid-match at arm's length: the
+    /// court still reads as a court, and the score is findable without raising
+    /// the wrist.
     static let surface = 0.72
 
     static let felt = 0.15

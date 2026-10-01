@@ -72,7 +72,7 @@ drawn, because there was no phone scoring to undo. They are in scope now.
 ## The studies
 
     RallyMark.html   the rally mark, and the four candidates it beat — ADR-0011
-    AppIcon.html     the app icon, the candidate it beat, and the icon it replaced
+    AppIcon.html     the app icon, the candidate it beat, and the icon it replaced — ADR-0016
 
 A study is not a board. A board draws a screen that has not been built and is
 deleted the day it ships; a study answers one question that several screens will

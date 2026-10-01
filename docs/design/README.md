@@ -2,14 +2,14 @@
 
 One artboard and the canvas that lays it out — the phone screen that has not
 been built yet. It came out of the redesign, which shipped; that feature's
-tickets are gone and this outlived them, because it is what `phone-scoring`
-will be drawn from.
+tickets are in `.scratch/archive/redesign/` and this outlived them, because it
+is what `phone-scoring` will be drawn from.
 
     PhoneScore.dc.html      phone · score      — phone-scoring ticket 04
 
 It lives in `docs/` rather than under `.scratch/` because the tracker holds
-work in flight and is emptied as features close, while a board outlives the
-ticket that reads it.
+work in flight and archives each feature as it closes, while a board outlives
+the ticket that reads it.
 
 Beside them sit two **studies** — pages that are not artboards and are not in
 the canvas. See "The studies" below.

@@ -1,6 +1,6 @@
 # The comment diet: code that reads itself
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

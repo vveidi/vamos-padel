@@ -5,7 +5,7 @@ it is on screen, and what it does with one that was left running yesterday.
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] A match in progress shows as a tile at the top of the history: its score,
       its ruleset, and that it is running. Tapping it opens the scoreboard
@@ -59,3 +59,13 @@ rally in a case nobody has hit; the fix is a column recording the scorer, which
 is stored state carrying a fact the app otherwise has no use for. Say in the
 closing note that it stands open, so the next reader finds it named rather than
 discovering it.
+
+## Comments
+
+Closed `wontfix` by the owner on 2026-10-01: resuming a match played earlier is
+not wanted yet, so neither the live tile nor the stale-match question is built.
+The one criterion that survives — the list capped at a readable width in a wide
+window — moved to `any-window/03`, for all three screens.
+
+The hazard the notes name still stands: the phone can hold an in-progress match
+it did not score, and nothing tells it apart in the store.

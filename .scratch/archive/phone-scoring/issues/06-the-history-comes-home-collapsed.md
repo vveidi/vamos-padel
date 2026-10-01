@@ -5,7 +5,7 @@ the history's large title is collapsed until the list is pulled down.
 
 **Blocked by:** None
 
-**Status:** needs-triage
+**Status:** wontfix
 
 - [ ] Leaving the scoreboard lands on the history with its large title standing,
       the way a fresh launch draws it
@@ -37,3 +37,12 @@ did not land it. Either that cost is acceptable, or the scroll has to be
 conditional on the list having been at the top when the board opened.
 
 That choice is why this is `needs-triage` rather than `ready-for-agent`.
+
+## Comments
+
+Closed `wontfix` on 2026-10-01 in favour of `any-window`. The cause was the
+history being laid out in landscape behind the cover, and `any-window/02`
+removes both the turn and the cover: the board replaces the tabs, and the tabs
+are rebuilt in the window the player holds. The trade this ticket asked to
+settle is gone with them. The first criterion is checked there, on a device;
+the second is dropped — the history is rebuilt at the top.

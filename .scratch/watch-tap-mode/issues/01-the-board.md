@@ -64,5 +64,8 @@ the crown, about 66pt down, not mid-screen. On the score screen it meets only
 their sets digit. The board's number: the trailing furniture moves in from 12pt
 to 16pt. The spec's paragraph on the trailing edge now says so.
 
+The owner dropped the legend's arrows in review: each line is two columns, the
+gesture leading and what it does trailing. The spec and ticket 04 say so.
+
 Open for the owner: the Russian words (`Касания`, `Число касаний`,
 `Зоны экрана`, `очко им` in the legend) and the page title `Settings`.

@@ -16,10 +16,11 @@ them: End above, the score in the middle, tap mode below.
       is where its pushed list finds its Back button
 - [ ] The tap-mode page is a `ChoiceRow` naming the current value and pushing a
       list of the two, in `Padel Watch App/Sources/Settings/` with the type
-- [ ] Three legend lines under the row, changing with the value:
-      `1 tap → your point` / `2 taps → their point` / `long press → undo` for
-      multi-tap, and `tap bottom → your point` / `tap top → their point` /
-      `long press → undo` for tap zones
+- [ ] Three legend lines under the row, changing with the value, each a pair
+      with no arrow — the gesture leading, what it does trailing:
+      `1 tap` · `your point` / `2 taps` · `their point` / `long press` · `undo`
+      for multi-tap, and `tap bottom` · `your point` / `tap top` ·
+      `their point` / `long press` · `undo` for tap zones
 - [ ] The row plus its legend is one component, reusable as-is by 05 — it is
       put in a second place there and must not be written twice
 - [ ] The sets digit and both serve balls are indented off the trailing edge to

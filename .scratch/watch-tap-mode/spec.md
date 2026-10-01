@@ -57,13 +57,14 @@ every change costs the player a re-orientation on court.
 
 The setting lives in two places and is one component in both: a `ChoiceRow`
 naming its value and pushing a list of the two, with three lines under it
-spelling out the gestures of whichever value is selected.
+spelling out the gestures of whichever value is selected. Each line is a pair
+with no arrow: the gesture at the leading edge, what it does at the trailing.
 
-| Multi-tap            | Tap zones                |
-| -------------------- | ------------------------ |
-| 1 tap → your point   | tap bottom → your point  |
-| 2 taps → their point | tap top → their point    |
-| long press → undo    | long press → undo        |
+| Multi-tap                  | Tap zones                  |
+| -------------------------- | -------------------------- |
+| `1 tap` · `your point`     | `tap bottom` · `your point` |
+| `2 taps` · `their point`   | `tap top` · `their point`   |
+| `long press` · `undo`      | `long press` · `undo`       |
 
 Those lines are the only place in the app where an invisible gesture is ever
 stated, and they change as the pills are changed, which demonstrates the choice

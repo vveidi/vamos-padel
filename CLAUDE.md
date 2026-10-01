@@ -4,7 +4,9 @@
 
 ### Issue tracker
 
-Issues live as markdown files under `.scratch/<feature-slug>/` in this repo. See `docs/agents/issue-tracker.md`.
+Issues live as markdown files under `.scratch/<feature-slug>/` in this repo. A
+finished feature moves to `.scratch/archive/<feature-slug>/`, which is history,
+not work. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
@@ -20,7 +22,7 @@ Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/
 ### Design boards
 
 The artboards live in `docs/design/`, not in the tracker: a feature's folder is
-emptied when it closes, and a board outlives the ticket that reads it.
+archived when it closes, and a board outlives the ticket that reads it.
 
 **Only screens that have not been built have a board.** A board is deleted once
 its screen ships — after that the screen is the design, and a second drawing of
@@ -231,12 +233,6 @@ it needs a ticket more than a comment, not less.
 
 `// MARK:` is not affected and stays — it is navigation, not deferred work, and
 Xcode's jump bar reads it.
-
-Most of the comments already in the repo predate this rule and break it: the
-older style put an essay on every symbol. `comment-diet` is retrofitting them
-one area at a time. Until that feature closes, apply this rule to what you
-write and to what you are already changing, and leave the rest to its ticket —
-but never take a file you are editing as the example to follow.
 
 ## Bulk edits
 

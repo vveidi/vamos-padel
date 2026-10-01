@@ -10,13 +10,18 @@ reads the `**Status:**` line, the `**Blocked by:**` line and the criteria
 checkboxes out of every `.scratch/<feature>/issues/NN-*.md`, and a hand count
 of the same files costs thousands of tokens to get wrong.
 
-    .scratch/status.sh                 every feature
-    .scratch/status.sh redesign        one feature
-    .scratch/status.sh redesign release
+    .scratch/status.sh                   every feature in work
+    .scratch/status.sh phone-scoring     one feature
+    .scratch/status.sh phone-scoring release
+    .scratch/status.sh archive/redesign  one finished feature
 
 `$ARGUMENTS` is the feature slug, or slugs, or nothing. An unknown slug exits
 non-zero and names the directory it looked for — offer the slugs under
 `.scratch/` rather than guessing which one was meant.
+
+Finished features live in `.scratch/archive/` and the bare board leaves them
+out. A closing `Finished, move to archive/:` line names one that was closed but
+never moved — say so, because the move belongs in the PR that closed it.
 
 ## Reading a row
 

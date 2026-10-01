@@ -26,6 +26,10 @@ In the ticket file, on your branch:
 - write the closing note under `## Comments`;
 - set `**Status:** done`.
 
+If that was the feature's last open ticket, archive the feature in the same
+commit: `git mv .scratch/<feature> .scratch/archive/<feature>` and set the spec's
+`Status:` to `done`. `.scratch/status.sh` names a finished feature left outside.
+
 A criterion you could not meet is **not** ticked. Say so in the note, and open
 a ticket for what is left — `CLAUDE.md` forbids a `TODO:`. A ticket closed at
 19/20 with a terminal label is the failure `docs/agents/triage-labels.md` names.

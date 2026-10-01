@@ -156,7 +156,8 @@ with one session and it is not with four.
 
 A bare `/next-ticket`, or a feature with no number, means showing that feature's
 takeable rows and stopping. An unknown feature or number is a stop-and-report
-error naming what `.scratch/` actually holds.
+error naming what `.scratch/` actually holds. `.scratch/archive/` is history,
+never a ticket to take, whatever status its files carry.
 
 ## Asking, and not asking
 

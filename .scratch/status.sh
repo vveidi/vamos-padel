@@ -2,12 +2,14 @@
 #
 # Prints the statuses of the tickets in .scratch/<feature>/issues/.
 #
-#   .scratch/status.sh                 every feature
-#   .scratch/status.sh watch-scoring   one feature
+#   .scratch/status.sh                   every feature in work
+#   .scratch/status.sh phone-scoring     one feature, finished or not
+#   .scratch/status.sh archive/redesign  one archived feature
 #
 # The source of truth is the ticket files themselves: the `**Status:**` line,
 # the `**Blocked by:**` line and the criteria checkboxes. A ticket counts as
-# ready to work on once every ticket blocking it is done.
+# ready to work on once every ticket blocking it is done. The bare board skips
+# archive/, and names a finished feature still outside it instead of drawing it.
 
 set -eo pipefail
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
@@ -32,6 +34,14 @@ pad() {
 }
 
 field() { sed -n "s/^\*\*$1:\*\* *//p" "$2" | head -1; }
+
+is_finished() {
+  local f
+  for f in "$1"/issues/[0-9][0-9]-*.md; do
+    [ -e "$f" ] || return 1
+    case "$(field Status "$f")" in done|wontfix) ;; *) return 1 ;; esac
+  done
+}
 
 report_feature() {
   local dir=$1 feature
@@ -135,12 +145,19 @@ if [ $# -gt 0 ]; then
     fi
   done
 else
-  found=0
+  found=0 finished=()
   for dir in "$scratch"/*/; do
-    if [ -d "$dir/issues" ]; then
+    [ -d "$dir/issues" ] || continue
+    if is_finished "$dir"; then
+      finished+=("$(basename "$dir")")
+    else
       report_feature "${dir%/}"
       found=1
     fi
   done
-  [ "$found" = 1 ] || printf 'No feature with tickets in %s\n' "$scratch" >&2
+  [ "$found" = 1 ] || printf 'No feature in work in %s\n' "$scratch" >&2
+  if [ ${#finished[@]} -gt 0 ]; then
+    printf '%sFinished, move to archive/: %s%s\n\n' "$yellow" \
+      "$(IFS=,; printf '%s' "${finished[*]}" | sed 's/,/, /g')" "$reset"
+  fi
 fi

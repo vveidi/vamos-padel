@@ -26,6 +26,17 @@ guards against: it tells the next agent to go build something that already exist
 Run `.scratch/status.sh` to see every ticket's status, its blockers, and which
 tickets are unblocked and free to pick up.
 
+## Archiving a feature
+
+When a feature's last ticket closes — every one `done` or `wontfix` — its folder
+moves whole to `.scratch/archive/<feature-slug>/` in the same pull request, and
+its spec's `Status:` line becomes `done`. The archive is read-only history: a
+spec or a ticket there is not work, whatever it says, and nobody takes from it.
+
+The bare board skips `archive/`, and names a finished feature still outside it
+instead of drawing its table. `.scratch/status.sh archive/<feature-slug>` draws
+an archived one.
+
 ## When a skill says "publish to the issue tracker"
 
 Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).

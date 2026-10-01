@@ -12,9 +12,6 @@ the ticket that reads it.
 Beside the canvas sit two **studies** — pages that are not artboards and are
 not in the canvas. See "The studies" below.
 
-`padel-night-court.html` renders the canvas and is not in git: it is the seeded
-payload, regenerable from the `.dc.html` sources beside it.
-
 ## A board is deleted when its screen is built
 
 There were six — the watch's start, rules and score screens, and the phone's

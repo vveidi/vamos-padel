@@ -7,45 +7,45 @@ today. No screen to change it yet: that is 04 and 05.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Verify the gesture before building anything else
 
 This is the first criterion and it is a fork in the road, not a formality.
 SwiftUI has a long history of firing both tap handlers here.
 
-- [ ] On a watch (simulator is enough for this one), with
+- [x] On a watch (simulator is enough for this one), with
       `.onTapGesture(count: 2)` chained **before** `.onTapGesture(count: 1)`:
       a single tap fires only the single handler, a double fires only the
       double, and `.onLongPressGesture(minimumDuration: 0.5)` still recognizes
       alongside both
-- [ ] The wait before a single tap is dispatched is measured and written into
+- [x] The wait before a single tap is dispatched is measured and written into
       the closing note. It is Apple's and not tunable; the number matters
       because it is the lag on every point to us
-- [ ] If any of that fails, fall back to `.exclusively(before:)` or an explicit
+- [x] If any of that fails, fall back to `.exclusively(before:)` or an explicit
       timer, and say which in the closing note. The design does not change
 
 ## The rest
 
-- [ ] `TapMode` lives in `Padel Watch App/Sources/Settings/`, two cases —
+- [x] `TapMode` lives in `Padel Watch App/Sources/Settings/`, two cases —
       multi-tap and tap zones — `String`-backed so `@AppStorage` can hold it,
       with a doc comment saying what each case does to a touch
-- [ ] `@AppStorage("tap-mode")` on the watch, defaulting to **multi-tap**,
+- [x] `@AppStorage("tap-mode")` on the watch, defaulting to **multi-tap**,
       beside `records-to-health` and for the reason `RootView` gives there: it
       is a preference about the app, not a fact about padel
-- [ ] It reaches `ScoreView` from `RootView` through `MatchView`, and a change
+- [x] It reaches `ScoreView` from `RootView` through `MatchView`, and a change
       takes effect on the running match at once
-- [ ] In multi-tap the gesture is on the whole screen and ignores which half was
+- [x] In multi-tap the gesture is on the whole screen and ignores which half was
       hit: one tap awards `.us`, two award `.them`. A double tap landing on our
       green half awards the opponents — the halves are not buttons in this mode
-- [ ] In tap zones the two zones behave exactly as they do today
-- [ ] The long press undoes in both modes
-- [ ] The court is drawn identically in both modes — no digit, ball, line or
+- [x] In tap zones the two zones behave exactly as they do today
+- [x] The long press undoes in both modes
+- [x] The court is drawn identically in both modes — no digit, ball, line or
       color moves when the mode changes
-- [ ] Both zones keep their accessibility element, label, value and
+- [x] Both zones keep their accessibility element, label, value and
       "Undo the last rally" action in both modes, and tap mode changes nothing
       about them
-- [ ] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean
+- [x] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean
 
 ## Notes
 
@@ -68,3 +68,52 @@ every rally to defend against a mistake that costs one gesture.
 
 **For the closing note:** say why multi-tap is the default. It is the one decision
 in this feature a future reader will question, and this note is its only home.
+
+## Comments
+
+**Why multi-tap is the default.** Tap zones makes the player aim on every rally:
+a 40mm screen, a wet hand, a racket in the other one, and a glance that has to
+land on the right half before the finger does. Multi-tap needs no glance at all,
+and with the four haptics from 02 it needs no look afterwards either. Its price
+is the two-quick-taps hazard below, which costs one long press when it happens;
+aiming costs something on every point.
+
+**The gesture held, and no fallback was needed.** Verified on a watchOS 26.5
+simulator, with taps driven by AXe and timed from the app's own log:
+`.onTapGesture(count: 2)` before `.onTapGesture(count: 1)` and
+`.onLongPressGesture(minimumDuration: 0.5)` on one view — a single tap fired the
+single handler only, a double fired the double only, and a long press fired the
+undo only.
+
+**The wait is 350 ms**, from the single tap's release to its dispatch, the same
+in every run (350–352 ms). That is the lag on every point to us. A tap zone
+dispatches within 1–13 ms of release.
+
+**What shipped is the same chain, switchable.** The two counts became
+`.gesture(TapGesture(count: 2)…, isEnabled:)` then `.gesture(TapGesture()…,
+isEnabled:)` on the whole screen, enabled in multi-tap only; the zone's own tap
+is the same modifier, enabled in tap zones only. The long press stays on each
+zone, as it was, so it sits one level below the multi-tap taps rather than on
+the same view. All of it was driven again in its shipped form: one tap on their
+half → us after 350 ms, two on our half → them, one on the net → us, a long press
+→ undo and nothing else; in tap zones, each half scores for itself at once, two
+taps on top are two of their points, a long press undoes.
+
+**One line of VoiceOver code, despite "a decision to write no code".** Turning the
+zone's tap off in multi-tap would also take away the activation VoiceOver derives
+from it, so each zone now states its default action — `onRallyWon(side)` —
+explicitly. Labels, values and the undo action are unchanged and read the same in
+both modes. The activation itself could not be exercised from the CLI; it is
+ticked on reasoning, not evidence.
+
+**A second hazard, found while measuring: 06.** A second tap that goes down
+inside the window but lifts after it is swallowed — no point to anyone. It is
+filed as `needs-triage` because it is a decision, not a fix.
+
+**Checked otherwise.** The setting was flipped with `defaults write` while a
+match ran and took effect at once; screenshots in the two modes are
+byte-identical; with no stored value the mode is multi-tap. `RootView` gives no
+reason beside `records-to-health` to sit next to — neither line carries a
+comment — so `tap-mode` sits beside it without one: the reason, a preference
+about the app and not a fact about padel, lives in the spec. `CLAUDE.md`'s folder
+table gains `Settings/`.

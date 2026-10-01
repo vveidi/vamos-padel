@@ -18,6 +18,8 @@ struct ScoreView: View {
     /// receivers choose and the app is not told.
     let servingHalf: ServingHalf?
 
+    let tapMode: TapMode
+
     let onRallyWon: (Side) -> Void
 
     let onUndo: () -> Void
@@ -33,6 +35,12 @@ struct ScoreView: View {
             zone(for: .us)
         }
         .ignoresSafeArea()
+        // The net too, which the two zones leave between them.
+        .contentShape(Rectangle())
+        // The double before the single, so the single waits out the window —
+        // 350 ms after release in the simulator — and never fires on a double.
+        .gesture(TapGesture(count: 2).onEnded { onRallyWon(.them) }, isEnabled: tapMode == .multiTap)
+        .gesture(TapGesture().onEnded { onRallyWon(.us) }, isEnabled: tapMode == .multiTap)
     }
 
     private func zone(for side: Side) -> some View {
@@ -43,6 +51,7 @@ struct ScoreView: View {
             sets: sets?[side],
             isServing: side == servingSide,
             servingHalf: servingHalf,
+            awardsOnTap: tapMode == .tapZones,
             onRallyWon: onRallyWon,
             onUndo: onUndo)
     }
@@ -61,6 +70,8 @@ private struct ScoreZone: View {
     /// The same value in both zones; only the serving one reads it.
     let servingHalf: ServingHalf?
 
+    let awardsOnTap: Bool
+
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -68,12 +79,15 @@ private struct ScoreZone: View {
         content
             // Gestures rather than a `Button`: a button fires on release and
             // would award a point at the end of the long press too.
-            .onTapGesture { onRallyWon(side) }
+            .gesture(TapGesture().onEnded { onRallyWon(side) }, isEnabled: awardsOnTap)
             .onLongPressGesture(minimumDuration: 0.5) { onUndo() }
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityValue(accessibilityValue)
+            // Stated rather than derived from the tap, which multi-tap turns
+            // off: VoiceOver activates the zone in either mode.
+            .accessibilityAction { onRallyWon(side) }
             .accessibilityAction(named: "Undo the last rally", onUndo)
     }
 
@@ -235,6 +249,7 @@ private func serving(_ side: Side, from half: ServingHalf?) -> ScoreView {
         sets: nil,
         servingSide: side,
         servingHalf: half,
+        tapMode: .multiTap,
         onRallyWon: { _ in },
         onUndo: {})
 }
@@ -245,6 +260,7 @@ private let goldenPoint = ScoreView(
     sets: nil,
     servingSide: .us,
     servingHalf: nil,
+    tapMode: .multiTap,
     onRallyWon: { _ in },
     onUndo: {})
 
@@ -254,6 +270,7 @@ private let twoSets = ScoreView(
     sets: SideCounts(us: 1, them: 0),
     servingSide: .them,
     servingHalf: .right,
+    tapMode: .multiTap,
     onRallyWon: { _ in },
     onUndo: {})
 
@@ -263,6 +280,7 @@ private let pointsTo = ScoreView(
     sets: nil,
     servingSide: .them,
     servingHalf: .left,
+    tapMode: .multiTap,
     onRallyWon: { _ in },
     onUndo: {})
 

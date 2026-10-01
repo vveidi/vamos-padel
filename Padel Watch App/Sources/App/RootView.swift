@@ -14,6 +14,8 @@ struct RootView: View {
 
     @AppStorage("records-to-health") private var recordsToHealth = true
 
+    @AppStorage("tap-mode") private var tapMode = TapMode.multiTap
+
     @State private var isRestored = false
 
     private let store: any MatchStore
@@ -38,6 +40,7 @@ struct RootView: View {
                     store: store,
                     workout: workoutForThisMatch,
                     delivery: delivery,
+                    tapMode: tapMode,
                     onFinish: startOver)
                     // Without this a match started right after the previous one
                     // lands on a screen still holding the last one's state.

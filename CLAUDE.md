@@ -127,9 +127,14 @@ sources are grouped by what the player is doing at the time:
                                Start/     the court before the match, its settings and its rules
                                Match/     the match while it runs, and how it ends
                                Workout/   the workout the match runs inside
+                               Settings/  the preferences about the app rather than about one match
 
     Padel/Sources/             App/       the entry point, the store, reception and the two tabs
                                Screens/   the history, its rows and the match card
+
+`Settings/` is the one folder named for what it holds rather than for what the
+player is doing. `StartSettings` stays in `Start/`: it is the start pages' second
+page.
 
 `MatchWording.swift` and `MatchFixtures.swift` sit at `Padel/Sources/`'s root
 because they belong to both screens rather than to either.

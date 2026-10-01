@@ -77,12 +77,15 @@ struct ScoreboardView: View {
 
         // Identified by what they are rather than by their slot, so a rotation
         // that changes which half comes first moves each half to its place
-        // instead of handing its slot to the other one.
+        // instead of handing its slot to the other one. A turned net is a new
+        // net: stretched from one axis to the other, its tape fills the court.
+        let net = CourtPiece.net(arrangement.net)
+
         return arrangement.layout {
-            ForEach([CourtPiece.half(first), .net, .half(first.opposite)], id: \.self) { piece in
+            ForEach([CourtPiece.half(first), net, .half(first.opposite)], id: \.self) { piece in
                 switch piece {
                 case .half(let side): zone(side, state, arrangement, safeArea: safeArea)
-                case .net: NetLine(arrangement.net).zIndex(1)
+                case .net(let axis): NetLine(axis).zIndex(1)
                 }
             }
         }
@@ -386,7 +389,7 @@ private struct ScoreZone: View {
 
 private enum CourtPiece: Hashable {
     case half(Side)
-    case net
+    case net(Axis)
 }
 
 /// Which way the net runs: across the long axis of the board's window, so a

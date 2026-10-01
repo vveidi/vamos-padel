@@ -1,8 +1,15 @@
 # The boards
 
-No artboard is waiting: every screen the redesign drew has been built. The
-canvas is left with its notes and no boards, ready for the next screen that is
-drawn before it is built. The redesign's tickets are in
+One board file is waiting, and the canvas lays it out:
+
+    WatchTapMode.dc.html    watch · tap mode   — watch-tap-mode tickets 03, 04 and 05
+
+It holds three boards: the tap-mode page, the start settings page with the
+tap-mode card in it, and the score screen's trailing edge under the page
+indicator. Each is deleted as its ticket closes — 03 and 04 the first and
+third, 05 the second — and the canvas is left with its notes and no boards.
+
+Every screen the redesign drew has been built; its tickets are in
 `.scratch/archive/redesign/`.
 
 A board lives in `docs/` rather than under `.scratch/` because the tracker holds
@@ -41,8 +48,13 @@ board decided only which ramp entry a thing got. The two faces the boards are
 set in — Unbounded and Golos Text — were declined (ADR-0006): the app is the
 system face with `.rounded`.
 
-The watch boards were drawn at 2x (396×484 px = 198×242 pt), which is why the
+The watch boards are drawn at 2x (396×484 px = 198×242 pt), which is why the
 watch's `Board` enums halve every number they quote.
+
+`WatchTapMode` is the exception on type: it is set in SF Compact at the ramp's
+own sizes, doubled, because two of its boards exist to show where a line wraps
+and how long a scroll is. Its sizes still do not transfer — the ramp already
+holds them.
 
 ## The studies
 

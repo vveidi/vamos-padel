@@ -6,7 +6,7 @@ tile's four grounds redrawn on top of it.
 
 **Blocked by:** None
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] `Color.court` is `#17406F` and replaces `theirHalf` and `ourHalf`, which are
       deleted. Its doc comment says the court is one color because a court is one
@@ -36,24 +36,24 @@ tile's four grounds redrawn on top of it.
 - [x] `courtWeave` is one value. Pick one of the two it collapses (0.028 / 0.032)
       or the round number between them, and say in the comment that the weave is
       now the only texture on the surface
-- [ ] The court is looked at in **Always-On on a real Apple Watch**, mid-match, at
+- [x] The court is looked at in **Always-On on a real Apple Watch**, mid-match, at
       arm's length — the state a match spends most of its ninety minutes in, and
       the only place this question answers. The watchOS simulator offers no
       Always-On state: not through the Device or Features menus, not through
       `simctl ui`, which has only `appearance`, `increase_contrast` and
       `content_size`, and the last of those the runtime refuses outright
-- [ ] `CourtDimming.surface` is confirmed at 0.72 or moved, and the number that
+- [x] `CourtDimming.surface` is confirmed at 0.72 or moved, and the number that
       ships is the one that was **seen** rather than the one that was computed.
       Too dark and it comes down; ink haloing, or the surface still bright enough
       to worry about burn-in over ninety minutes, and it goes up. What to look
       for: whether the court still reads as a court rather than as the app's
       ground with a net across it, and whether the score is findable without
       raising the wrist
-- [ ] Its doc comment says what was settled **on the wrist**, replacing the
+- [x] Its doc comment says what was settled **on the wrist**, replacing the
       rendered measurements standing in for it now — the dimmed surface at 0.119
       luminance against `night`'s 0.079, blue at rgb(7, 34, 51), `courtInk` at
       5.8 : 1. All three are necessary and none of them is sufficient
-- [ ] `AlwaysOnTests`' `fell > 0.6` floor still holds, or moves with the number
+- [x] `AlwaysOnTests`' `fell > 0.6` floor still holds, or moves with the number
       and says why, and `swift test --package-path Packages/PadelDesign` is clean
       again
 - [x] `CourtTile` draws four grounds and no new hue: **won** is `court` with the
@@ -216,3 +216,11 @@ criterion being checked off, so a ticket holding an open one cannot carry it:
 being visible. It is `ready-for-human` until `CourtDimming.surface` is seen on a
 wrist. The nineteen built criteria are on `main` regardless — the label describes
 what is left, not what shipped.
+
+**Closed, 2026-10-01.** The owner looked at the court in Always-On on a real
+Apple Watch, mid-match, at arm's length: it reads as a court and the score is
+findable. `CourtDimming.surface` stays at 0.72, and its doc comment now says
+what the wrist settled instead of the rendered measurements. `AlwaysOnTests`'
+`fell > 0.6` holds unchanged; `PadelDesign`'s suite is clean. Arbitration items
+1 and 2 above — the one-colour course bands and `OutcomeView`'s loss on the
+court — were not ruled on, and are named in the PR.

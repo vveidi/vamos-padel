@@ -1,6 +1,6 @@
 # The court surface: one blue, no lines, and the icon that follows
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

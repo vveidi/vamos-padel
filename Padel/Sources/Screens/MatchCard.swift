@@ -15,8 +15,10 @@ struct MatchCard: View {
 
                 course.padding(.top, Board.courseGap)
             }
+            .frame(maxWidth: .readableColumn)
             .padding(.horizontal, Board.inset)
             .padding(.bottom, Board.inset)
+            .frame(maxWidth: .infinity)
         }
         .background { ground }
         .navigationTitle(day)
@@ -383,6 +385,12 @@ private func atLargestType(_ view: some View) -> some View {
 #Preview("Nothing played") { card(.previewNothingPlayed) }
 
 #Preview("In Russian: nothing played") { cardInRussian(.previewNothingPlayed) }
+
+#Preview("In a wide window", traits: .landscapeLeft) { card(.preview(twoSetsWonBy: .us)) }
+
+#Preview("In Russian, in a wide window", traits: .landscapeLeft) {
+    cardInRussian(.preview(twoSetsWonBy: .us))
+}
 
 #Preview("At the largest type") { atLargestType(card(.preview(pointsTo: 16))) }
 

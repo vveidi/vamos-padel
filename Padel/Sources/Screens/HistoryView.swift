@@ -81,9 +81,11 @@ struct HistoryView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .frame(maxWidth: .readableColumn)
             .padding(.top, Board.titleGap)
             .padding(.horizontal, Board.inset)
             .padding(.bottom, Board.inset)
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -168,6 +170,7 @@ private struct Notice<Action: View>: View {
             action.padding(.top, Board.noticeGap)
         }
         .multilineTextAlignment(.center)
+        .frame(maxWidth: .readableColumn)
         .padding(.horizontal, Board.noticeInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -204,6 +207,22 @@ private enum Board {
 #Preview("In Russian: an empty history") { inRussian(HistoryView(store: PreviewMatchStore.empty)) }
 
 #Preview("In Russian: an unreadable history") { inRussian(HistoryView(store: PreviewMatchStore.unreadable)) }
+
+#Preview("In a wide window", traits: .landscapeLeft) {
+    HistoryView(store: PreviewMatchStore.filled)
+}
+
+#Preview("In a wide window: an empty history", traits: .landscapeLeft) {
+    HistoryView(store: PreviewMatchStore.empty)
+}
+
+#Preview("In Russian, in a wide window", traits: .landscapeLeft) {
+    inRussian(HistoryView(store: PreviewMatchStore.filled))
+}
+
+#Preview("In Russian, in a wide window: unreadable", traits: .landscapeLeft) {
+    inRussian(HistoryView(store: PreviewMatchStore.unreadable))
+}
 
 #Preview("At the largest type") { atLargestType(HistoryView(store: PreviewMatchStore.filled)) }
 

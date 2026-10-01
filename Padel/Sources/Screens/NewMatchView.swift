@@ -36,8 +36,10 @@ struct NewMatchView: View {
 
                 sentence.padding(.top, Board.sentenceGap)
             }
+            .frame(maxWidth: .readableColumn)
             .padding(.horizontal, Board.inset)
             .padding(.bottom, Board.inset)
+            .frame(maxWidth: .infinity)
         }
         .background { ground }
         .safeAreaInset(edge: .bottom) { start }
@@ -197,7 +199,9 @@ struct NewMatchView: View {
 
     private var start: some View {
         PillButton(Text("Start match"), action: startMatch)
+            .frame(maxWidth: .readableColumn)
             .padding(.horizontal, Board.inset)
+            .frame(maxWidth: .infinity)
             .background {
                 LinearGradient(gradient: .nightScrim, startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
@@ -324,6 +328,12 @@ private enum Board {
 
 #Preview("In Russian: the match to N points") {
     inRussian(screen(lastRuleset: .defaultPointsTo))
+}
+
+#Preview("In a wide window", traits: .landscapeLeft) { screen(lastRuleset: nil) }
+
+#Preview("In Russian, in a wide window", traits: .landscapeLeft) {
+    inRussian(screen(lastRuleset: nil))
 }
 
 #Preview("At the largest type") { atLargestType(screen(lastRuleset: nil)) }

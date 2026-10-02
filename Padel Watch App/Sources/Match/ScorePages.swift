@@ -11,6 +11,7 @@ struct ScorePages: View {
     let sets: SideCounts?
     let servingSide: Side
     let servingHalf: ServingHalf?
+    let tapMode: TapMode
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -35,6 +36,7 @@ struct ScorePages: View {
                 sets: sets,
                 servingSide: servingSide,
                 servingHalf: servingHalf,
+                tapMode: tapMode,
                 onRallyWon: onRallyWon,
                 onUndo: onUndo)
                 .tag(Page.score)
@@ -82,6 +84,7 @@ private let pages = ScorePages(
     sets: nil,
     servingSide: .us,
     servingHalf: .right,
+    tapMode: .multiTap,
     onRallyWon: { _ in },
     onUndo: {},
     onAbandon: {})

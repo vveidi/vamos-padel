@@ -3,7 +3,9 @@ import PadelStorage
 /// What the scorer broadcasts after every change. `echo` is `nil` when the scorer
 /// sent it on its own rather than in answer to an intent.
 public enum MatchUpdate: Equatable, Sendable {
-    case match(SavedMatch, echo: Echo?)
+    /// A match that is not paired is the phone's alone: the remote may draw it
+    /// and is refused anything it asks of it.
+    case match(SavedMatch, isPaired: Bool, echo: Echo?)
     case noMatch(echo: Echo?)
 }
 

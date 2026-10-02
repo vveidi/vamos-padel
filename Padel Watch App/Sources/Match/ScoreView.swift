@@ -26,6 +26,9 @@ struct ScoreView: View {
 
     let onUndo: () -> Void
 
+    /// Each new value shakes the numbers once. Only a paired match moves it.
+    var refusals = 0
+
     /// For the previews, which cannot show an animation: the mark at its peak.
     var markHeldAtPeak: Side? = nil
 
@@ -59,6 +62,7 @@ struct ScoreView: View {
             awardsOnTap: tapMode == .tapZones,
             mark: mark,
             isHeldAtPeak: markHeldAtPeak == side,
+            refusals: refusals,
             onRallyWon: onRallyWon,
             onUndo: onUndo)
     }
@@ -83,8 +87,12 @@ private struct ScoreZone: View {
 
     let isHeldAtPeak: Bool
 
+    let refusals: Int
+
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reducesMotion
 
     var body: some View {
         content
@@ -119,6 +127,19 @@ private struct ScoreZone: View {
             }
         }
         .lineLimit(1)
+        // The numbers say no and the court stays still: a refusal moves
+        // nothing the mark would light. Reduce Motion leaves the haptic alone.
+        .keyframeAnimator(initialValue: 0, trigger: reducesMotion ? 0 : refusals) { numbers, offset in
+            numbers.offset(x: offset)
+        } keyframes: { _ in
+            KeyframeTrack {
+                LinearKeyframe(Board.shake, duration: 0.05)
+                LinearKeyframe(-Board.shake, duration: 0.1)
+                LinearKeyframe(Board.shake / 2, duration: 0.08)
+                LinearKeyframe(-Board.shake / 2, duration: 0.08)
+                LinearKeyframe(0, duration: 0.05)
+            }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay {
             ServeIndicator(alignment: isServing ? serveAlignment(for: side, from: servingHalf) : nil)
@@ -263,6 +284,9 @@ private enum Board {
     /// The board's 32px, clearing `.verticalPage`'s indicator: 6pt dots, 2pt
     /// in from the trailing edge, about 66pt down a 45mm screen.
     static let trailingInset: CGFloat = 16
+
+    /// Not off a board: the refusal has none.
+    static let shake: CGFloat = 8
 }
 
 #if DEBUG

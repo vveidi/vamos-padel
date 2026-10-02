@@ -13,7 +13,7 @@ public final class MatchScorer: Sendable {
     /// Held across the write and both sends, so two changes never go out in
     /// the opposite order to the one they were made in. The link is sent to
     /// under it and must not call back before returning.
-    private let held = Mutex<SavedMatch?>(nil)
+    private let held = Mutex<Held?>(nil)
 
     private let broadcast = Broadcast<MatchUpdate>(.noMatch(echo: nil))
 
@@ -37,13 +37,15 @@ public final class MatchScorer: Sendable {
 
     /// - Returns: `nil` when refused, because a match is already running.
     @discardableResult
-    public func start(ruleset: Ruleset, firstServer: Side) -> SavedMatch? {
+    public func start(ruleset: Ruleset, firstServer: Side, isPaired: Bool) -> SavedMatch? {
         held.withLock { held in
-            guard start(&held, ruleset: ruleset, firstServer: firstServer) else { return nil }
+            guard start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: isPaired) else {
+                return nil
+            }
 
             publish(held, echo: nil)
 
-            return held
+            return held?.saved
         }
     }
 
@@ -69,22 +71,28 @@ public final class MatchScorer: Sendable {
         }
     }
 
-    /// Refused, with nothing changed, when there is no match running or `base`
-    /// is not its number of rallies; a `start` is refused while one runs.
+    /// Refused, with nothing changed, when there is no paired match running or
+    /// `base` is not its number of rallies; a `start` is refused while any
+    /// match runs, and what it starts is paired.
     public func apply(_ intent: MatchIntent) {
         held.withLock { held in
             let accepted =
                 switch intent {
-                case .rally(let side, let base) where held.stands(on: base): change(&held, .rally(side))
-                case .undo(let base) where held.stands(on: base): change(&held, .undo)
-                case .end(let base) where held.stands(on: base): change(&held, .end)
+                case .rally(let side, let base) where held.answers(on: base): change(&held, .rally(side))
+                case .undo(let base) where held.answers(on: base): change(&held, .undo)
+                case .end(let base) where held.answers(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
-                    start(&held, ruleset: ruleset, firstServer: firstServer)
+                    start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: true)
                 default: false
                 }
 
             publish(held, echo: Echo(intent: intent, accepted: accepted))
         }
+    }
+
+    fileprivate struct Held {
+        var saved: SavedMatch
+        let isPaired: Bool
     }
 
     private enum Change {
@@ -107,21 +115,21 @@ public final class MatchScorer: Sendable {
 
     // MARK: Under the lock
 
-    private func start(_ held: inout SavedMatch?, ruleset: Ruleset, firstServer: Side) -> Bool {
+    private func start(_ held: inout Held?, ruleset: Ruleset, firstServer: Side, isPaired: Bool) -> Bool {
         guard !held.isRunning else { return false }
 
         let started = SavedMatch(
             match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
 
-        held = started
+        held = Held(saved: started, isPaired: isPaired)
         persist(started)
 
         return true
     }
 
     /// - Returns: `false` when the match was left as it was.
-    private func change(_ held: inout SavedMatch?, _ change: Change) -> Bool {
-        guard let before = held else { return false }
+    private func change(_ held: inout Held?, _ change: Change) -> Bool {
+        guard let before = held?.saved else { return false }
 
         var match = before
         switch change {
@@ -132,14 +140,15 @@ public final class MatchScorer: Sendable {
 
         guard match != before else { return false }
 
-        held = match
+        held?.saved = match
         persist(match)
 
         return true
     }
 
-    private func publish(_ held: SavedMatch?, echo: Echo?) {
-        let update: MatchUpdate = held.map { .match($0, echo: echo) } ?? .noMatch(echo: echo)
+    private func publish(_ held: Held?, echo: Echo?) {
+        let update: MatchUpdate =
+            held.map { .match($0.saved, isPaired: $0.isPaired, echo: echo) } ?? .noMatch(echo: echo)
 
         broadcast.send(update)
 
@@ -159,12 +168,12 @@ public final class MatchScorer: Sendable {
     }
 }
 
-extension Optional where Wrapped == SavedMatch {
+extension Optional where Wrapped == MatchScorer.Held {
     fileprivate var isRunning: Bool {
-        map { !$0.match.state.outcome.isOver } ?? false
+        map { !$0.saved.match.state.outcome.isOver } ?? false
     }
 
-    fileprivate func stands(on base: Int) -> Bool {
-        isRunning && self?.match.journal.count == base
+    fileprivate func answers(on base: Int) -> Bool {
+        isRunning && self?.isPaired == true && self?.saved.match.journal.count == base
     }
 }

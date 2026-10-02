@@ -18,7 +18,7 @@ struct SessionTransportTests {
         let arrived = Inbox<MatchUpdate>()
         let update = MatchUpdate.match(
             .played([.us, .them], ruleset: toTwo),
-            echo: Echo(intent: .rally(wonBy: .them, base: 1), accepted: true))
+            isPaired: true, echo: Echo(intent: .rally(wonBy: .them, base: 1), accepted: true))
 
         remote.onUpdate(arrived.take)
         try scorer.send(update)

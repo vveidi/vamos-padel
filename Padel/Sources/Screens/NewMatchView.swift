@@ -213,7 +213,7 @@ struct NewMatchView: View {
     }
 
     private func startMatch() {
-        guard let started = scorer.start(ruleset: numbers.ruleset, firstServer: firstServer) else {
+        guard let started = scorer.start(ruleset: numbers.ruleset, firstServer: firstServer, isPaired: false) else {
             logger.error("the new match was refused: another one is running")
             return
         }

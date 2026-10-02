@@ -14,6 +14,15 @@ struct ScorePages: View {
     let servingHalf: ServingHalf?
     @Binding var tapMode: TapMode
     let mark: RallyMark?
+
+    /// Only ever `true` in a paired match: the score is the phone's last word,
+    /// and nothing on these pages can ask it anything.
+    let isPhoneUnreachable: Bool
+
+    /// Counts the intents that changed nothing, refused by the phone or never
+    /// sent; each new value shakes the score once.
+    let refusals: Int
+
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -35,6 +44,7 @@ struct ScorePages: View {
         NavigationStack {
             TabView(selection: $page) {
                 MatchControls(onAbandon: onAbandon)
+                    .disabled(isPhoneUnreachable)
                     .tag(Page.controls)
 
                 ScoreView(
@@ -46,7 +56,14 @@ struct ScorePages: View {
                     tapMode: tapMode,
                     mark: mark,
                     onRallyWon: onRallyWon,
-                    onUndo: onUndo)
+                    onUndo: onUndo,
+                    refusals: refusals)
+                    .disabled(isPhoneUnreachable)
+                    .opacity(isPhoneUnreachable ? Board.staleScore : 1)
+                    .overlay {
+                        if isPhoneUnreachable { PhoneUnreachable() }
+                    }
+                    .animation(.easeInOut(duration: Board.staleFade), value: isPhoneUnreachable)
                     .tag(Page.score)
 
                 TapModePage(tapMode: $tapMode)
@@ -88,9 +105,49 @@ private struct MatchControls: View {
     }
 }
 
+private struct PhoneUnreachable: View {
+    var body: some View {
+        VStack(spacing: Board.messageGap) {
+            Image(systemName: "iphone.slash")
+                .textStyle(.display)
+                .foregroundStyle(Color.ball)
+
+            Text("iPhone unreachable")
+                .textStyle(.control)
+                .foregroundStyle(Color.ink)
+
+            Text("Bring your iPhone closer to go on.")
+                .textStyle(.caption)
+                .foregroundStyle(Color.ink.weight(.secondary))
+        }
+        .multilineTextAlignment(.center)
+        .minimumScaleFactor(Board.messageScale)
+        .padding(.horizontal, Board.inset)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// No board: the unreachable phone has none, and the inset is the settings
+/// page's.
+private enum Board {
+    static let inset: CGFloat = 8
+
+    static let messageGap: CGFloat = 4
+
+    static let messageScale: CGFloat = 0.7
+
+    /// Dim enough that the message over it reads first, light enough that the
+    /// score is still there to be read.
+    static let staleScore: Double = 0.3
+
+    static let staleFade: TimeInterval = 0.25
+}
+
 #if DEBUG
 
 private struct Pages: View {
+    var isPhoneUnreachable = false
+
     @State private var tapMode = TapMode.multiTap
 
     var body: some View {
@@ -102,6 +159,8 @@ private struct Pages: View {
             servingHalf: .right,
             tapMode: $tapMode,
             mark: nil,
+            isPhoneUnreachable: isPhoneUnreachable,
+            refusals: 0,
             onRallyWon: { _ in },
             onUndo: {},
             onAbandon: {})
@@ -110,8 +169,18 @@ private struct Pages: View {
 
 private let pages = Pages()
 
+private let unreachable = Pages(isPhoneUnreachable: true)
+
 #Preview { pages }
 
 #Preview("In Russian") { pages.environment(\.locale, Locale(identifier: "ru")) }
+
+#Preview("The phone unreachable") { unreachable }
+
+#Preview("In Russian: the phone unreachable") { unreachable.environment(\.locale, Locale(identifier: "ru")) }
+
+#Preview("At the largest type: the phone unreachable") {
+    unreachable.environment(\.dynamicTypeSize, .accessibility5)
+}
 
 #endif

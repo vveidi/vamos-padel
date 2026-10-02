@@ -10,7 +10,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 - Acceptance criteria are checkbox lines; check them off (`- [x]`) as they are met
-- Dependencies are recorded as a `Blocked by: NN, NN` line near the top, or `None`
+- Dependencies are recorded as a `Blocked by: NN, NN` line near the top, or `None`; a ticket in another feature is named `<feature-slug>/NN`, and still counts once that feature is archived
 
 ## Closing a ticket
 

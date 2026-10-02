@@ -1,6 +1,6 @@
 # Paired scoring: one match, both devices, the watch as its remote
 
-Status: needs-triage
+Status: ready-for-agent
 
 ## Problem Statement
 
@@ -22,12 +22,39 @@ and keeps nothing. The workout still belongs to the watch and the phone mirrors
 it, which is also what keeps the phone's app alive for the length of a match it
 is holding but not looking at.
 
-**This is a third way to score, not a replacement for the other two.** Whether
-it is chosen automatically when both devices are present, or offered as a
-setting, or made the only way once it works — that is the first question this
-feature has to answer, and the reason every ticket in it is `needs-triage`
-rather than ready. The design below was written when it *was* the replacement,
-and it has to be read again in the world it now lands in.
+**This is a third way to score, not a replacement for the other two**
+(ADR-0017). Each device's start screen carries a switch, off until a player
+turns it on, and the device a match is started on decides by its own switch
+whether that match is paired. When the other device is out of reach or already
+scoring a match of its own, the start screen says so and offers to score this
+one alone. A match scored on the watch alone is delivered as it always was.
+
+The design below was first written when the pair *was* the replacement. Where
+the two disagree, the triage of October 2026 — recorded in the tickets and in
+ADR-0017 — wins.
+
+## Decided in triage
+
+- **The switch is per device, and the starting device's own switch decides.**
+  Off by default on both. Ticket 08.
+- **Out of reach or busy: say which, and offer to score alone.** Never a silent
+  fallback, never taking over the other device's match. Ticket 08.
+- **Before the first release.** `release/03` is blocked by ticket 07.
+- **The ends hand out `AsyncStream`s**, not `@Observable` — the packages carry
+  none. Ticket 02.
+- **The watch lost mid-match: the phone scores on**, says so, and holds its
+  idle timer; the watch rejoins when it comes back. Ticket 04.
+- **The phone lost mid-match: the watch freezes**, as written below.
+- **An update carries an echo** of the intent it answers — accepted or refused —
+  which is how the watch shows a refusal and marks only its own rallies.
+  Ticket 01.
+- **The ruleset of a start on the watch is the watch's**, from its own store.
+  Ticket 05.
+- **"Recording to Health" governs saving, in a paired match only.** A paired
+  match started on the phone uses the switch's last value on the watch.
+  Ticket 04.
+- **Health refused on the phone means no paired match there.** Ticket 04.
+- **The delivery stays**, and ticket 06 is closed unbuilt.
 
 ## What is in
 
@@ -37,9 +64,12 @@ and it has to be read again in the world it now lands in.
   the background while the match runs.
 - The **watch as a remote**: the same score screen, drawing a journal that
   arrived, its taps asking rather than recording.
-- **Removing the delivery**: `MatchDelivery`, `MatchReception`, the receipt, the
-  queue, the delivery mark, and the database on the watch.
+- The **setting** on each device's start screen.
 - The **live pair run-through**, which is the half of this no simulator can see.
+
+## What is out
+
+- **Removing the delivery.** A match scored on the watch alone still needs it.
 
 ## What it depends on
 
@@ -61,9 +91,8 @@ nothing: close the app mid-match and it rejoins where the phone is.
 
 **A paired match needs both devices to begin.** Starting on the phone raises the
 watch app into a workout (`HKHealthStore.startWatchApp(with:)`); starting on the
-watch requires the phone to answer. This is the sharpest departure from the app
-as it stands, and it is why the question of whether pairing replaces the other
-two ways of scoring or joins them has to be settled first.
+watch requires the phone to answer. When either cannot, the player is offered
+the match alone instead.
 
 **The workout is the watch's, and the phone mirrors it.** That is not a detail
 of Health: a mirrored workout session is what entitles the phone's app to keep
@@ -75,8 +104,9 @@ moment".
 
 ### The two ends
 
-`PadelDelivery` stops being a post office and becomes a link. Two ends, named
-for what they do rather than for the device they run on:
+`PadelDelivery` stays a post office for the solo watch match and becomes a link
+as well. Two ends, named for what they do rather than for the device they run
+on:
 
 - **`MatchHost`** — holds the match, applies intents to it, writes it to the
   store, and broadcasts the journal after every change. The phone runs it.
@@ -105,13 +135,11 @@ match what it holds. That one integer is what makes a message delivered twice
 score once, and a tap made against a stale screen fail loudly instead of
 quietly.
 
-### What dies
+### What survives
 
-`MatchDelivery`, `MatchReception`, `Arrival.receipt`, `MatchDeliveryQueue`, the
-`delivered` column, the database on the watch and the GRDB dependency with it.
-ADR-0004 is superseded; ADR-0002 survives only in the half that says storage is
-local and behind an interface; ADR-0009 is rewritten, because a paired match has
-no one device that holds it.
+The delivery, the receipt, the queue, the `delivered` column and the watch's
+store, all for the match the watch scores alone. ADR-0002 and ADR-0004 stand;
+ADR-0009 is superseded in part by ADR-0017.
 
 ## Implementation Decisions
 
@@ -137,8 +165,9 @@ the phone awake honestly.
 ### The mirrored workout keeps the phone alive; WatchConnectivity carries the data
 
 *This is ADR-0010, written and then withdrawn when pairing was deferred. It is
-kept here verbatim, and filed as a numbered ADR when this feature is built. The
-tickets refer to it by this heading.*
+kept here verbatim, and ticket 04 files it — less the two consequences the pair
+being a third way has made false: the queue does not go, and the switch changes
+meaning in a paired match only.*
 
 > The match lives on the phone (ADR-0009), and iOS is free to suspend and
 > terminate an app the moment it leaves the screen. What entitles the phone's
@@ -191,37 +220,20 @@ does not match, and when there is no match. The watch draws nothing until the
 journal comes back — no optimistic point, ever, because a scoreboard that shows
 40 and takes it back is worse than one that is 200 ms late.
 
-## The vocabulary this feature restores
+## The vocabulary
 
-Both entries were written into `CONTEXT.md` ahead of the code and lifted back
-out when pairing was deferred. They return to the glossary in ticket 06, along
-with the removal of **Match delivery** and of **Scorer**.
-
-**Live link**:
-The conversation between the phone and the watch while a match runs: the journal
-goes out to the watch after every change, intents come back from it. It is not a
-hand-off and not a backup — there is one match, in one place, and the link is
-how the other device sees it and reaches it. Lose the link and the match stands
-still: the watch says so and stops taking taps, and what is played in the
-meantime is recorded nowhere.
-_Avoid_: synchronization, sync, delivery (there is nothing to deliver any more)
-
-**Intent**:
-A request from the watch to change the match — a rally to a side, an undo, an
-end, a start. It is not a rally until the phone records it, and the phone is the
-only judge: an intent is refused when the match is over, when there is no match,
-and when the journal it was formed against is no longer the journal the phone
-holds. The watch draws nothing until the journal comes back.
-_Avoid_: command, event, action, message
+**Paired match**, **Remote**, **Live link** and **Intent** are in `CONTEXT.md`,
+and **Scorer** there says who holds a paired match.
 
 ## Consequences, stated plainly
 
 - **A paired match needs both devices.** A player who leaves the phone in a
-  locker cannot score one, and neither can a player whose watch is flat. What
-  this means for the other two ways of scoring is the open question above.
-- **A match interrupted by a flat phone is not lost**, but it is frozen: the
-  watch refuses taps while the phone is unreachable, and the rallies played in
-  the meantime are recorded nowhere.
+  locker cannot score one, and neither can a player whose watch is flat — the
+  start screen offers them the match alone.
+- **A match interrupted by a lost phone is not lost**, but it is frozen on the
+  wrist: the watch refuses taps while the phone is unreachable, and the rallies
+  played in the meantime are recorded nowhere.
+- **A match that loses its watch goes on** on the phone, from the scoreboard.
 - **Almost none of this can be verified in a simulator.** Ticket 07 is that
   run-through, and it needs a human and a real pair.
 
@@ -233,9 +245,10 @@ _Avoid_: command, event, action, message
 03  the transport becomes live
 04  the workout mirrors, and the phone stays awake
 05  the watch becomes a remote
-06  the delivery is removed
+06  the delivery is removed (wontfix)
 07  the live pair run-through
+08  the setting: whether a match starts paired
 ```
 
-01 blocks 02 and 03. 04 and 05 wait on both of those; 06 waits on 05; 07 waits
-on all of it, and on `phone-scoring` having landed.
+01 blocks 02 and 03. 04 and 05 wait on both of those; 08 waits on 04 and 05; 07
+waits on all of it, and `release/03` waits on 07.

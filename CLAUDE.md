@@ -108,10 +108,9 @@ therefore two products. `PadelStorage` is `Interface/` alone and links no
 database; `PadelStorageDatabase` is `Database/` and depends on it and on GRDB.
 The tests stay one target, named `PadelStorageTests` and mirroring both folders.
 
-The split exists so that the watch can name a `SavedMatch` on the wire without
-linking GRDB. It does not do that yet: both apps link both products today,
-because the watch still opens a store of its own. It drops to the interface
-alone when the store leaves it.
+The split keeps a `SavedMatch` nameable on the wire without GRDB. Both apps link
+both products all the same: the watch keeps a store of its own for the matches
+it scores alone (ADR-0017).
 
 Adding a folder needs no manifest edit — SwiftPM compiles everything under the
 target's directory. `PadelStorage` is the exception, and for the same reason:

@@ -1,0 +1,68 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Vamos"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Padel"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSHealthShareUsageDescription" : {
+      "comment" : "The English is the phone target's INFOPLIST_KEY_NSHealthShareUsageDescription build setting; both languages are written here by hand, and the entry is marked manual so extraction leaves it alone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vamos follows the workout your watch records during a match scored with it, with its heart rate and calories."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vamos следит за тренировкой, которую часы записывают во время матча с ними: за пульсом и калориями."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "The English is the phone target's INFOPLIST_KEY_NSHealthUpdateUsageDescription build setting; both languages are written here by hand, and the entry is marked manual so extraction leaves it alone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vamos keeps the score on your iPhone while your watch records the match as a workout. Without it a match scored with your watch stops when the iPhone's screen locks."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vamos ведёт счёт на iPhone, пока часы записывают матч как тренировку. Без этого матч с часами останавливается, когда гаснет экран iPhone."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

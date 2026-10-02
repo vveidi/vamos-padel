@@ -10,17 +10,29 @@ struct NewMatchView: View {
 
     private let scorer: MatchScorer
 
-    private let onStart: (SavedMatch) -> Void
+    private let workout: WatchWorkout
+
+    private let startsPaired: Bool
+
+    /// The match, and whether it is paired.
+    private let onStart: (SavedMatch, Bool) -> Void
 
     @State private var firstServer = Side.us
+
+    @State private var isRaisingTheWatch = false
 
     /// Both rulesets' numbers, so that glancing at the other one and coming
     /// back does not cost what was already dialled into this one.
     @State private var numbers: Numbers
 
-    init(store: any MatchStore, scorer: MatchScorer, onStart: @escaping (SavedMatch) -> Void) {
+    init(
+        store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout, startsPaired: Bool,
+        onStart: @escaping (SavedMatch, Bool) -> Void
+    ) {
         self.store = store
         self.scorer = scorer
+        self.workout = workout
+        self.startsPaired = startsPaired
         self.onStart = onStart
         _numbers = State(initialValue: Numbers(Self.lastRuleset(of: store)))
     }
@@ -203,6 +215,7 @@ struct NewMatchView: View {
 
     private var start: some View {
         PillButton(Text("Start match"), action: startMatch)
+            .disabled(isRaisingTheWatch)
             .frame(maxWidth: .readableColumn)
             .padding(.horizontal, Board.inset)
             .frame(maxWidth: .infinity)
@@ -213,12 +226,29 @@ struct NewMatchView: View {
     }
 
     private func startMatch() {
+        guard startsPaired else { return begin(paired: false) }
+
+        isRaisingTheWatch = true
+
+        Task {
+            let start = await workout.start()
+            isRaisingTheWatch = false
+
+            switch start {
+            case .started: begin(paired: true)
+            case .healthRefused: logger.notice("no paired match: Health is refused on the phone")
+            case .watchDidNotAnswer: logger.notice("no paired match: the watch did not answer")
+            }
+        }
+    }
+
+    private func begin(paired: Bool) {
         guard let started = scorer.start(ruleset: numbers.ruleset, firstServer: firstServer) else {
             logger.error("the new match was refused: another one is running")
             return
         }
 
-        onStart(started)
+        onStart(started, paired)
     }
 
     /// A read failure leaves the defaults in place: starting a match on
@@ -347,11 +377,15 @@ private func screen(lastRuleset: Ruleset?) -> some View {
     NavigationStack {
         NewMatchView(
             store: PreviewMatchStore(last: lastRuleset),
-            scorer: MatchScorer(store: NoMatchStore(), link: NoMatchTransport()),
-            onStart: { _ in })
+            scorer: previewScorer,
+            workout: WatchWorkout(scorer: previewScorer),
+            startsPaired: false,
+            onStart: { _, _ in })
     }
     .preferredColorScheme(.dark)
 }
+
+private let previewScorer = MatchScorer(store: NoMatchStore(), link: NoMatchTransport())
 
 private func inRussian(_ view: some View) -> some View {
     view.environment(\.locale, Locale(identifier: "ru"))

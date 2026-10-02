@@ -15,5 +15,13 @@
 		<key>UIColorName</key>
 		<string>LaunchNight</string>
 	</dict>
+
+	<!-- The mirrored workout of a paired match is what keeps the app running
+	     once its screen is off (ADR-0010), and only with this mode does iOS
+	     let it. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+	</array>
 </dict>
 </plist>

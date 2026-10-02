@@ -14,6 +14,8 @@ struct PadelApp: App {
 
     private let scorer: MatchScorer
 
+    private let workout: WatchWorkout
+
     init() {
         do {
             store = try DatabaseMatchStore.inApplicationSupport()
@@ -31,12 +33,14 @@ struct PadelApp: App {
 
         scorer = MatchScorer(store: store, link: transport)
 
+        workout = WatchWorkout(scorer: scorer)
+
         transport.activate()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: store, scorer: scorer)
+            RootView(store: store, scorer: scorer, workout: workout)
                 // The app is one court at dusk and there is no second design
                 // for noon (ADR-0006). A phone set to light would otherwise
                 // hand the system's own views — a navigation bar, a spinner, a

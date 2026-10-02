@@ -8,19 +8,26 @@ struct RootView: View {
 
     private let scorer: MatchScorer
 
+    private let workout: WatchWorkout
+
     @State private var tab = Screen.newMatch
 
     @State private var running: SavedMatch?
 
-    init(store: any MatchStore, scorer: MatchScorer) {
+    @State private var isPaired = false
+
+    init(store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout) {
         self.store = store
         self.scorer = scorer
+        self.workout = workout
     }
 
     var body: some View {
         ZStack {
             if let running {
-                ScoreboardView(match: running, scorer: scorer, onLeave: leave)
+                ScoreboardView(
+                    match: running, scorer: scorer, isPaired: isPaired,
+                    holdsTheWatchsWorkout: workout.holdsTheWorkout, onLeave: leave)
                     .transition(.opacity)
             } else {
                 tabs
@@ -34,7 +41,10 @@ struct RootView: View {
         TabView(selection: $tab) {
             Tab("New match", systemImage: "plus.circle", value: Screen.newMatch) {
                 NavigationStack {
-                    NewMatchView(store: store, scorer: scorer) { running = $0 }
+                    NewMatchView(store: store, scorer: scorer, workout: workout, startsPaired: false) {
+                        running = $0
+                        isPaired = $1
+                    }
                 }
             }
 
@@ -62,18 +72,22 @@ private let crossFade: TimeInterval = 0.25
 
 #if DEBUG
 
-#Preview("The tabs") { RootView(store: NoMatchStore(), scorer: previewScorer).preferredColorScheme(.dark) }
+#Preview("The tabs") { root.preferredColorScheme(.dark) }
 
 #Preview("In Russian: the tabs") {
-    RootView(store: NoMatchStore(), scorer: previewScorer)
+    root
         .environment(\.locale, Locale(identifier: "ru"))
         .preferredColorScheme(.dark)
 }
 
 #Preview("At the largest type") {
-    RootView(store: NoMatchStore(), scorer: previewScorer)
+    root
         .environment(\.dynamicTypeSize, .accessibility5)
         .preferredColorScheme(.dark)
+}
+
+@MainActor private var root: some View {
+    RootView(store: NoMatchStore(), scorer: previewScorer, workout: WatchWorkout(scorer: previewScorer))
 }
 
 private let previewScorer = MatchScorer(store: NoMatchStore(), link: NoMatchTransport())

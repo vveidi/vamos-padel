@@ -1,16 +1,22 @@
+import HealthKit
 import os
 import PadelDelivery
 import PadelStorage
 import PadelStorageDatabase
 import SwiftUI
+import WatchKit
 
 @main
 struct PadelWatchApp: App {
+    @WKApplicationDelegateAdaptor private var delegate: PadelWatchAppDelegate
+
     private let store: any MatchStore & MatchDeliveryQueue
 
     /// Owned by the app rather than by the match screen: the phone's
     /// confirmation can arrive long after the match it confirms has ended.
     private let delivery: MatchDelivery
+
+    private let workout = HealthKitWorkout()
 
     init() {
         do {
@@ -27,13 +33,31 @@ struct PadelWatchApp: App {
 
         delivery = MatchDelivery(queue: store, sender: transport)
 
+        PadelWatchAppDelegate.pairedWorkout = PairedWorkout(
+            workout: workout,
+            remote: MatchRemote(link: transport),
+            savesToHealth: { UserDefaults.standard.object(forKey: "records-to-health") as? Bool ?? true },
+            isScoringAlone: { [store] in (try? store.matchInProgress()) != nil })
+
         transport.activate()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: store, workout: HealthKitWorkout(), delivery: delivery)
+            RootView(store: store, workout: workout, delivery: delivery)
         }
+    }
+}
+
+final class PadelWatchAppDelegate: NSObject, WKApplicationDelegate {
+    /// Set while the app is assembled, which is before the system makes any
+    /// call to the delegate.
+    static var pairedWorkout: PairedWorkout?
+
+    /// Where the phone's `startWatchApp(toHandle:)` lands: a paired match
+    /// started there.
+    func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
+        Self.pairedWorkout?.begin()
     }
 }
 

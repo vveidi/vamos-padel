@@ -1,3 +1,4 @@
+import PadelScoring
 import PadelStorage
 
 /// What the scorer broadcasts after every change. `echo` is `nil` when the scorer
@@ -5,6 +6,15 @@ import PadelStorage
 public enum MatchUpdate: Equatable, Sendable {
     case match(SavedMatch, echo: Echo?)
     case noMatch(echo: Echo?)
+}
+
+extension MatchUpdate {
+    /// `false` for a match that is over as well as for none.
+    public var isRunning: Bool {
+        guard case .match(let saved, _) = self else { return false }
+
+        return !saved.match.state.outcome.isOver
+    }
 }
 
 public struct Echo: Equatable, Sendable {

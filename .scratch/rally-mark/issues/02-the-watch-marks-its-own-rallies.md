@@ -5,33 +5,34 @@ growing and not by the finger.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each `ScoreZone` in `ScoreView.swift` carries the mark from ticket 01, and
+- [x] Each `ScoreZone` in `ScoreView.swift` carries the mark from ticket 01, and
       the zone that is marked is the one whose side won the rally
-- [ ] `ScoreView` is given what it needs to know a rally landed — which side won
+- [x] `ScoreView` is given what it needs to know a rally landed — which side won
       it and that it is a *new* one — and `MatchView` computes that from
       `saved.match`'s journal. **Not from `record(rallyWonBy:)`**: `paired-scoring` will have
       the watch draw nothing it has not been given, and ADR-0011 keeps the mark
       on the honest side of that line while the haptic stays on the other
-- [ ] The tier is the games or the sets having moved with the rally — both are
+- [x] The tier is the games or the sets having moved with the rally — both are
       already handed to `ScoreView`. A match to N points has no games, so it has
       one tier, and that is correct rather than a gap
-- [ ] **An undo marks nothing.** The journal shrinking is not a rally landing,
+- [x] **An undo marks nothing.** The journal shrinking is not a rally landing,
       and the mark must not fire on it
-- [ ] **The screen appearing marks nothing.** A match continued after an
+- [x] **The screen appearing marks nothing.** A match continued after an
       interruption, or the score page swiped back to, opens at its score and does
       not replay the last rally
-- [ ] A `TODO:` where the origin filter will go, naming
+- [x] A `TODO:` where the origin filter will go, naming
       `.scratch/paired-scoring/issues/05-the-watch-becomes-a-remote.md` — today
       every rally on this screen is one the watch awarded, and after 09 it is
-      not. One line, in the spelling Xcode's jump bar lists
-- [ ] The haptics of `watch-tap-mode` 02 are untouched wherever they have landed
+      not. One line, in the spelling Xcode's jump bar lists — *met as a
+      criterion in that ticket instead: `CLAUDE.md` forbids a `TODO:`*
+- [x] The haptics of `watch-tap-mode` 02 are untouched wherever they have landed
       by then: they answer the finger, the mark answers the journal, and the two
       are deliberately not wired together
-- [ ] Previews of a zone marked at peak, both tiers, both sides — using ticket
+- [x] Previews of a zone marked at peak, both tiers, both sides — using ticket
       01's inner view, since an animation's resting state is nothing to look at
-- [ ] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean,
+- [x] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean,
       and the screen is driven on a simulator: rallies to both sides, a game
       taken, an undo, and the score still scores afterwards
 
@@ -59,3 +60,15 @@ extra haptic for one.
 stack. `watch-tap-mode` 04 is doing that work and `StartPages`' doc comment
 records what happened the last time a bar was hidden by hand. This ticket adds an
 overlay to two zones and nothing else.
+
+## Comments
+
+**Shipped.** `MatchView` watches `saved.match.journal`. When it grows, it hands
+down a `RallyMark` with the winner, a counter that only rises, and the tier. The
+tier comes from replaying the old journal and comparing games and sets. Computing
+it in `ScoreView` from the values it already gets did not work: the mark arrives
+one update after the games have moved, so the two always looked equal. Driven
+and measured: a game holds its peak ~0.4s; an undo, a relaunch and a swipe back
+light nothing.
+
+The `TODO:` became a criterion in `paired-scoring` 05.

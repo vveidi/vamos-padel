@@ -28,6 +28,11 @@ draws is the last journal the phone sent; what its taps do is ask.
 - [ ] The outcome screen is reached the same way it is now — from the match
       being over, which is now a fact that arrives rather than one computed here
 - [ ] `MatchView` no longer writes to a store or calls a delivery
+- [ ] The rally mark keeps to ADR-0011's "a device marks the rallies it
+      awarded": `MatchView`'s `.onChange(of: saved.match.journal)` gains an
+      origin filter, so a rally awarded on the phone moves the score and lights
+      nothing. Today every rally there is the watch's own (`rally-mark` 02),
+      and `Rally` carries no origin to filter on
 - [ ] Previews cover: a live match, an unreachable phone, and a match that ended
 - [ ] The new strings are in `Shared/Localizable.xcstrings`, English as the
       source, and spoken by VoiceOver where they are drawn

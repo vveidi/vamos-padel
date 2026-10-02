@@ -20,9 +20,14 @@ struct ScoreView: View {
 
     let tapMode: TapMode
 
+    let mark: RallyMark?
+
     let onRallyWon: (Side) -> Void
 
     let onUndo: () -> Void
+
+    /// For the previews, which cannot show an animation: the mark at its peak.
+    var markHeldAtPeak: Side? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,6 +57,8 @@ struct ScoreView: View {
             isServing: side == servingSide,
             servingHalf: servingHalf,
             awardsOnTap: tapMode == .tapZones,
+            mark: mark,
+            isHeldAtPeak: markHeldAtPeak == side,
             onRallyWon: onRallyWon,
             onUndo: onUndo)
     }
@@ -71,6 +78,10 @@ private struct ScoreZone: View {
     let servingHalf: ServingHalf?
 
     let awardsOnTap: Bool
+
+    let mark: RallyMark?
+
+    let isHeldAtPeak: Bool
 
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
@@ -130,6 +141,12 @@ private struct ScoreZone: View {
 
     private var court: some View {
         CourtHalf()
+            .overlay {
+                if isHeldAtPeak {
+                    RallyMarkFill(level: 1)
+                }
+            }
+            .rallyMark(mark, on: side)
             // The board lights our near corner and leaves their half unlit.
             .overlay {
                 if side == .us {
@@ -262,6 +279,7 @@ private func serving(_ side: Side, from half: ServingHalf?) -> ScoreView {
         servingSide: side,
         servingHalf: half,
         tapMode: .multiTap,
+        mark: nil,
         onRallyWon: { _ in },
         onUndo: {})
 }
@@ -273,6 +291,7 @@ private let goldenPoint = ScoreView(
     servingSide: .us,
     servingHalf: nil,
     tapMode: .multiTap,
+    mark: nil,
     onRallyWon: { _ in },
     onUndo: {})
 
@@ -283,6 +302,7 @@ private let twoSets = ScoreView(
     servingSide: .them,
     servingHalf: .right,
     tapMode: .multiTap,
+    mark: nil,
     onRallyWon: { _ in },
     onUndo: {})
 
@@ -293,8 +313,33 @@ private let pointsTo = ScoreView(
     servingSide: .them,
     servingHalf: .left,
     tapMode: .multiTap,
+    mark: nil,
     onRallyWon: { _ in },
     onUndo: {})
+
+/// The two tiers differ in time only, so at the peak what tells them apart is
+/// the score the rally left behind.
+private func marked(_ side: Side, by tier: RallyMark.Tier) -> ScoreView {
+    ScoreView(
+        points: .game(tier == .rally ? SideCounts(us: 2, them: 1) : SideCounts(us: 0, them: 0)),
+        games: SideCounts(us: 4, them: 5),
+        sets: nil,
+        servingSide: .us,
+        servingHalf: tier == .rally ? .left : .right,
+        tapMode: .tapZones,
+        mark: nil,
+        onRallyWon: { _ in },
+        onUndo: {},
+        markHeldAtPeak: side)
+}
+
+#Preview("A rally to us, marked at its peak") { marked(.us, by: .rally) }
+
+#Preview("A rally to the opponents, marked at its peak") { marked(.them, by: .rally) }
+
+#Preview("A game to us, marked at its peak") { marked(.us, by: .gameOrSet) }
+
+#Preview("A game to the opponents, marked at its peak") { marked(.them, by: .gameOrSet) }
 
 #Preview("We serve from our right (screen right)") { serving(.us, from: .right) }
 

@@ -6,24 +6,24 @@ the delivery of a match scored on the watch alone keeps `transferUserInfo`.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The transport protocol gains a live half: send a payload now, be told when
+- [x] The transport protocol gains a live half: send a payload now, be told when
       one arrives, be told when reachability changes, and report reachability
       now
-- [ ] `WatchConnectivityTransport` sends the live half with `sendMessage`, and
+- [x] `WatchConnectivityTransport` sends the live half with `sendMessage`, and
       goes on sending a finished solo match with `transferUserInfo` exactly as
       it does today
-- [ ] It is still the only file in the codebase that knows what
+- [x] It is still the only file in the codebase that knows what
       WatchConnectivity is, and it is still one object standing at both ends
-- [ ] `sessionReachabilityDidChange` reaches the ends as a value; a live send
+- [x] `sessionReachabilityDidChange` reaches the ends as a value; a live send
       while unreachable fails immediately instead of queueing
-- [ ] `NoMatchTransport` keeps its place for previews, for an iPad, and for a
+- [x] `NoMatchTransport` keeps its place for previews, for an iPad, and for a
       phone with no watch
-- [ ] Tests against a stub cover: a payload that goes out and comes back, a live
+- [x] Tests against a stub cover: a payload that goes out and comes back, a live
       send refused while unreachable, reachability changing under an end, and a
       delivery still queued while the live half is unreachable
-- [ ] `swift test` is green in `PadelDelivery`
+- [x] `swift test` is green in `PadelDelivery`
 
 ## Notes
 
@@ -48,3 +48,17 @@ begin (ticket 08). All three read it here.
 04 files it), and names it as the fallback if `sendMessage` misbehaves on a live
 pair. Should that happen, it is a second implementation of the live half and no
 screen changes.
+
+## Comments
+
+The live half is `LiveLink` (reachability now, and when it changes), with
+`ScorerLink` for the phone (sends updates, takes intents) and `RemoteLink` for
+the watch (the reverse). Not `HostLink`: CONTEXT.md avoids "host". A live send
+while unreachable throws `LiveLinkError.unreachable`. The logic sits in a
+WatchConnectivity-free `SessionTransport` over a `DeviceSession`, so it runs
+under `swift test`. The WatchConnectivity file is the adapter: one public
+object, still the only file that imports the framework. Reachability is pushed
+after activation and when an iOS session goes inactive. "An end" in the tests
+is the transport's reachability handler, because the ends are ticket 02's. Each
+handler is one slot, so fanning reachability out to several screens is up to
+the ends.

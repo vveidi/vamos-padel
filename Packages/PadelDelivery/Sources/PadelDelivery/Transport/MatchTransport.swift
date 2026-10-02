@@ -29,8 +29,54 @@ public protocol MatchReceiver: Sendable {
     func confirmArrival(of match: SavedMatch)
 }
 
-public struct NoMatchTransport: MatchSender, MatchReceiver {
+/// The live half, beside the queue: what is sent here leaves now or not at
+/// all, and nothing is kept for later.
+public protocol LiveLink: Sendable {
+    /// `false` until the session activates, and whenever the other app cannot
+    /// take a message this moment.
+    var isReachable: Bool { get }
+
+    /// Set once when the app is assembled. Called from the session's queue,
+    /// which is not the main one, and may repeat a value it already reported.
+    func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void)
+}
+
+public protocol ScorerLink: LiveLink {
+    func send(_ update: MatchUpdate) throws
+
+    func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void)
+}
+
+public protocol RemoteLink: LiveLink {
+    func send(_ intent: MatchIntent) throws
+
+    func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void)
+}
+
+public enum LiveLinkError: Error, Equatable {
+    /// Thrown by a live send at once while ``LiveLink/isReachable`` is `false`.
+    /// A message lost after leaving is logged and reported nowhere.
+    case unreachable
+}
+
+public struct NoMatchTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink {
     public init() {}
+
+    public var isReachable: Bool { false }
+
+    public func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {}
+
+    public func send(_ update: MatchUpdate) throws {
+        throw LiveLinkError.unreachable
+    }
+
+    public func send(_ intent: MatchIntent) throws {
+        throw LiveLinkError.unreachable
+    }
+
+    public func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) {}
+
+    public func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) {}
 
     public func send(_ match: SavedMatch) {}
 

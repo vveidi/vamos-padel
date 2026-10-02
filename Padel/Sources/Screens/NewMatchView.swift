@@ -12,29 +12,34 @@ struct NewMatchView: View {
 
     private let workout: WatchWorkout
 
-    private let startsPaired: Bool
-
     /// The match, and whether it is paired.
     private let onStart: (SavedMatch, Bool) -> Void
+
+    @AppStorage("starts-paired") private var startsPaired = false
 
     @State private var firstServer = Side.us
 
     @State private var isRaisingTheWatch = false
 
+    @State private var refusal: WatchRefusal?
+
+    @Environment(\.scenePhase) private var scenePhase
+
     /// Both rulesets' numbers, so that glancing at the other one and coming
     /// back does not cost what was already dialled into this one.
     @State private var numbers: Numbers
 
+    /// - Parameter refusal: Up from the start, for a preview.
     init(
-        store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout, startsPaired: Bool,
-        onStart: @escaping (SavedMatch, Bool) -> Void
+        store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout,
+        refusal: WatchRefusal? = nil, onStart: @escaping (SavedMatch, Bool) -> Void
     ) {
         self.store = store
         self.scorer = scorer
         self.workout = workout
-        self.startsPaired = startsPaired
         self.onStart = onStart
         _numbers = State(initialValue: Numbers(Self.lastRuleset(of: store)))
+        _refusal = State(initialValue: refusal)
     }
 
     var body: some View {
@@ -51,6 +56,12 @@ struct NewMatchView: View {
                 card.padding(.top, Board.cardGap)
 
                 sentence.padding(.top, Board.sentenceGap)
+
+                PairingRow(
+                    isOn: Binding(get: { startsPairedMatch }, set: pair),
+                    isHealthRefused: workout.isHealthRefused
+                )
+                .padding(.top, Board.sectionGap)
             }
             .frame(maxWidth: .readableColumn)
             .padding(.horizontal, Board.inset)
@@ -60,6 +71,16 @@ struct NewMatchView: View {
         .background { ground }
         .safeAreaInset(edge: .bottom) { start }
         .navigationTitle("New match")
+        // Back from Settings, where Health may have been allowed.
+        .onChange(of: scenePhase) { if scenePhase == .active { workout.recheckHealth() } }
+        .alert(
+            refusal?.reason ?? "",
+            isPresented: Binding(get: { refusal != nil }, set: { if !$0 { refusal = nil } })
+        ) {
+            Button("Start on iPhone alone") { begin(paired: false) }
+
+            Button("Cancel", role: .cancel) {}
+        }
     }
 
     private func heading(_ words: LocalizedStringKey) -> some View {
@@ -226,7 +247,7 @@ struct NewMatchView: View {
     }
 
     private func startMatch() {
-        guard startsPaired else { return begin(paired: false) }
+        guard startsPairedMatch else { return begin(paired: false) }
 
         isRaisingTheWatch = true
 
@@ -237,8 +258,23 @@ struct NewMatchView: View {
             switch start {
             case .started: begin(paired: true)
             case .healthRefused: logger.notice("no paired match: Health is refused on the phone")
-            case .watchDidNotAnswer: logger.notice("no paired match: the watch did not answer")
+            case .watchDidNotAnswer: refusal = .unreachable
+            case .watchScoresAlone: refusal = .scoringItsOwnMatch
             }
+        }
+    }
+
+    private var startsPairedMatch: Bool {
+        startsPaired && !workout.isHealthRefused
+    }
+
+    private func pair(_ isOn: Bool) {
+        startsPaired = isOn
+
+        guard isOn else { return }
+
+        Task {
+            if await !workout.authorize() { startsPaired = false }
         }
     }
 
@@ -309,6 +345,64 @@ struct NewMatchView: View {
     }
 }
 
+/// Why a paired start on the phone did not reach the watch.
+enum WatchRefusal {
+    case unreachable
+
+    /// A match the watch scores alone, which the phone never takes over.
+    case scoringItsOwnMatch
+
+    fileprivate var reason: LocalizedStringKey {
+        switch self {
+        case .unreachable: "Watch unreachable"
+        case .scoringItsOwnMatch: "Watch is scoring a match of its own"
+        }
+    }
+}
+
+/// Without the watch's mirrored workout the phone scores only while its screen
+/// is on (ADR-0010), so a refused Health locks the switch off.
+private struct PairingRow: View {
+    @Binding var isOn: Bool
+
+    let isHealthRefused: Bool
+
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Board.footGap) {
+            SettingsCard {
+                Toggle(isOn: $isOn) {
+                    Text("Use Watch")
+                        .textStyle(.body)
+                        .foregroundStyle(.ink.weight(.control))
+                }
+                .toggleStyle(.ball)
+                .disabled(isHealthRefused)
+                .opacity(isHealthRefused ? Board.lockedOpacity : 1)
+            }
+
+            if isHealthRefused { healthRefused }
+        }
+    }
+
+    private var healthRefused: some View {
+        VStack(alignment: .leading, spacing: Board.footGap) {
+            Text("Needs access to Health, to keep scoring while iPhone is locked.")
+                .textStyle(.body)
+                .foregroundStyle(.ink.weight(.secondary))
+
+            Button {
+                openURL(URL(string: UIApplication.openSettingsURLString)!)
+            } label: {
+                Text("Open Settings")
+                    .textStyle(.body)
+                    .foregroundStyle(Color.ball)
+            }
+        }
+    }
+}
+
 /// What the new match board drew around the controls, in its pixels — the
 /// phone boards are 1x (`docs/design/README.md`, "Reading the boards").
 private enum Board {
@@ -344,6 +438,11 @@ private enum Board {
     static let ring: CGFloat = 3
 
     static let floodlight: Double = 0.14
+
+    /// The pairing row is nobody's board, and neither are these two.
+    static let footGap: CGFloat = 8
+
+    static let lockedOpacity: Double = 0.4
 }
 
 #if DEBUG
@@ -374,16 +473,55 @@ private enum Board {
     atLargestType(inRussian(screen(lastRuleset: .defaultPointsTo)))
 }
 
-private func screen(lastRuleset: Ruleset?) -> some View {
-    NavigationStack {
+#Preview("With the watch") { screen(lastRuleset: nil, startsPaired: true) }
+
+#Preview("In Russian: with the watch") { inRussian(screen(lastRuleset: nil, startsPaired: true)) }
+
+#Preview("The watch unreachable") { screen(lastRuleset: nil, startsPaired: true, refusal: .unreachable) }
+
+#Preview("In Russian: the watch unreachable") {
+    inRussian(screen(lastRuleset: nil, startsPaired: true, refusal: .unreachable))
+}
+
+#Preview("The watch scoring its own match") {
+    screen(lastRuleset: nil, startsPaired: true, refusal: .scoringItsOwnMatch)
+}
+
+#Preview("In Russian: the watch scoring its own match") {
+    inRussian(screen(lastRuleset: nil, startsPaired: true, refusal: .scoringItsOwnMatch))
+}
+
+#Preview("Health refused") { healthRefused }
+
+#Preview("In Russian: Health refused") { inRussian(healthRefused) }
+
+#Preview("In Russian, at the largest type: Health refused") { atLargestType(inRussian(healthRefused)) }
+
+private func screen(
+    lastRuleset: Ruleset?, startsPaired: Bool = false, refusal: WatchRefusal? = nil
+) -> some View {
+    let defaults = UserDefaults(suiteName: "new-match-preview")!
+    defaults.set(startsPaired, forKey: "starts-paired")
+
+    return NavigationStack {
         NewMatchView(
             store: PreviewMatchStore(last: lastRuleset),
             scorer: previewScorer,
             workout: WatchWorkout(scorer: previewScorer),
-            startsPaired: false,
+            refusal: refusal,
             onStart: { _, _ in })
     }
+    .defaultAppStorage(defaults)
     .preferredColorScheme(.dark)
+}
+
+/// The row alone: a preview cannot make Health refuse the whole screen.
+private var healthRefused: some View {
+    PairingRow(isOn: .constant(false), isHealthRefused: true)
+        .padding(20)
+        .frame(maxHeight: .infinity)
+        .background(Color.night)
+        .preferredColorScheme(.dark)
 }
 
 private let previewScorer = MatchScorer(store: NoMatchStore(), link: NoMatchTransport())

@@ -17,6 +17,7 @@ public final class MatchScorer: Sendable {
 
     private let broadcast = Broadcast<MatchUpdate>(.noMatch(echo: nil))
     private let reachability = Broadcast<Bool>()
+    private let declines = Broadcast<Void>(keepsLatest: false)
 
     public init(store: any MatchStore, link: any ScorerLink) {
         self.store = store
@@ -44,6 +45,12 @@ public final class MatchScorer: Sendable {
     /// The first value is whether the remote is reachable now.
     public func reachabilityChanges() -> AsyncStream<Bool> {
         reachability.stream()
+    }
+
+    /// A value each time the remote answers ``MatchIntent/scoringAlone``, heard
+    /// only by a listener subscribed before it arrived.
+    public func remoteDeclines() -> AsyncStream<Void> {
+        declines.stream()
     }
 
     /// - Returns: `nil` when refused, because a match is already running.
@@ -86,6 +93,8 @@ public final class MatchScorer: Sendable {
     /// `base` is not its number of rallies; a `start` is refused while any
     /// match runs, and what it starts is paired.
     public func apply(_ intent: MatchIntent) {
+        guard intent != .scoringAlone else { return declines.send(()) }
+
         held.withLock { held in
             let accepted =
                 switch intent {
@@ -94,7 +103,7 @@ public final class MatchScorer: Sendable {
                 case .end(let base) where held.answers(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
                     start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: true)
-                default: false
+                case .rally, .undo, .end, .scoringAlone: false
                 }
 
             publish(held, echo: Echo(intent: intent, accepted: accepted))

@@ -45,6 +45,23 @@ final class PairedWorkout {
         }
     }
 
+    /// Where the phone's raise lands. A watch scoring a match of its own says
+    /// so, rather than leave the phone waiting for a workout that never comes.
+    func answerThePhone() {
+        guard isScoringAlone() else { return begin() }
+
+        // Unreachable leaves the phone to its wait, which ends in "unreachable".
+        try? remote.send(.scoringAlone)
+    }
+
+    /// Ends, unsaved, a workout no match has arrived for, so a match scored
+    /// alone can start its own.
+    func standDown() {
+        guard following != nil, !hasSeenAMatch else { return }
+
+        finish()
+    }
+
     private func followTheMatch() async {
         for await update in remote.updates() {
             if update.isRunning {

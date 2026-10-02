@@ -441,6 +441,16 @@
         }
       }
     },
+    "iPhone is scoring a match of its own" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone ведёт свой матч"
+          }
+        }
+      }
+    },
     "iPhone unreachable" : {
       "localizations" : {
         "ru" : {
@@ -511,6 +521,16 @@
         }
       }
     },
+    "Needs access to Health, to keep scoring while iPhone is locked." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нужен доступ к Здоровью, чтобы счёт шёл и на заблокированном iPhone."
+          }
+        }
+      }
+    },
     "New match" : {
       "localizations" : {
         "ru" : {
@@ -547,6 +567,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ни одного розыгрыша"
+          }
+        }
+      }
+    },
+    "Open Settings" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть Настройки"
           }
         }
       }
@@ -647,6 +677,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Правила"
+          }
+        }
+      }
+    },
+    "Score on iPhone" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Счёт на iPhone"
           }
         }
       }
@@ -855,6 +895,26 @@
         }
       }
     },
+    "Start on iPhone alone" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать только на iPhone"
+          }
+        }
+      }
+    },
+    "Start on Watch alone" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Начать только на часах"
+          }
+        }
+      }
+    },
     "Starting on iPhone…" : {
       "localizations" : {
         "ru" : {
@@ -1031,6 +1091,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "у нас %lld, у соперников %lld"
+          }
+        }
+      }
+    },
+    "Use Watch" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пульт на часах"
+          }
+        }
+      }
+    },
+    "Watch is scoring a match of its own" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Часы ведут свой матч"
           }
         }
       }

@@ -20,6 +20,11 @@ struct RootView: View {
 
     @State private var isWaitingForPhone = false
 
+    /// Who serves in the match last asked of the phone, for starting it alone.
+    @State private var askedOfPhone: Side?
+
+    @State private var refusal: PhoneRefusal?
+
     @State private var ruleset = Ruleset.defaultClassic
 
     @AppStorage("records-to-health") private var recordsToHealth = true
@@ -76,10 +81,19 @@ struct RootView: View {
                     .id(pairedMatch.id)
             } else if isWaitingForPhone {
                 WaitingForPhone { isWaitingForPhone = false }
+            } else if let refusal, let askedOfPhone {
+                PhoneCannotPair(
+                    refusal: refusal,
+                    onStartAlone: { startAlone(servedBy: askedOfPhone) },
+                    onCancel: {
+                        self.refusal = nil
+                        pairedWorkout.standDown()
+                    })
             } else {
                 StartPages(
                     ruleset: $ruleset,
                     recordsToHealth: $recordsToHealth,
+                    startsPaired: $startsPaired,
                     tapMode: $tapMode,
                     onStart: start(servedBy:))
             }
@@ -98,20 +112,36 @@ struct RootView: View {
     }
 
     private func start(servedBy firstServer: Side) {
-        guard !startsPaired else { return askPhoneToStart(servedBy: firstServer) }
+        startsPaired ? askPhoneToStart(servedBy: firstServer) : startAlone(servedBy: firstServer)
+    }
 
-        match = SavedMatch(
+    private func startAlone(servedBy firstServer: Side) {
+        refusal = nil
+        pairedWorkout.standDown()
+
+        let started = SavedMatch(
             match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
+        match = started
+
+        // At once rather than on the first rally: the phone may raise the watch
+        // before then, and ``PairedWorkout`` asks the store whether one runs.
+        do {
+            try store.save(started)
+        } catch {
+            logger.error("the new match was not saved: \(error.localizedDescription)")
+        }
     }
 
     private func askPhoneToStart(servedBy firstServer: Side) {
+        askedOfPhone = firstServer
+
         do {
             try remote.send(.start(ruleset: ruleset, firstServer: firstServer))
 
             isWaitingForPhone = true
             pairedWorkout.begin()
         } catch {
-            WKInterfaceDevice.current().play(.failure)
+            refuse(.unreachable)
         }
     }
 
@@ -150,9 +180,13 @@ struct RootView: View {
             // joins that match instead of failing.
             takeUpPhonesMatch()
 
+            // Refused, the start leaves a match the phone scores alone: a
+            // paired one was joined just above.
             switch update {
             case .match(_, _, let echo?), .noMatch(let echo?):
-                if case .start = echo.intent, !echo.accepted, isWaitingForPhone { stopWaiting() }
+                if case .start = echo.intent, !echo.accepted, isWaitingForPhone {
+                    stopWaiting(.scoringItsOwnMatch)
+                }
             default: break
             }
         }
@@ -166,16 +200,22 @@ struct RootView: View {
 
         pairedMatch = phonesPairedMatch
         isWaitingForPhone = false
+        refusal = nil
     }
 
     private func followReachability() async {
         for await isReachable in remote.reachabilityChanges() where !isReachable && isWaitingForPhone {
-            stopWaiting()
+            stopWaiting(.unreachable)
         }
     }
 
-    private func stopWaiting() {
+    private func stopWaiting(_ refusal: PhoneRefusal) {
         isWaitingForPhone = false
+        refuse(refusal)
+    }
+
+    private func refuse(_ refusal: PhoneRefusal) {
+        self.refusal = refusal
 
         WKInterfaceDevice.current().play(.failure)
     }

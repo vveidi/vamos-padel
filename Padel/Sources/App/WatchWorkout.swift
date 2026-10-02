@@ -15,6 +15,9 @@ final class WatchWorkout: NSObject {
         case healthRefused
 
         case watchDidNotAnswer
+
+        /// The watch is scoring a match of its own, which is never taken over.
+        case watchScoresAlone
     }
 
     /// `true` from the moment the watch's session arrives until the match it
@@ -26,6 +29,8 @@ final class WatchWorkout: NSObject {
 
     @ObservationIgnored private let healthStore = HKHealthStore()
 
+    @ObservationIgnored private let scorer: MatchScorer
+
     @ObservationIgnored private var session: HKWorkoutSession?
 
     @ObservationIgnored private var onArrival: (() -> Void)?
@@ -34,6 +39,7 @@ final class WatchWorkout: NSObject {
     /// session launches the app into the background, with no screen to wait for.
     init(scorer: MatchScorer) {
         isHealthRefused = Self.isRefused(by: healthStore)
+        self.scorer = scorer
 
         super.init()
 
@@ -51,11 +57,12 @@ final class WatchWorkout: NSObject {
 
         if holdsTheWorkout { return .started }
 
-        // Listened for before the watch is asked: its workout can arrive
+        // Listened for before the watch is asked: its answer can arrive
         // before `startWatchApp` returns.
         let (arrivals, arrival) = AsyncStream<Void>.makeStream()
         onArrival = { arrival.yield() }
         defer { onArrival = nil }
+        let declines = scorer.remoteDeclines()
 
         do {
             try await healthStore.startWatchApp(toHandle: PadelWorkout.configuration)
@@ -64,10 +71,17 @@ final class WatchWorkout: NSObject {
             return .watchDidNotAnswer
         }
 
-        return await Self.first(of: arrivals) ? .started : .watchDidNotAnswer
+        return await Self.answer(arrivals: arrivals, declines: declines)
     }
 
-    private func authorize() async -> Bool {
+    /// Reads the answer on file again, which the player may have changed in
+    /// Settings since.
+    func recheckHealth() {
+        isHealthRefused = Self.isRefused(by: healthStore)
+    }
+
+    /// - Returns: `false` when Health is refused.
+    func authorize() async -> Bool {
         guard HKHealthStore.isHealthDataAvailable() else {
             isHealthRefused = true
             return false
@@ -91,22 +105,27 @@ final class WatchWorkout: NSObject {
             || healthStore.authorizationStatus(for: .workoutType()) == .sharingDenied
     }
 
-    /// - Returns: `false` when nothing arrives in time.
-    private static func first(of arrivals: AsyncStream<Void>) async -> Bool {
-        await withTaskGroup { group in
+    /// Whichever comes first: the workout, the watch declining, or the end of
+    /// the wait.
+    private static func answer(arrivals: AsyncStream<Void>, declines: AsyncStream<Void>) async -> Start {
+        await withTaskGroup(of: Start.self) { group in
             group.addTask {
-                for await _ in arrivals { return true }
-                return false
+                for await _ in arrivals { return .started }
+                return .watchDidNotAnswer
+            }
+            group.addTask {
+                for await _ in declines { return .watchScoresAlone }
+                return .watchDidNotAnswer
             }
             group.addTask {
                 try? await Task.sleep(for: PadelWorkout.phoneWaitsForTheWorkout)
-                return false
+                return .watchDidNotAnswer
             }
 
-            let appeared = await group.next() ?? false
+            let answer = await group.next() ?? .watchDidNotAnswer
             group.cancelAll()
 
-            return appeared
+            return answer
         }
     }
 

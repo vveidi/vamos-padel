@@ -9,7 +9,8 @@ struct OutcomeView: View {
     /// Games in classic scoring, points in a match to N points.
     let score: SideCounts
 
-    let onUndo: () -> Void
+    /// `nil` draws no undo: the phone refuses any intent on a match that is over.
+    let onUndo: (() -> Void)?
 
     let onFinish: () -> Void
 
@@ -84,15 +85,15 @@ struct OutcomeView: View {
         VStack(spacing: Board.buttonGap) {
             PillButton(Text("New match"), carriesBall: true, action: onFinish)
 
-            if winner != nil { undo }
+            if winner != nil, let onUndo { undo(onUndo) }
         }
     }
 
     /// Shorter than the score screen's equivalent action on purpose: "Undo the
     /// last rally" is three lines of Russian in a pill this wide, which leaves
     /// the quiet button taller than the primary one above it.
-    private var undo: some View {
-        PillButton(Text("Undo the rally"), variant: .quiet, action: onUndo)
+    private func undo(_ action: @escaping () -> Void) -> some View {
+        PillButton(Text("Undo the rally"), variant: .quiet, action: action)
     }
 
     // MARK: The ground

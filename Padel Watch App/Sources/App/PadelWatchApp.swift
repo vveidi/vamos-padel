@@ -16,7 +16,13 @@ struct PadelWatchApp: App {
     /// confirmation can arrive long after the match it confirms has ended.
     private let delivery: MatchDelivery
 
+    /// One for the app: the transport keeps a single update handler, so a
+    /// second remote would take the first one's.
+    private let remote: MatchRemote
+
     private let workout = HealthKitWorkout()
+
+    private let pairedWorkout: PairedWorkout
 
     init() {
         do {
@@ -28,23 +34,27 @@ struct PadelWatchApp: App {
         }
 
         // `activate()` comes last: the transport reports readiness and an
-        // arrived match once each, so delivery has to be subscribed first.
+        // arrived match once each, so both ends have to be subscribed first.
         let transport = WatchConnectivityTransport()
 
         delivery = MatchDelivery(queue: store, sender: transport)
+        remote = MatchRemote(link: transport)
 
-        PadelWatchAppDelegate.pairedWorkout = PairedWorkout(
+        pairedWorkout = PairedWorkout(
             workout: workout,
-            remote: MatchRemote(link: transport),
+            remote: remote,
             savesToHealth: { UserDefaults.standard.object(forKey: "records-to-health") as? Bool ?? true },
             isScoringAlone: { [store] in (try? store.matchInProgress()) != nil })
+        PadelWatchAppDelegate.pairedWorkout = pairedWorkout
 
         transport.activate()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: store, workout: workout, delivery: delivery)
+            RootView(
+                store: store, workout: workout, delivery: delivery, remote: remote,
+                pairedWorkout: pairedWorkout)
         }
     }
 }

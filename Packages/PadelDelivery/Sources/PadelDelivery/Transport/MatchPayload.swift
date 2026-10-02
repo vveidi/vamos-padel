@@ -15,8 +15,9 @@ enum MatchPayload {
             payload = fields(of: saved)
         case .intent(let intent):
             payload = fields(of: intent)
-        case .update(.match(let saved, let echo)):
+        case .update(.match(let saved, let isPaired, let echo)):
             payload = fields(of: saved)
+            payload[Key.paired] = isPaired
             if let echo { payload[Key.echo] = fields(of: echo) }
         case .update(.noMatch(let echo)):
             payload = [:]
@@ -32,7 +33,11 @@ enum MatchPayload {
         case Kind.match: .match(try savedMatch(from: payload))
         case Kind.receipt: .receipt(try savedMatch(from: payload))
         case Kind.intent: .intent(try intent(from: payload))
-        case Kind.liveMatch: .update(.match(try savedMatch(from: payload), echo: try echo(in: payload)))
+        case Kind.liveMatch:
+            .update(
+                .match(
+                    try savedMatch(from: payload), isPaired: try isPaired(payload),
+                    echo: try echo(in: payload)))
         case Kind.noMatch: .update(.noMatch(echo: try echo(in: payload)))
         case let kind:
             throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
@@ -180,6 +185,15 @@ enum MatchPayload {
         return Echo(intent: try intent(from: echo), accepted: accepted)
     }
 
+    // Not defaulted: a match read as paired is a match the remote takes over.
+    private static func isPaired(_ payload: [String: Any]) throws -> Bool {
+        guard let isPaired = payload[Key.paired] as? Bool else {
+            throw MatchPayloadError.unreadable(reason: "a live match that does not say whether it is paired")
+        }
+
+        return isPaired
+    }
+
     private enum Key {
         static let kind = "kind"
         static let id = "id"
@@ -199,6 +213,7 @@ enum MatchPayload {
         static let base = "base"
         static let echo = "echo"
         static let accepted = "accepted"
+        static let paired = "paired"
     }
 
     fileprivate enum Kind {

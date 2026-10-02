@@ -197,6 +197,16 @@
         }
       }
     },
+    "Bring your iPhone closer to go on." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поднесите iPhone поближе, чтобы продолжить."
+          }
+        }
+      }
+    },
     "By points" : {
       "localizations" : {
         "ru" : {
@@ -213,6 +223,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "История не читается"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отмена"
           }
         }
       }
@@ -417,6 +437,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ход матча"
+          }
+        }
+      }
+    },
+    "iPhone unreachable" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone недоступен"
           }
         }
       }
@@ -821,6 +851,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Начать матч"
+          }
+        }
+      }
+    },
+    "Starting on iPhone…" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запускаем на iPhone…"
           }
         }
       }

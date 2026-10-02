@@ -97,7 +97,7 @@ struct ScoreboardView: View {
 
     private func follow() async {
         for await update in scorer.updates() {
-            guard case .match(let match, _) = update, match.id == saved.id else { continue }
+            guard case .match(let match, _, _) = update, match.id == saved.id else { continue }
 
             saved = match
         }

@@ -18,17 +18,25 @@ struct ScoreboardView: View {
 
     @State private var isConfirmingEnd = false
 
+    /// `nil` until a rally lands while the board is up: one that landed before
+    /// it appeared marks nothing.
+    @State private var mark: RallyMark?
+
+    /// For the previews, which cannot show an animation: the mark at its peak.
+    private let markHeldAtPeak: Side?
+
     @Environment(\.locale) private var locale
 
     /// - Parameter mirrored: The court's facing to open on. Ours is on the left
     ///   unless the players are standing the other way round.
     init(
         match: SavedMatch, store: any MatchStore, mirrored: Bool = false,
-        onLeave: @escaping () -> Void
+        markHeldAtPeak: Side? = nil, onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         self.store = store
         _isMirrored = State(initialValue: mirrored)
+        self.markHeldAtPeak = markHeldAtPeak
         self.onLeave = onLeave
     }
 
@@ -59,8 +67,24 @@ struct ScoreboardView: View {
         } message: {
             Text("The match will be saved as unfinished.")
         }
+        // On the journal, never on the tap — ADR-0011.
+        .onChange(of: saved.match.journal) { old, new in
+            guard new.count > old.count, let rally = new.last else { return }
+
+            mark = RallyMark(side: rally.winner, tier: tier(ofRallyAfter: old), trigger: (mark?.trigger ?? 0) + 1)
+        }
         .onAppear { takeTheScreen() }
         .onDisappear { releaseTheScreen() }
+    }
+
+    /// A match to N points has no games and no sets, so all its rallies are
+    /// one tier.
+    private func tier(ofRallyAfter journal: RallyJournal) -> RallyMark.Tier {
+        let match = saved.match
+        let before = Match(ruleset: match.ruleset, firstServer: match.firstServer, journal: journal).state
+        let after = match.state
+
+        return before.games == after.games && before.sets == after.sets ? .rally : .gameOrSet
     }
 
     /// The half drawn first: the left one side by side, the top one stacked.
@@ -118,6 +142,8 @@ struct ScoreboardView: View {
             ballCorner: ballCorner(
                 for: side, from: state.servingHalf, in: arrangement, mirrored: isMirrored),
             ballFromTheEnd: arrangement.ballFromTheEnd,
+            mark: mark,
+            isHeldAtPeak: markHeldAtPeak == side,
             onRallyWon: record(rallyWonBy:),
             onUndo: undo)
         .accessibilitySortPriority(side == .us ? 1 : 0)
@@ -284,6 +310,10 @@ private struct ScoreZone: View {
     /// Off the half's top and bottom, whichever of them the net is.
     let ballFromTheEnd: CGFloat
 
+    let mark: RallyMark?
+
+    let isHeldAtPeak: Bool
+
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -302,10 +332,20 @@ private struct ScoreZone: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay(alignment: Alignment(horizontal: setsEdge, vertical: .center)) { setsWon }
             .overlay { ball }
-            .background { CourtHalf() }
+            .background { court }
             // Otherwise the gesture catches only the score itself, not the
             // whole half.
             .contentShape(Rectangle())
+    }
+
+    private var court: some View {
+        CourtHalf()
+            .overlay {
+                if isHeldAtPeak {
+                    RallyMarkFill(level: 1)
+                }
+            }
+            .rallyMark(mark, on: side)
     }
 
     private var score: some View {
@@ -630,6 +670,40 @@ private enum Board {
     atLargestType(inRussian(board(.previewCountingPoints)))
 }
 
+// MARK: The rally mark
+
+#Preview("A rally to us, marked", traits: .landscapeLeft) { marked(.us, by: .rally) }
+
+#Preview("A rally to the opponents, marked", traits: .landscapeLeft) { marked(.them, by: .rally) }
+
+#Preview("A game to us, marked", traits: .landscapeLeft) { marked(.us, by: .gameOrSet) }
+
+#Preview("A game to the opponents, marked", traits: .landscapeLeft) {
+    marked(.them, by: .gameOrSet)
+}
+
+#Preview("Mirrored, a rally to us, marked", traits: .landscapeLeft) {
+    marked(.us, by: .rally, mirrored: true)
+}
+
+#Preview("Mirrored, a rally to the opponents, marked", traits: .landscapeLeft) {
+    marked(.them, by: .rally, mirrored: true)
+}
+
+#Preview("Mirrored, a game to us, marked", traits: .landscapeLeft) {
+    marked(.us, by: .gameOrSet, mirrored: true)
+}
+
+#Preview("Mirrored, a game to the opponents, marked", traits: .landscapeLeft) {
+    marked(.them, by: .gameOrSet, mirrored: true)
+}
+
+#Preview("Stacked, a rally to us, marked", traits: .portrait) { marked(.us, by: .rally) }
+
+#Preview("Stacked and mirrored, a game to the opponents, marked", traits: .portrait) {
+    marked(.them, by: .gameOrSet, mirrored: true)
+}
+
 // MARK: Stacked
 
 // Named for the surprise again: stacked, our right is the top trailing corner
@@ -726,6 +800,17 @@ private let splitViewHalf: PreviewTrait<Preview.ViewTraits> = .fixedLayout(width
 private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
     ScoreboardView(match: match, store: NoMatchStore(), mirrored: mirrored, onLeave: {})
         .preferredColorScheme(.dark)
+}
+
+/// The two tiers differ in time only, so at the peak what tells them apart is
+/// the score the rally left behind.
+private func marked(_ side: Side, by tier: RallyMark.Tier, mirrored: Bool = false) -> some View {
+    ScoreboardView(
+        match: tier == .rally ? .preview(justAfterARallyTo: side) : .preview(justAfterAGameTo: side),
+        store: NoMatchStore(),
+        mirrored: mirrored, markHeldAtPeak: side, onLeave: {}
+    )
+    .preferredColorScheme(.dark)
 }
 
 private func inRussian(_ view: some View) -> some View {

@@ -12,12 +12,12 @@ its origin — which is the case this whole feature was opened for.
 - [x] **Every rally is marked, whatever awarded it.** A rally tapped into the
       wrist marks the board. There is no origin filter here, and the one
       `paired-scoring` 05 adds to the watch has no counterpart in this file — ADR-0011 says why the two devices
-      differ — *moved to `paired-scoring` 08: under ADR-0009 the phone records
+      differ — *moved to `paired-scoring` 10: under ADR-0009 the phone records
       every rally it draws, so there is no wrist origin yet to mark*
 - [x] The trigger is the journal the board is already drawing from, not the tap
       on a half: a rally the phone awards and a rally that arrives over the live
       link go through one path and look identical — *the journal half is met; the
-      live-link half moved to `paired-scoring` 08*
+      live-link half moved to `paired-scoring` 10*
 - [x] The tier is the games or the sets having moved, as on the watch
 - [x] An undo marks nothing; the board appearing marks nothing; mirroring the
       board marks nothing
@@ -32,7 +32,7 @@ its origin — which is the case this whole feature was opened for.
       rally the phone did not award is the one thing here that cannot be checked
       from the phone alone — *the build is clean and the board was driven with the
       phone awarding the rallies; the watch-awarded run moved to
-      `paired-scoring` 08*
+      `paired-scoring` 10*
 
 ## Notes
 
@@ -77,4 +77,4 @@ and still blue, and the score on it reads. So the watch's number holds on the
 phone. Not checked on a real phone from a bench.
 
 **Three criteria moved, not met.** Everything about a rally the watch awarded
-went to `paired-scoring` 08. Under ADR-0009 the phone has no second origin yet.
+went to `paired-scoring` 10. Under ADR-0009 the phone has no second origin yet.

@@ -30,43 +30,46 @@ extension SavedMatch {
     }
 }
 
-final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
-    private let lock = NSLock()
-    private var queued: [SavedMatch] = []
-    private var written: [SavedMatch] = []
-    private var transportReady: (@Sendable () -> Void)?
-    private var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
-    private var receiveMatch: (@Sendable (SavedMatch) -> Void)?
+final class FakeTransport: MatchSender, MatchReceiver, Sendable {
+    private struct Queue {
+        var queued: [SavedMatch] = []
+        var written: [SavedMatch] = []
+        var transportReady: (@Sendable () -> Void)?
+        var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
+        var receiveMatch: (@Sendable (SavedMatch) -> Void)?
+    }
+
+    private let queue = Mutex(Queue())
 
     /// What the watch handed over since the last ``forget()``.
-    var sent: [SavedMatch] { lock.withLock { queued } }
+    var sent: [SavedMatch] { queue.withLock { $0.queued } }
 
     /// What the phone signed for since the last ``forget()``.
-    var receipts: [SavedMatch] { lock.withLock { written } }
+    var receipts: [SavedMatch] { queue.withLock { $0.written } }
 
     func send(_ match: SavedMatch) {
-        lock.withLock { queued.append(match) }
+        queue.withLock { $0.queued.append(match) }
     }
 
     func confirmArrival(of match: SavedMatch) {
-        lock.withLock { written.append(match) }
+        queue.withLock { $0.written.append(match) }
     }
 
     func onReady(_ ready: @escaping @Sendable () -> Void) {
-        lock.withLock { transportReady = ready }
+        queue.withLock { $0.transportReady = ready }
     }
 
     func onDelivery(_ confirm: @escaping @Sendable (SavedMatch) -> Void) {
-        lock.withLock { confirmDelivery = confirm }
+        queue.withLock { $0.confirmDelivery = confirm }
     }
 
     func onArrival(_ receive: @escaping @Sendable (SavedMatch) -> Void) {
-        lock.withLock { receiveMatch = receive }
+        queue.withLock { $0.receiveMatch = receive }
     }
 
     /// The session came up.
     func becomeReady() {
-        lock.withLock { transportReady }?()
+        queue.withLock { $0.transportReady }?()
     }
 
     func confirmDelivered() {
@@ -75,20 +78,20 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
 
     /// Receipts get through for exactly the listed versions of the matches.
     func deliverReceipts(for matches: [SavedMatch]) {
-        let confirm = lock.withLock { confirmDelivery }
+        let confirm = queue.withLock { $0.confirmDelivery }
 
         for match in matches { confirm?(match) }
     }
 
     /// A match arrived on the phone.
     func deliver(_ match: SavedMatch) {
-        lock.withLock { receiveMatch }?(match)
+        queue.withLock { $0.receiveMatch }?(match)
     }
 
     func forget() {
-        lock.withLock {
-            queued = []
-            written = []
+        queue.withLock { queue in
+            queue.queued = []
+            queue.written = []
         }
     }
 }

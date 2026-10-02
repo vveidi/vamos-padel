@@ -40,7 +40,7 @@ struct RootView: View {
                     store: store,
                     workout: workoutForThisMatch,
                     delivery: delivery,
-                    tapMode: tapMode,
+                    tapMode: $tapMode,
                     onFinish: startOver)
                     // Without this a match started right after the previous one
                     // lands on a screen still holding the last one's state.

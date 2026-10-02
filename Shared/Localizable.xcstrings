@@ -157,6 +157,26 @@
         }
       }
     },
+    "1 tap" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 касание"
+          }
+        }
+      }
+    },
+    "2 taps" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 касания"
+          }
+        }
+      }
+    },
     "A match played on your watch shows up here by itself" : {
       "localizations" : {
         "ru" : {
@@ -411,6 +431,16 @@
         }
       }
     },
+    "long press" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "удержание"
+          }
+        }
+      }
+    },
     "Match in progress" : {
       "localizations" : {
         "ru" : {
@@ -437,6 +467,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Поменять стороны местами"
+          }
+        }
+      }
+    },
+    "Multi-tap" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Число касаний"
           }
         }
       }
@@ -785,12 +825,62 @@
         }
       }
     },
+    "tap bottom" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "касание внизу"
+          }
+        }
+      }
+    },
+    "Tap mode" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Касания"
+          }
+        }
+      }
+    },
+    "tap top" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "касание вверху"
+          }
+        }
+      }
+    },
+    "Tap zones" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зоны экрана"
+          }
+        }
+      }
+    },
     "The match will be saved as unfinished." : {
       "localizations" : {
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Матч сохранится недоигранным."
+          }
+        }
+      }
+    },
+    "their point" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "очко им"
           }
         }
       }
@@ -831,6 +921,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Попробовать снова"
+          }
+        }
+      }
+    },
+    "undo" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "отмена"
           }
         }
       }
@@ -941,6 +1041,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сыгранные матчи на месте, но приложение не смогло их прочитать"
+          }
+        }
+      }
+    },
+    "your point" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "очко нам"
           }
         }
       }

@@ -15,7 +15,7 @@ struct MatchView: View {
 
     private let delivery: MatchDelivery
 
-    private let tapMode: TapMode
+    @Binding private var tapMode: TapMode
 
     private let onFinish: () -> Void
 
@@ -28,14 +28,14 @@ struct MatchView: View {
         store: any MatchStore,
         workout: any Workout,
         delivery: MatchDelivery,
-        tapMode: TapMode,
+        tapMode: Binding<TapMode>,
         onFinish: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         self.store = store
         _workout = State(initialValue: workout)
         self.delivery = delivery
-        self.tapMode = tapMode
+        _tapMode = tapMode
         self.onFinish = onFinish
     }
 
@@ -56,7 +56,7 @@ struct MatchView: View {
                     sets: setsWorthShowing(state),
                     servingSide: state.servingSide,
                     servingHalf: state.servingHalf,
-                    tapMode: tapMode,
+                    tapMode: $tapMode,
                     mark: mark,
                     onRallyWon: record(rallyWonBy:),
                     onUndo: undo,
@@ -149,7 +149,7 @@ struct MatchView: View {
         store: NoMatchStore(),
         workout: NoWorkout(),
         delivery: MatchDelivery(queue: NoMatchStore(), sender: NoMatchTransport()),
-        tapMode: .multiTap,
+        tapMode: .constant(.multiTap),
         onFinish: {})
 }
 

@@ -2,12 +2,11 @@
 
 One board file is waiting, and the canvas lays it out:
 
-    WatchTapMode.dc.html    watch · tap mode   — watch-tap-mode tickets 03, 04 and 05
+    WatchTapMode.dc.html    watch · tap mode   — watch-tap-mode ticket 05
 
-It holds three boards: the tap-mode page, the start settings page with the
-tap-mode card in it, and the score screen's trailing edge under the page
-indicator. Each is deleted as its ticket closes — 03 and 04 the first and
-third, 05 the second — and the canvas is left with its notes and no boards.
+It holds one board: the start settings page with the tap-mode card in it. The
+file is deleted when 05 closes, and the canvas is left with its notes and no
+boards.
 
 Every screen the redesign drew has been built; its tickets are in
 `.scratch/archive/redesign/`.
@@ -52,8 +51,8 @@ The watch boards are drawn at 2x (396×484 px = 198×242 pt), which is why the
 watch's `Board` enums halve every number they quote.
 
 `WatchTapMode` is the exception on type: it is set in SF Compact at the ramp's
-own sizes, doubled, because two of its boards exist to show where a line wraps
-and how long a scroll is. Its sizes still do not transfer — the ramp already
+own sizes, doubled, because its board exists to show where a line wraps and how
+long a scroll is. Its sizes still do not transfer — the ramp already
 holds them.
 
 ## The studies

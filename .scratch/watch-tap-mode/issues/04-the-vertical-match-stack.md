@@ -6,36 +6,36 @@ them: End above, the score in the middle, tap mode below.
 
 **Blocked by:** 01, 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `ScorePages` is `.tabViewStyle(.verticalPage)` with three pages in the
+- [x] `ScorePages` is `.tabViewStyle(.verticalPage)` with three pages in the
       order End, score, tap mode, and the score is still what opens
-- [ ] A `NavigationStack` goes around the pages, the arrangement `StartPages`
+- [x] A `NavigationStack` goes around the pages, the arrangement `StartPages`
       proved out. **The bar is not hidden** — the score page has no title and
       reserves none, the tap-mode page is titled "Tap mode" and gets one, which
       is where its pushed list finds its Back button
-- [ ] The tap-mode page is a `ChoiceRow` naming the current value and pushing a
+- [x] The tap-mode page is a `ChoiceRow` naming the current value and pushing a
       list of the two, in `Padel Watch App/Sources/Settings/` with the type
-- [ ] Three legend lines under the row, changing with the value, each a pair
+- [x] Three legend lines under the row, changing with the value, each a pair
       with no arrow — the gesture leading, what it does trailing:
       `1 tap` · `your point` / `2 taps` · `their point` / `long press` · `undo`
       for multi-tap, and `tap bottom` · `your point` / `tap top` ·
       `their point` / `long press` · `undo` for tap zones
-- [ ] The row plus its legend is one component, reusable as-is by 05 — it is
+- [x] The row plus its legend is one component, reusable as-is by 05 — it is
       put in a second place there and must not be written twice
-- [ ] The sets digit and both serve balls are indented off the trailing edge to
+- [x] The sets digit and both serve balls are indented off the trailing edge to
       clear the vertical page indicator, by the number board 01 gives
-- [ ] `serveAlignment(for:from:)`'s doc comment no longer justifies the inner
+- [x] `serveAlignment(for:from:)`'s doc comment no longer justifies the inner
       corners by "the page dots of `ScorePages` sit over our bottom" — the dots
       are on the trailing edge now, and the comment says what is true
-- [ ] Previews of the tap-mode page in both languages, both values, and at
+- [x] Previews of the tap-mode page in both languages, both values, and at
       `.accessibility5`, as `StartPages` and `RulesetSettings` have
-- [ ] The Russian strings for the page title, both value names and all four
+- [x] The Russian strings for the page title, both value names and all four
       legend lines are in the catalog
-- [ ] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean,
+- [x] `set -o pipefail; xcodebuild … -scheme "Padel Watch App" build` is clean,
       and the page is driven on a simulator: score → tap mode → the pushed list
       → back, and the match still scores afterwards
-- [ ] `docs/design/WatchTapMode.dc.html` loses the two artboards this ticket
+- [x] `docs/design/WatchTapMode.dc.html` loses the two artboards this ticket
       built — the mid-match page and the score screen — per
       `docs/design/README.md`
 
@@ -54,3 +54,23 @@ same act, and the app has one vocabulary for a choice. This follows it.
 what happened the last time it was hidden by hand: every push logged
 "Transitioning bar did not exist during transition" from SaltUICore, and the
 pushed screen had no way back. Do not hide it.
+
+## Comments
+
+**Closed.** The match is three vertical pages — End, score, tap mode — in a
+`NavigationStack` with the bar left alone. `TapModeSettings` (the card plus the
+legend) is the component 05 drops in; `TapModePage` wraps it for the match.
+The tap mode is now a binding from `RootView`'s `@AppStorage`, so a change
+lands on the running match at once.
+
+Driven on a 46mm simulator in both languages: score → tap mode → list → Back,
+both values, then scoring in both modes. At 16pt the sets digit and the
+trailing ball clear the real indicator by about 9pt. Largest type was checked
+with a temporary root-level `.dynamicTypeSize` — the watch runtime refuses
+`simctl ui content_size`. Russian tap zones wraps "касание вверху" there.
+
+The page-dots sentence was never in `serveAlignment`'s doc comment; it was in
+ADR-0013, which now says what is true.
+
+Open for the owner: the page title is "Tap mode" as written here, so it sits
+right above the row's own "Tap mode" label; the board had "Settings".

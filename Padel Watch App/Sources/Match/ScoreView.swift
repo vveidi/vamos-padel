@@ -129,7 +129,7 @@ private struct ScoreZone: View {
                 // 0.5; `control` is the 0.82 the ink already has a name for.
                 Text(verbatim: "\(sets)")
                     .textStyle(.scoreAside)
-                    .padding(.trailing, 12)
+                    .padding(.trailing, Board.trailingInset)
                     .foregroundStyle(Color.courtInk.weight(.control))
             }
         }
@@ -221,7 +221,8 @@ private struct ServeIndicator: View {
 
     var body: some View {
         Ball(size: 10)
-            .padding(12)
+            .padding(Board.inset)
+            .padding(.trailing, corner.horizontal == .trailing ? Board.trailingInset - Board.inset : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: corner)
             // SwiftUI interpolates alignment like any other layout, including
             // inside an animation already in flight. Without this exclusion
@@ -251,6 +252,17 @@ private struct ServeIndicator: View {
         corner = alignment
         isVisible = true
     }
+}
+
+/// The tap-mode board's pixels halved — the watch artboards were 2x
+/// (`docs/design/README.md`, "Reading the boards").
+private enum Board {
+    /// The board's 24px off every edge but the trailing one.
+    static let inset: CGFloat = 12
+
+    /// The board's 32px, clearing `.verticalPage`'s indicator: 6pt dots, 2pt
+    /// in from the trailing edge, about 66pt down a 45mm screen.
+    static let trailingInset: CGFloat = 16
 }
 
 #if DEBUG

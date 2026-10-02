@@ -3,15 +3,15 @@
 **What to build:** the mark on the phone's scoreboard, on every rally whatever
 its origin — which is the case this whole feature was opened for.
 
-**Blocked by:** 01, and `phone-scoring` 04 — see the first note
+**Blocked by:** 01
 
 **Status:** ready-for-agent
 
 - [ ] Each half of the scoreboard carries the mark from ticket 01, and the half
       that is marked is the one whose side won the rally
 - [ ] **Every rally is marked, whatever awarded it.** A rally tapped into the
-      wrist marks the board. There is no origin filter here and ticket 02's
-      `TODO:` has no counterpart in this file — ADR-0011 says why the two devices
+      wrist marks the board. There is no origin filter here, and the one
+      `paired-scoring` 05 adds to the watch has no counterpart in this file — ADR-0011 says why the two devices
       differ
 - [ ] The trigger is the journal the board is already drawing from, not the tap
       on a half: a rally the phone awards and a rally that arrives over the live
@@ -31,13 +31,6 @@ its origin — which is the case this whole feature was opened for.
       from the phone alone
 
 ## Notes
-
-**This ticket cannot unblock on the board, and that is deliberate.**
-`.scratch/status.sh` reads `**Blocked by:**` as numbers inside one feature, so
-the `04` above is read as this feature's 04, which does not exist and can never be
-done. The ticket therefore shows as waiting forever rather than falsely showing
-as takeable. **When `phone-scoring` 04 is done, change the `Blocked by` line to
-`01` and this becomes takeable.** That is the whole of the fix.
 
 **Why the phone marks what the watch does not.** The asymmetry is the room and
 not the code. On the wrist the mark confirms something you just did and already

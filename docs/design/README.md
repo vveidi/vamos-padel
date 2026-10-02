@@ -1,15 +1,9 @@
 # The boards
 
-One board file is waiting, and the canvas lays it out:
-
-    WatchTapMode.dc.html    watch · tap mode   — watch-tap-mode ticket 05
-
-It holds one board: the start settings page with the tap-mode card in it. The
-file is deleted when 05 closes, and the canvas is left with its notes and no
-boards.
-
-Every screen the redesign drew has been built; its tickets are in
-`.scratch/archive/redesign/`.
+No artboard is waiting: every screen the redesign and tap mode drew has been
+built. The canvas is left with its notes and no boards, ready for the next
+screen that is drawn before it is built. The tickets are in
+`.scratch/archive/redesign/` and `.scratch/archive/watch-tap-mode/`.
 
 A board lives in `docs/` rather than under `.scratch/` because the tracker holds
 work in flight and archives each feature as it closes, while a board outlives
@@ -21,10 +15,11 @@ not in the canvas. See "The studies" below.
 ## A board is deleted when its screen is built
 
 There were six — the watch's start, rules and score screens, and the phone's
-history, new match and scoreboard — and each was deleted once its screen
-existed, because after that the screen is the design and a second drawing of it
-is a second source of truth that quietly goes stale. What they were is in the
-git history (`git show c349a34:docs/design/Main.dc.html`); what they *are* is in
+history, new match and scoreboard — then three more for tap mode, and each was
+deleted once its screen existed, because after that the screen is the design and
+a second drawing of it is a second source of truth that quietly goes stale. What
+they were is in the git history (`git show c349a34:docs/design/Main.dc.html`,
+`git show c67afe7:docs/design/WatchTapMode.dc.html`); what they *are* is in
 `PadelDesign` and in the screens themselves.
 
 What stayed behind is the numbers they gave: each built screen keeps a private
@@ -49,11 +44,6 @@ system face with `.rounded`.
 
 The watch boards are drawn at 2x (396×484 px = 198×242 pt), which is why the
 watch's `Board` enums halve every number they quote.
-
-`WatchTapMode` is the exception on type: it is set in SF Compact at the ramp's
-own sizes, doubled, because its board exists to show where a line wraps and how
-long a scroll is. Its sizes still do not transfer — the ramp already
-holds them.
 
 ## The studies
 

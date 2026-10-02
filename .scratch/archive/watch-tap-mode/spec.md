@@ -1,6 +1,6 @@
 # Watch tap mode: how a touch becomes a rally, and what the wrist says back
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

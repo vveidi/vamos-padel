@@ -99,6 +99,7 @@
                 switch try MatchPayload.decode(userInfo) {
                 case .match(let match): handlers.receive(match)
                 case .receipt(let match): handlers.confirm(match)
+                case .intent, .update: logger.error("a live link parcel arrived, and nothing reads them")
                 }
             } catch {
                 logger.error("the parcel that arrived was not decoded: \(error.localizedDescription)")

@@ -8,33 +8,51 @@ import PadelStorage
 /// separately updated app, and a renamed field must not move them.
 enum MatchPayload {
     static func encode(_ arrival: Arrival) -> [String: Any] {
-        let saved = arrival.match
+        var payload: [String: Any]
 
-        var payload: [String: Any] = [
-            Key.kind: arrival.kind,
+        switch arrival {
+        case .match(let saved), .receipt(let saved):
+            payload = fields(of: saved)
+        case .intent(let intent):
+            payload = fields(of: intent)
+        case .update(.match(let saved, let echo)):
+            payload = fields(of: saved)
+            if let echo { payload[Key.echo] = fields(of: echo) }
+        case .update(.noMatch(let echo)):
+            payload = [:]
+            if let echo { payload[Key.echo] = fields(of: echo) }
+        }
+
+        payload[Key.kind] = arrival.kind
+        return payload
+    }
+
+    static func decode(_ payload: [String: Any]) throws -> Arrival {
+        switch payload[Key.kind] as? String {
+        case Kind.match: .match(try savedMatch(from: payload))
+        case Kind.receipt: .receipt(try savedMatch(from: payload))
+        case Kind.intent: .intent(try intent(from: payload))
+        case Kind.liveMatch: .update(.match(try savedMatch(from: payload), echo: try echo(in: payload)))
+        case Kind.noMatch: .update(.noMatch(echo: try echo(in: payload)))
+        case let kind:
+            throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
+        }
+    }
+
+    // MARK: The match
+
+    private static func fields(of saved: SavedMatch) -> [String: Any] {
+        fields(of: saved.match.ruleset).merging([
             Key.id: saved.id.uuidString,
             Key.firstServer: saved.match.firstServer.rawValue,
             Key.startedAt: saved.startedAt,
             Key.lastRallyAt: saved.lastRallyAt,
             Key.abandoned: saved.match.isAbandoned,
             Key.rallies: saved.match.journal.rallies.map(\.winner.rawValue),
-        ]
-
-        switch saved.match.ruleset {
-        case .classic(let setsToWin, let goldenPoint):
-            payload[Key.ruleset] = Kind.classic
-            payload[Key.setsToWin] = setsToWin
-            payload[Key.goldenPoint] = goldenPoint
-        case .pointsTo(let target, let serveChangesEvery):
-            payload[Key.ruleset] = Kind.pointsTo
-            payload[Key.target] = target
-            payload[Key.serveChangesEvery] = serveChangesEvery
-        }
-
-        return payload
+        ]) { _, field in field }
     }
 
-    static func decode(_ payload: [String: Any]) throws -> Arrival {
+    private static func savedMatch(from payload: [String: Any]) throws -> SavedMatch {
         guard let id = payload[Key.id] as? String, let id = UUID(uuidString: id) else {
             throw MatchPayloadError.unreadable(reason: "a parcel without a match identifier")
         }
@@ -59,13 +77,15 @@ enum MatchPayload {
             journal: RallyJournal(try winners.map { Rally(wonBy: try side(named: $0)) }),
             isAbandoned: isAbandoned)
 
-        let saved = SavedMatch(
-            id: id, match: match, startedAt: startedAt, lastRallyAt: lastRallyAt)
+        return SavedMatch(id: id, match: match, startedAt: startedAt, lastRallyAt: lastRallyAt)
+    }
 
-        switch payload[Key.kind] as? String {
-        case Kind.match: return .match(saved)
-        case Kind.receipt: return .receipt(saved)
-        case let kind: throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
+    private static func fields(of ruleset: Ruleset) -> [String: Any] {
+        switch ruleset {
+        case .classic(let setsToWin, let goldenPoint):
+            [Key.ruleset: Kind.classic, Key.setsToWin: setsToWin, Key.goldenPoint: goldenPoint]
+        case .pointsTo(let target, let serveChangesEvery):
+            [Key.ruleset: Kind.pointsTo, Key.target: target, Key.serveChangesEvery: serveChangesEvery]
         }
     }
 
@@ -101,6 +121,65 @@ enum MatchPayload {
         return side
     }
 
+    // MARK: The live link
+
+    private static func fields(of intent: MatchIntent) -> [String: Any] {
+        switch intent {
+        case .start(let ruleset, let firstServer):
+            fields(of: ruleset).merging([
+                Key.intent: Kind.start, Key.firstServer: firstServer.rawValue,
+            ]) { _, field in field }
+        case .rally(let winner, let base):
+            [Key.intent: Kind.rally, Key.winner: winner.rawValue, Key.base: base]
+        case .undo(let base):
+            [Key.intent: Kind.undo, Key.base: base]
+        case .end(let base):
+            [Key.intent: Kind.end, Key.base: base]
+        }
+    }
+
+    private static func intent(from payload: [String: Any]) throws -> MatchIntent {
+        switch payload[Key.intent] as? String {
+        case Kind.start:
+            .start(
+                ruleset: try ruleset(from: payload),
+                firstServer: try side(named: payload[Key.firstServer] as? String))
+        case Kind.rally:
+            .rally(wonBy: try side(named: payload[Key.winner] as? String), base: try base(in: payload))
+        case Kind.undo:
+            .undo(base: try base(in: payload))
+        case Kind.end:
+            .end(base: try base(in: payload))
+        case let kind:
+            throw MatchPayloadError.unreadable(reason: "an intent of kind \"\(kind ?? "—")\"")
+        }
+    }
+
+    // Not defaulted: an intent read as formed against no rallies would be
+    // taken by a host holding a fresh match.
+    private static func base(in payload: [String: Any]) throws -> Int {
+        guard let base = payload[Key.base] as? Int, base >= 0 else {
+            throw MatchPayloadError.unreadable(reason: "an intent without the journal it was formed against")
+        }
+
+        return base
+    }
+
+    private static func fields(of echo: Echo) -> [String: Any] {
+        fields(of: echo.intent).merging([Key.accepted: echo.accepted]) { _, field in field }
+    }
+
+    /// - Returns: `nil` only when the parcel carries no echo at all.
+    private static func echo(in payload: [String: Any]) throws -> Echo? {
+        guard let echo = payload[Key.echo] else { return nil }
+
+        guard let echo = echo as? [String: Any], let accepted = echo[Key.accepted] as? Bool else {
+            throw MatchPayloadError.unreadable(reason: "an echo without its verdict")
+        }
+
+        return Echo(intent: try intent(from: echo), accepted: accepted)
+    }
+
     private enum Key {
         static let kind = "kind"
         static let id = "id"
@@ -114,6 +193,12 @@ enum MatchPayload {
         static let lastRallyAt = "lastRallyAt"
         static let abandoned = "abandoned"
         static let rallies = "rallies"
+
+        static let intent = "intent"
+        static let winner = "winner"
+        static let base = "base"
+        static let echo = "echo"
+        static let accepted = "accepted"
     }
 
     fileprivate enum Kind {
@@ -122,11 +207,19 @@ enum MatchPayload {
 
         static let match = "match"
         static let receipt = "receipt"
+        static let intent = "intent"
+        static let liveMatch = "liveMatch"
+        static let noMatch = "noMatch"
+
+        static let start = "start"
+        static let rally = "rally"
+        static let undo = "undo"
+        static let end = "end"
     }
 }
 
 /// Both directions share one channel, so the parcel's `kind` key is all the
-/// receiving side has to tell a match from a receipt.
+/// receiving side has to tell one of these from another.
 enum Arrival: Equatable {
     case match(SavedMatch)
 
@@ -134,16 +227,16 @@ enum Arrival: Equatable {
     /// (ADR-0002).
     case receipt(SavedMatch)
 
-    fileprivate var match: SavedMatch {
-        switch self {
-        case .match(let match), .receipt(let match): match
-        }
-    }
+    case intent(MatchIntent)
+    case update(MatchUpdate)
 
     fileprivate var kind: String {
         switch self {
         case .match: MatchPayload.Kind.match
         case .receipt: MatchPayload.Kind.receipt
+        case .intent: MatchPayload.Kind.intent
+        case .update(.match): MatchPayload.Kind.liveMatch
+        case .update(.noMatch): MatchPayload.Kind.noMatch
         }
     }
 }

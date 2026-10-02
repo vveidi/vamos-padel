@@ -4,20 +4,17 @@
     import PadelStorage
     import WatchConnectivity
 
-    /// Parcels are enqueued with `transferUserInfo`, not sent as messages: a
-    /// message needs the phone reachable right now. The system's queue keeps
-    /// its order and survives the app being unloaded and the watch restarting.
+    /// The finished match is enqueued with `transferUserInfo`, whose queue
+    /// keeps its order and survives the app being unloaded; the live link goes
+    /// with `sendMessage`, which needs the other app reachable this moment.
     /// One object stands at both ends because a device has a single session.
-    public final class WatchConnectivityTransport: NSObject, MatchSender, MatchReceiver {
-        /// Set when the app is assembled, called from the session's queue,
-        /// which is not the main one.
-        private let handlers = Handlers()
-
-        /// `nil` on a device without a pair, such as an iPad: nothing arrives
-        /// and nothing leaves, and the rest of the app works.
-        private var session: WCSession? { WCSession.isSupported() ? WCSession.default : nil }
+    public final class WatchConnectivityTransport: NSObject, MatchSender, MatchReceiver, ScorerLink,
+        RemoteLink
+    {
+        private let transport: SessionTransport
 
         public override init() {
+            transport = SessionTransport(session: WCSession.isSupported() ? Session() : nil)
             super.init()
         }
 
@@ -25,44 +22,55 @@
         /// with no handler registered does not arrive a second time. Readiness
         /// follows later, from `activationDidCompleteWith`.
         public func activate() {
-            guard let session else {
+            guard WCSession.isSupported() else {
                 logger.notice("WatchConnectivity is unavailable, there will be no delivery")
                 return
             }
 
-            session.delegate = self
-            session.activate()
+            WCSession.default.delegate = self
+            WCSession.default.activate()
         }
 
+        public var isReachable: Bool { transport.isReachable }
+
         public func send(_ match: SavedMatch) {
-            transfer(.match(match))
+            transport.send(match)
         }
 
         public func confirmArrival(of match: SavedMatch) {
-            transfer(.receipt(match))
+            transport.confirmArrival(of: match)
+        }
+
+        public func send(_ update: MatchUpdate) throws {
+            try transport.send(update)
+        }
+
+        public func send(_ intent: MatchIntent) throws {
+            try transport.send(intent)
         }
 
         public func onReady(_ ready: @escaping @Sendable () -> Void) {
-            handlers.setReady(ready)
+            transport.onReady(ready)
         }
 
         public func onDelivery(_ confirm: @escaping @Sendable (SavedMatch) -> Void) {
-            handlers.setConfirm(confirm)
+            transport.onDelivery(confirm)
         }
 
         public func onArrival(_ receive: @escaping @Sendable (SavedMatch) -> Void) {
-            handlers.setReceive(receive)
+            transport.onArrival(receive)
         }
 
-        /// An unactivated session drops what it is handed, silently; the match
-        /// then stays in the store's queue and leaves once ready.
-        private func transfer(_ arrival: Arrival) {
-            guard let session, session.activationState == .activated else {
-                logger.notice("the session is not activated, the parcel stayed in the queue")
-                return
-            }
+        public func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {
+            transport.onReachabilityChange(change)
+        }
 
-            session.transferUserInfo(MatchPayload.encode(arrival))
+        public func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) {
+            transport.onIntent(receive)
+        }
+
+        public func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) {
+            transport.onUpdate(receive)
         }
     }
 
@@ -78,7 +86,11 @@
 
             guard state == .activated else { return }
 
-            handlers.ready()
+            transport.sessionActivated()
+        }
+
+        public func sessionReachabilityDidChange(_ session: WCSession) {
+            transport.reachabilityChanged()
         }
 
         /// Not a delivery confirmation: the system only knows the dictionary
@@ -95,22 +107,20 @@
         }
 
         public func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
-            do {
-                switch try MatchPayload.decode(userInfo) {
-                case .match(let match): handlers.receive(match)
-                case .receipt(let match): handlers.confirm(match)
-                case .intent, .update: logger.error("a live link parcel arrived, and nothing reads them")
-                }
-            } catch {
-                logger.error("the parcel that arrived was not decoded: \(error.localizedDescription)")
-            }
+            transport.received(queued: userInfo)
+        }
+
+        public func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+            transport.received(live: message)
         }
 
         #if os(iOS)
             // Required by the protocol on iOS, where the session breaks when
-            // the paired watch changes. Nothing but reactivation is needed:
-            // the history is already in the phone's own database.
-            public func sessionDidBecomeInactive(_ session: WCSession) {}
+            // the paired watch changes. Beyond reporting the link gone, only
+            // reactivation is needed: the history is in the phone's database.
+            public func sessionDidBecomeInactive(_ session: WCSession) {
+                transport.reachabilityChanged()
+            }
 
             public func sessionDidDeactivate(_ session: WCSession) {
                 WCSession.default.activate()
@@ -118,34 +128,21 @@
         #endif
     }
 
-    private final class Handlers: @unchecked Sendable {
-        private let lock = NSLock()
-        private var transportReady: (@Sendable () -> Void)?
-        private var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
-        private var receiveMatch: (@Sendable (SavedMatch) -> Void)?
+    private struct Session: DeviceSession {
+        var isActivated: Bool { WCSession.default.activationState == .activated }
 
-        func setReady(_ handle: @escaping @Sendable () -> Void) {
-            lock.withLock { transportReady = handle }
+        var isReachable: Bool { WCSession.default.isReachable }
+
+        func enqueue(_ payload: [String: Any]) {
+            WCSession.default.transferUserInfo(payload)
         }
 
-        func setConfirm(_ handle: @escaping @Sendable (SavedMatch) -> Void) {
-            lock.withLock { confirmDelivery = handle }
-        }
-
-        func setReceive(_ handle: @escaping @Sendable (SavedMatch) -> Void) {
-            lock.withLock { receiveMatch = handle }
-        }
-
-        func ready() {
-            lock.withLock { transportReady }?()
-        }
-
-        func confirm(_ match: SavedMatch) {
-            lock.withLock { confirmDelivery }?(match)
-        }
-
-        func receive(_ match: SavedMatch) {
-            lock.withLock { receiveMatch }?(match)
+        /// Without a reply handler the other app answers nothing, and only a
+        /// failure comes back.
+        func sendNow(_ payload: [String: Any]) {
+            WCSession.default.sendMessage(payload, replyHandler: nil) { error in
+                logger.error("the live parcel was not delivered: \(error.localizedDescription)")
+            }
         }
     }
 

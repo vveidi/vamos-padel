@@ -17,6 +17,16 @@ struct ScoreboardView: View {
     /// up and no longer.
     @State private var isMirrored: Bool
 
+    private let isPaired: Bool
+
+    /// The watch's workout reaches the phone, so the app runs on with the
+    /// screen off.
+    private let holdsTheWatchsWorkout: Bool
+
+    /// Assumed until the scorer says otherwise, so a board that opens on a
+    /// present watch does not flash a warning.
+    @State private var isWatchReachable = true
+
     @State private var isConfirmingEnd = false
 
     /// `nil` until a rally lands while the board is up: one that landed before
@@ -31,11 +41,14 @@ struct ScoreboardView: View {
     /// - Parameter mirrored: The court's facing to open on. Ours is on the left
     ///   unless the players are standing the other way round.
     init(
-        match: SavedMatch, scorer: MatchScorer, mirrored: Bool = false,
+        match: SavedMatch, scorer: MatchScorer, isPaired: Bool = false,
+        holdsTheWatchsWorkout: Bool = false, mirrored: Bool = false,
         markHeldAtPeak: Side? = nil, onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         self.scorer = scorer
+        self.isPaired = isPaired
+        self.holdsTheWatchsWorkout = holdsTheWatchsWorkout
         _isMirrored = State(initialValue: mirrored)
         self.markHeldAtPeak = markHeldAtPeak
         self.onLeave = onLeave
@@ -75,8 +88,11 @@ struct ScoreboardView: View {
             mark = RallyMark(side: rally.winner, tier: tier(ofRallyAfter: old), trigger: (mark?.trigger ?? 0) + 1)
         }
         .task { await follow() }
-        .onAppear { takeTheScreen() }
-        .onDisappear { releaseTheScreen() }
+        .task { await followTheWatch() }
+        .onChange(of: holdsTheScreen, initial: true) { _, holds in
+            UIApplication.shared.isIdleTimerDisabled = holds
+        }
+        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
 
     private func follow() async {
@@ -85,6 +101,22 @@ struct ScoreboardView: View {
 
             saved = match
         }
+    }
+
+    private func followTheWatch() async {
+        for await isReachable in scorer.reachabilityChanges() {
+            isWatchReachable = isReachable
+        }
+    }
+
+    /// Only the mirrored workout keeps the app running once the screen locks;
+    /// without it the board stays lit, as in a match scored alone.
+    private var holdsTheScreen: Bool {
+        !(isPaired && holdsTheWatchsWorkout)
+    }
+
+    private var isWatchLost: Bool {
+        isPaired && !isWatchReachable
     }
 
     /// A match to N points has no games and no sets, so all its rallies are
@@ -172,10 +204,14 @@ struct ScoreboardView: View {
         HStack(spacing: Board.stripGap) {
             wayOut
 
-            Text(saved.match.ruleset.name)
-                .textStyle(.caption)
-                .foregroundStyle(.ink.weight(.strong))
-                .lineLimit(1)
+            if isWatchLost {
+                watchLost
+            } else {
+                Text(saved.match.ruleset.name)
+                    .textStyle(.caption)
+                    .foregroundStyle(.ink.weight(.strong))
+                    .lineLimit(1)
+            }
 
             Spacer(minLength: Board.stripGap)
 
@@ -184,6 +220,23 @@ struct ScoreboardView: View {
         .padding(.top, safeArea.top + Board.stripInset)
         .padding(.leading, safeArea.leading + Board.inset)
         .padding(.trailing, safeArea.trailing + Board.inset)
+    }
+
+    /// The icon alone where the words would be cut short, at the larger type
+    /// sizes; VoiceOver reads the words either way.
+    private var watchLost: some View {
+        ViewThatFits(in: .horizontal) {
+            Label("Watch unreachable", systemImage: "applewatch.slash")
+
+            Label("Watch unreachable", systemImage: "applewatch.slash")
+                .labelStyle(.iconOnly)
+        }
+        .textStyle(.caption)
+        .foregroundStyle(.ball)
+        .lineLimit(1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Watch unreachable")
+        .accessibilityAddTraits(.isStaticText)
     }
 
     private var wayOut: some View {
@@ -250,15 +303,6 @@ struct ScoreboardView: View {
         Text(Image(systemName: systemName))
     }
 
-    // MARK: The screen itself
-
-    private func takeTheScreen() {
-        UIApplication.shared.isIdleTimerDisabled = true
-    }
-
-    private func releaseTheScreen() {
-        UIApplication.shared.isIdleTimerDisabled = false
-    }
 }
 
 // MARK: - One half of the board
@@ -647,6 +691,16 @@ private enum Board {
     atLargestType(inRussian(board(.previewCountingPoints)))
 }
 
+// MARK: The watch lost
+
+#Preview("A paired match whose watch is lost", traits: .landscapeLeft) { watchLost(.previewInPlay) }
+
+#Preview("In Russian: the watch lost", traits: .landscapeLeft) { inRussian(watchLost(.previewInPlay)) }
+
+#Preview("Stacked, in Russian, at the largest type: the watch lost", traits: .portrait) {
+    atLargestType(inRussian(watchLost(.previewInSecondSet)))
+}
+
 // MARK: The rally mark
 
 #Preview("A rally to us, marked", traits: .landscapeLeft) { marked(.us, by: .rally) }
@@ -776,6 +830,13 @@ private let splitViewHalf: PreviewTrait<Preview.ViewTraits> = .fixedLayout(width
 
 private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
     ScoreboardView(match: match, scorer: previewScorer, mirrored: mirrored, onLeave: {})
+        .preferredColorScheme(.dark)
+}
+
+/// The preview scorer's link is never reachable, so a paired board finds its
+/// watch gone.
+private func watchLost(_ match: SavedMatch) -> some View {
+    ScoreboardView(match: match, scorer: previewScorer, isPaired: true, onLeave: {})
         .preferredColorScheme(.dark)
 }
 

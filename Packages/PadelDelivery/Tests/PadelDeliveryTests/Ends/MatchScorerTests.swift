@@ -213,6 +213,17 @@ struct MatchScorerTests {
         #expect(saved.match.journal.count == 1)
     }
 
+    @Test("Whether the remote is reachable starts at now and follows every change")
+    func theRemoteIsFollowed() async throws {
+        let link = FakeScorerLink(reachable: false)
+        let reachable = try MatchScorer(store: DatabaseMatchStore.inMemory(), link: link).reachabilityChanges()
+
+        link.becomeReachable(true)
+        link.becomeReachable(false)
+
+        #expect(await reachable.first(3) == [false, true, false])
+    }
+
     @Test("An intent arriving over the link is judged")
     func anIntentOverTheLinkIsApplied() {
         link.deliver(.start(ruleset: toTwo, firstServer: .us))

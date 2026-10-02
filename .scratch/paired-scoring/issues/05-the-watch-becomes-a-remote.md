@@ -92,5 +92,9 @@ written as before.
   back. Ticket 07 is where the rest is seen.
 - **The mark** was not caught on screen: it is gone before a screenshot lands.
   A phone rally was caught lighting nothing.
+- **The workout of a paired match is ticket 04's `PairedWorkout`.** A start on
+  the wrist calls its `begin()` once the intent is sent; `MatchView` runs no
+  workout of its own in a paired match. The app holds one `MatchRemote`, shared
+  with `PairedWorkout`, because the transport keeps one update handler.
 - **Left for the phone:** a match started from the wrist is held by the phone's
   scorer but not put on its screen. Ticket 09.

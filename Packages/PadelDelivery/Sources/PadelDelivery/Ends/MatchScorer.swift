@@ -16,6 +16,7 @@ public final class MatchScorer: Sendable {
     private let held = Mutex<Held?>(nil)
 
     private let broadcast = Broadcast<MatchUpdate>(.noMatch(echo: nil))
+    private let reachability = Broadcast<Bool>()
 
     public init(store: any MatchStore, link: any ScorerLink) {
         self.store = store
@@ -25,14 +26,24 @@ public final class MatchScorer: Sendable {
 
         // The remote keeps nothing, so a link that comes back is answered with
         // the match as it stands.
-        link.onReachabilityChange { [weak self] isReachable in
+        link.onReachabilityChange { [weak self, reachability] isReachable in
+            reachability.send(isReachable)
+
             if isReachable { self?.republish() }
         }
+
+        // Read after subscribing, so a change made in between is not lost.
+        reachability.send(link.isReachable)
     }
 
     /// The first value is the update as it stands.
     public func updates() -> AsyncStream<MatchUpdate> {
         broadcast.stream()
+    }
+
+    /// The first value is whether the remote is reachable now.
+    public func reachabilityChanges() -> AsyncStream<Bool> {
+        reachability.stream()
     }
 
     /// - Returns: `nil` when refused, because a match is already running.

@@ -38,11 +38,17 @@ struct RootView: View {
 
     private let remote: MatchRemote
 
-    init(store: any MatchStore, workout: any Workout, delivery: MatchDelivery, remote: MatchRemote) {
+    private let pairedWorkout: PairedWorkout
+
+    init(
+        store: any MatchStore, workout: any Workout, delivery: MatchDelivery, remote: MatchRemote,
+        pairedWorkout: PairedWorkout
+    ) {
         self.store = store
         _workout = State(initialValue: workout)
         self.delivery = delivery
         self.remote = remote
+        self.pairedWorkout = pairedWorkout
     }
 
     var body: some View {
@@ -63,7 +69,8 @@ struct RootView: View {
                 MatchView(
                     match: pairedMatch,
                     scoring: .paired(remote),
-                    workout: workoutForThisMatch,
+                    // `pairedWorkout` runs it, from the start to the match's end.
+                    workout: NoWorkout(),
                     tapMode: $tapMode,
                     onFinish: startOver)
                     .id(pairedMatch.id)
@@ -102,6 +109,7 @@ struct RootView: View {
             try remote.send(.start(ruleset: ruleset, firstServer: firstServer))
 
             isWaitingForPhone = true
+            pairedWorkout.begin()
         } catch {
             WKInterfaceDevice.current().play(.failure)
         }
@@ -174,11 +182,15 @@ struct RootView: View {
 }
 
 #Preview {
+    let remote = MatchRemote(link: NoMatchTransport())
+
     RootView(
         store: NoMatchStore(),
         workout: NoWorkout(),
         delivery: MatchDelivery(queue: NoMatchStore(), sender: NoMatchTransport()),
-        remote: MatchRemote(link: NoMatchTransport()))
+        remote: remote,
+        pairedWorkout: PairedWorkout(
+            workout: NoWorkout(), remote: remote, savesToHealth: { false }, isScoringAlone: { false }))
 }
 
 private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")

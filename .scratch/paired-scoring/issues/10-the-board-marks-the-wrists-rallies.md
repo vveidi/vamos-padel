@@ -1,4 +1,4 @@
-# 08: The board marks the wrist's rallies
+# 10: The board marks the wrist's rallies
 
 **What to verify:** the phone's scoreboard marks a rally the watch awarded
 exactly as it marks one the phone did. This is what is left of `rally-mark` 03

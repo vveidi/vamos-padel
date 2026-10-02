@@ -203,6 +203,7 @@ _Avoid_: synchronization, sync (this is not a two-way exchange)
 The phone's screen showing the running match: the court across the long axis of
 its window, a half per side of the net, both of them tapped to award a rally —
 side by side in a wide window, one above the other in any other (ADR-0015). It
+is up for as long as the phone holds a match, whichever device started it. It
 is what the players on the bench read, and it is the phone's screen alone — the
 watch's is the score screen, which is a different size and a different argument.
 _Avoid_: score screen (that is the watch's), display, board

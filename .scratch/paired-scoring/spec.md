@@ -250,6 +250,7 @@ and **Scorer** there says who holds a paired match.
 08  the setting: whether a match starts paired
 09  the phone shows a match started on the wrist
 10  the board marks the wrist's rallies
+11  the phone's scorer survives a relaunch
 ```
 
 01 blocks 02 and 03. 04 and 05 wait on both of those; 08 waits on 04 and 05; 07

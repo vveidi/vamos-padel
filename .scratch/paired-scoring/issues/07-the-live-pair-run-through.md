@@ -4,7 +4,7 @@
 on a real wrist, a real phone on a bench, and a list of things that either work
 or sink the release.
 
-**Blocked by:** 04, 05, 08
+**Blocked by:** 04, 05, 08, 11
 
 **Status:** ready-for-human
 

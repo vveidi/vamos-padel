@@ -196,6 +196,8 @@ tap awards us the rally and two award it to the opponents wherever the finger
 lands, or *tap zones*, where the half that is tapped is the side that scores. A
 preference of the watch and of nothing else: no match records which was in
 force, and the phone is never told. A long press undoes the last rally in both.
+Multi-tap is the default; it is chosen on the start settings page or on the
+match's tap-mode page, and a change made mid-match takes effect at once.
 _Avoid_: input mode, tap scheme, scoring mode, gesture settings
 
 **Rally mark**:

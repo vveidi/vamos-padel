@@ -7,6 +7,8 @@ struct StartPages: View {
 
     @Binding var recordsToHealth: Bool
 
+    @Binding var tapMode: TapMode
+
     let onStart: (Side) -> Void
 
     var body: some View {
@@ -16,7 +18,8 @@ struct StartPages: View {
             TabView {
                 StartView(onStart: onStart)
 
-                StartSettings(ruleset: $ruleset, recordsToHealth: $recordsToHealth)
+                StartSettings(
+                    ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode)
             }
             .tabViewStyle(.verticalPage)
             // Deliberately not `.toolbar(.hidden,)`: the bar is drawn per page
@@ -32,10 +35,14 @@ private struct StartSettings: View {
 
     @Binding var recordsToHealth: Bool
 
+    @Binding var tapMode: TapMode
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 RulesetSettings(ruleset: $ruleset).padding(.top, Board.titleGap)
+
+                TapModeSettings(tapMode: $tapMode).padding(.top, Board.cardGap)
 
                 SettingsCard { health }.padding(.top, Board.cardGap)
             }
@@ -68,8 +75,8 @@ private struct StartSettings: View {
     }
 }
 
-/// The start and rules boards' pixels halved — the watch artboards were 2x
-/// (`docs/design/README.md`, "Reading the boards").
+/// The start, rules and tap-mode boards' pixels halved — the watch artboards
+/// were 2x (`docs/design/README.md`, "Reading the boards").
 private enum Board {
     /// The board's 16px.
     static let inset: CGFloat = 8
@@ -105,9 +112,32 @@ private struct StartScreen: View {
 
     @State var recordsToHealth: Bool
 
+    @State private var tapMode = TapMode.multiTap
+
     var body: some View {
         StartPages(
-            ruleset: $ruleset, recordsToHealth: $recordsToHealth, onStart: { _ in })
+            ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode,
+            onStart: { _ in })
+    }
+}
+
+private func settingsFoot(_ tapMode: TapMode) -> some View {
+    SettingsFoot(tapMode: tapMode)
+}
+
+private struct SettingsFoot: View {
+    @State var tapMode: TapMode
+
+    @State private var ruleset = Ruleset.classic(setsToWin: 2, goldenPoint: true)
+
+    @State private var recordsToHealth = true
+
+    var body: some View {
+        NavigationStack {
+            StartSettings(
+                ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode)
+        }
+        .defaultScrollAnchor(.bottom)
     }
 }
 
@@ -144,5 +174,25 @@ private struct StartScreen: View {
 }
 
 #Preview("Health turned off") { start(.defaultClassic, recordsToHealth: false) }
+
+#Preview("The settings page's foot: multi-tap") { settingsFoot(.multiTap) }
+
+#Preview("In Russian: the settings page's foot: multi-tap") {
+    inRussian(settingsFoot(.multiTap))
+}
+
+#Preview("The settings page's foot: tap zones") { settingsFoot(.tapZones) }
+
+#Preview("In Russian: the settings page's foot: tap zones") {
+    inRussian(settingsFoot(.tapZones))
+}
+
+#Preview("At the largest type: the settings page's foot") {
+    atLargestType(settingsFoot(.tapZones))
+}
+
+#Preview("In Russian, at the largest type: the settings page's foot") {
+    atLargestType(inRussian(settingsFoot(.tapZones)))
+}
 
 #endif

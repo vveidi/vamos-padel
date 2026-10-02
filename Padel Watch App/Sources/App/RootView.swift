@@ -49,6 +49,7 @@ struct RootView: View {
                 StartPages(
                     ruleset: $ruleset,
                     recordsToHealth: $recordsToHealth,
+                    tapMode: $tapMode,
                     onStart: start(servedBy:))
             }
         }

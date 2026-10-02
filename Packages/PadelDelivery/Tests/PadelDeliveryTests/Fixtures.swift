@@ -1,6 +1,7 @@
 import Foundation
 import PadelScoring
 import PadelStorage
+import Synchronization
 
 @testable import PadelDelivery
 
@@ -94,60 +95,69 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
 
 /// One end of the live link, with the other end played by the test. A send
 /// while unreachable throws and is not kept, as the real one's is.
-class FakeLiveLink<Outgoing: Sendable, Incoming: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var outgoing: [Outgoing] = []
-    private var reachable: Bool
-    private var receive: (@Sendable (Incoming) -> Void)?
-    private var reachabilityChange: (@Sendable (Bool) -> Void)?
-
-    init(reachable: Bool = true) {
-        self.reachable = reachable
+final class FakeLiveLink<Outgoing: Sendable, Incoming: Sendable>: Sendable {
+    private struct Wire {
+        var outgoing: [Outgoing] = []
+        var reachable: Bool
+        var receive: (@Sendable (Incoming) -> Void)?
+        var reachabilityChange: (@Sendable (Bool) -> Void)?
     }
 
-    var sent: [Outgoing] { lock.withLock { outgoing } }
+    private let wire: Mutex<Wire>
+
+    init(reachable: Bool = true) {
+        wire = Mutex(Wire(reachable: reachable))
+    }
+
+    var sent: [Outgoing] { wire.withLock { $0.outgoing } }
 
     var lastSent: Outgoing? { sent.last }
 
-    var isReachable: Bool { lock.withLock { reachable } }
+    var isReachable: Bool { wire.withLock { $0.reachable } }
 
     func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {
-        lock.withLock { reachabilityChange = change }
+        wire.withLock { $0.reachabilityChange = change }
     }
 
-    func keep(_ value: Outgoing) throws {
-        try lock.withLock {
-            guard reachable else { throw LiveLinkError.unreachable }
+    fileprivate func keep(_ value: Outgoing) throws {
+        try wire.withLock { wire in
+            guard wire.reachable else { throw LiveLinkError.unreachable }
 
-            outgoing.append(value)
+            wire.outgoing.append(value)
         }
     }
 
-    func setReceiver(_ handle: @escaping @Sendable (Incoming) -> Void) {
-        lock.withLock { receive = handle }
+    fileprivate func setReceiver(_ handle: @escaping @Sendable (Incoming) -> Void) {
+        wire.withLock { $0.receive = handle }
     }
 
     func deliver(_ value: Incoming) {
-        lock.withLock { receive }?(value)
+        wire.withLock { $0.receive }?(value)
     }
 
     func becomeReachable(_ isReachable: Bool) {
-        let change = lock.withLock {
-            reachable = isReachable
-            return reachabilityChange
+        let change = wire.withLock { wire in
+            wire.reachable = isReachable
+            return wire.reachabilityChange
         }
 
         change?(isReachable)
     }
 }
 
-final class FakeScorerLink: FakeLiveLink<MatchUpdate, MatchIntent>, ScorerLink, @unchecked Sendable {
+typealias FakeScorerLink = FakeLiveLink<MatchUpdate, MatchIntent>
+
+typealias FakeRemoteLink = FakeLiveLink<MatchIntent, MatchUpdate>
+
+extension FakeLiveLink: LiveLink {}
+
+extension FakeLiveLink: ScorerLink where Outgoing == MatchUpdate, Incoming == MatchIntent {
     func send(_ update: MatchUpdate) throws { try keep(update) }
 
     func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) { setReceiver(receive) }
 }
 
-final class FakeRemoteLink: FakeLiveLink<MatchIntent, MatchUpdate>, RemoteLink, @unchecked Sendable {
+extension FakeLiveLink: RemoteLink where Outgoing == MatchIntent, Incoming == MatchUpdate {
     func send(_ intent: MatchIntent) throws { try keep(intent) }
 
     func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) { setReceiver(receive) }

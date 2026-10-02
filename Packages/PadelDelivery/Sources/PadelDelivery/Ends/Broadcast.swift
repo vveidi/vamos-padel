@@ -1,21 +1,25 @@
 import Foundation
+import Synchronization
 
 /// Every value to every listener in the order it was sent, and the latest one
 /// first to a listener that arrives late.
-final class Broadcast<Value: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var latest: Value?
-    private var listeners: [UUID: AsyncStream<Value>.Continuation] = [:]
+final class Broadcast<Value: Sendable>: Sendable {
+    private struct Listeners {
+        var latest: Value?
+        var continuations: [UUID: AsyncStream<Value>.Continuation] = [:]
+    }
+
+    private let listeners: Mutex<Listeners>
 
     init(_ initial: Value? = nil) {
-        latest = initial
+        listeners = Mutex(Listeners(latest: initial))
     }
 
     func send(_ value: Value) {
-        lock.withLock {
-            latest = value
+        listeners.withLock { listeners in
+            listeners.latest = value
 
-            for listener in listeners.values { listener.yield(value) }
+            for continuation in listeners.continuations.values { continuation.yield(value) }
         }
     }
 
@@ -24,13 +28,13 @@ final class Broadcast<Value: Sendable>: @unchecked Sendable {
 
         return AsyncStream { continuation in
             continuation.onTermination = { [weak self] _ in
-                self?.lock.withLock { _ = self?.listeners.removeValue(forKey: id) }
+                self?.listeners.withLock { _ = $0.continuations.removeValue(forKey: id) }
             }
 
-            lock.withLock {
-                listeners[id] = continuation
+            listeners.withLock { listeners in
+                listeners.continuations[id] = continuation
 
-                if let latest { continuation.yield(latest) }
+                if let latest = listeners.latest { continuation.yield(latest) }
             }
         }
     }

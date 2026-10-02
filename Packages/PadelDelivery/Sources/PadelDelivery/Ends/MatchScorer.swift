@@ -1,19 +1,19 @@
 import Foundation
 import PadelScoring
 import PadelStorage
+import Synchronization
 
 /// The phone's end of the live link, holding the match it scores, paired or
 /// alone. Every change is written to the store and goes out to the remote and
 /// to ``updates()``. ``MatchRemote`` is the watch's end.
-public final class MatchScorer: @unchecked Sendable {
+public final class MatchScorer: Sendable {
     private let store: any MatchStore
     private let link: any ScorerLink
 
-    /// Guards `held`, and is held across the write and both sends, so two
-    /// changes never go out in the opposite order to the one they were made in.
-    /// The link is sent to under it and must not call back before returning.
-    private let lock = NSLock()
-    private var held: SavedMatch?
+    /// Held across the write and both sends, so two changes never go out in
+    /// the opposite order to the one they were made in. The link is sent to
+    /// under it and must not call back before returning.
+    private let held = Mutex<SavedMatch?>(nil)
 
     private let broadcast = Broadcast<MatchUpdate>(.noMatch(echo: nil))
 
@@ -38,10 +38,10 @@ public final class MatchScorer: @unchecked Sendable {
     /// - Returns: `nil` when refused, because a match is already running.
     @discardableResult
     public func start(ruleset: Ruleset, firstServer: Side) -> SavedMatch? {
-        lock.withLock {
-            guard startLocked(ruleset: ruleset, firstServer: firstServer) else { return nil }
+        held.withLock { held in
+            guard start(&held, ruleset: ruleset, firstServer: firstServer) else { return nil }
 
-            publish(echo: nil)
+            publish(held, echo: nil)
 
             return held
         }
@@ -62,28 +62,28 @@ public final class MatchScorer: @unchecked Sendable {
 
     /// The match stays in the store as it is, and the scorer holds nothing.
     public func release() {
-        lock.withLock {
+        held.withLock { held in
             held = nil
 
-            publish(echo: nil)
+            publish(held, echo: nil)
         }
     }
 
     /// Refused, with nothing changed, when there is no match running or `base`
     /// is not its number of rallies; a `start` is refused while one runs.
     public func apply(_ intent: MatchIntent) {
-        lock.withLock {
+        held.withLock { held in
             let accepted =
                 switch intent {
-                case .rally(let side, let base) where stands(on: base): changeLocked(.rally(side))
-                case .undo(let base) where stands(on: base): changeLocked(.undo)
-                case .end(let base) where stands(on: base): changeLocked(.end)
+                case .rally(let side, let base) where held.stands(on: base): change(&held, .rally(side))
+                case .undo(let base) where held.stands(on: base): change(&held, .undo)
+                case .end(let base) where held.stands(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
-                    startLocked(ruleset: ruleset, firstServer: firstServer)
+                    start(&held, ruleset: ruleset, firstServer: firstServer)
                 default: false
                 }
 
-            publish(echo: Echo(intent: intent, accepted: accepted))
+            publish(held, echo: Echo(intent: intent, accepted: accepted))
         }
     }
 
@@ -94,29 +94,21 @@ public final class MatchScorer: @unchecked Sendable {
     }
 
     private func change(_ change: Change) {
-        lock.withLock {
-            guard changeLocked(change) else { return }
+        held.withLock { held in
+            guard self.change(&held, change) else { return }
 
-            publish(echo: nil)
+            publish(held, echo: nil)
         }
     }
 
     private func republish() {
-        lock.withLock { publish(echo: nil) }
+        held.withLock { held in publish(held, echo: nil) }
     }
 
     // MARK: Under the lock
 
-    private var isRunning: Bool {
-        held.map { !$0.match.state.outcome.isOver } ?? false
-    }
-
-    private func stands(on base: Int) -> Bool {
-        isRunning && held?.match.journal.count == base
-    }
-
-    private func startLocked(ruleset: Ruleset, firstServer: Side) -> Bool {
-        guard !isRunning else { return false }
+    private func start(_ held: inout SavedMatch?, ruleset: Ruleset, firstServer: Side) -> Bool {
+        guard !held.isRunning else { return false }
 
         let started = SavedMatch(
             match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
@@ -128,7 +120,7 @@ public final class MatchScorer: @unchecked Sendable {
     }
 
     /// - Returns: `false` when the match was left as it was.
-    private func changeLocked(_ change: Change) -> Bool {
+    private func change(_ held: inout SavedMatch?, _ change: Change) -> Bool {
         guard let before = held else { return false }
 
         var match = before
@@ -146,7 +138,7 @@ public final class MatchScorer: @unchecked Sendable {
         return true
     }
 
-    private func publish(echo: Echo?) {
+    private func publish(_ held: SavedMatch?, echo: Echo?) {
         let update: MatchUpdate = held.map { .match($0, echo: echo) } ?? .noMatch(echo: echo)
 
         broadcast.send(update)
@@ -164,5 +156,15 @@ public final class MatchScorer: @unchecked Sendable {
         } catch {
             logger.error("the match was not saved: \(error.localizedDescription)")
         }
+    }
+}
+
+extension Optional where Wrapped == SavedMatch {
+    fileprivate var isRunning: Bool {
+        map { !$0.match.state.outcome.isOver } ?? false
+    }
+
+    fileprivate func stands(on base: Int) -> Bool {
+        isRunning && self?.match.journal.count == base
     }
 }

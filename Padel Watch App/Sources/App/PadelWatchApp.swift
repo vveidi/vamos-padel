@@ -67,7 +67,7 @@ final class PadelWatchAppDelegate: NSObject, WKApplicationDelegate {
     /// Where the phone's `startWatchApp(toHandle:)` lands: a paired match
     /// started there.
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
-        Self.pairedWorkout?.begin()
+        Self.pairedWorkout?.answerThePhone()
     }
 }
 

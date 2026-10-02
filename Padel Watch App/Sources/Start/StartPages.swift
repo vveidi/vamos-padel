@@ -7,6 +7,8 @@ struct StartPages: View {
 
     @Binding var recordsToHealth: Bool
 
+    @Binding var startsPaired: Bool
+
     @Binding var tapMode: TapMode
 
     let onStart: (Side) -> Void
@@ -19,7 +21,8 @@ struct StartPages: View {
                 StartView(onStart: onStart)
 
                 StartSettings(
-                    ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode)
+                    ruleset: $ruleset, recordsToHealth: $recordsToHealth,
+                    startsPaired: $startsPaired, tapMode: $tapMode)
             }
             .tabViewStyle(.verticalPage)
             // Deliberately not `.toolbar(.hidden,)`: the bar is drawn per page
@@ -35,6 +38,8 @@ private struct StartSettings: View {
 
     @Binding var recordsToHealth: Bool
 
+    @Binding var startsPaired: Bool
+
     @Binding var tapMode: TapMode
 
     var body: some View {
@@ -44,7 +49,12 @@ private struct StartSettings: View {
 
                 TapModeSettings(tapMode: $tapMode).padding(.top, Board.cardGap)
 
-                SettingsCard { health }.padding(.top, Board.cardGap)
+                SettingsCard {
+                    health
+
+                    pairing
+                }
+                .padding(.top, Board.cardGap)
             }
             .padding(.horizontal, Board.inset)
             .padding(.bottom, Board.inset)
@@ -60,18 +70,25 @@ private struct StartSettings: View {
     /// Worded as what the app will do, not as the name of a feature: "Health"
     /// alone is a noun the two languages decline differently.
     private var health: some View {
-        Toggle(isOn: $recordsToHealth) {
-            Text("Record to Health")
-                .textStyle(.control)
-                .foregroundStyle(.ink.weight(.control))
-                // Two lines already at the default setting in both languages:
-                // the switch takes a third of the row. The scale factor covers
-                // the settings past that, where a third line would push the
-                // switch off the card.
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-        }
-        .toggleStyle(.ball)
+        Toggle(isOn: $recordsToHealth) { label("Record to Health") }
+            .toggleStyle(.ball)
+    }
+
+    private var pairing: some View {
+        Toggle(isOn: $startsPaired) { label("Score on iPhone") }
+            .toggleStyle(.ball)
+    }
+
+    private func label(_ words: LocalizedStringKey) -> some View {
+        Text(words)
+            .textStyle(.control)
+            .foregroundStyle(.ink.weight(.control))
+            // Two lines already at the default setting in both languages:
+            // the switch takes a third of the row. The scale factor covers
+            // the settings past that, where a third line would push the
+            // switch off the card.
+            .lineLimit(2)
+            .minimumScaleFactor(0.7)
     }
 }
 
@@ -112,21 +129,25 @@ private struct StartScreen: View {
 
     @State var recordsToHealth: Bool
 
+    @State private var startsPaired = false
+
     @State private var tapMode = TapMode.multiTap
 
     var body: some View {
         StartPages(
-            ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode,
-            onStart: { _ in })
+            ruleset: $ruleset, recordsToHealth: $recordsToHealth, startsPaired: $startsPaired,
+            tapMode: $tapMode, onStart: { _ in })
     }
 }
 
-private func settingsFoot(_ tapMode: TapMode) -> some View {
-    SettingsFoot(tapMode: tapMode)
+private func settingsFoot(_ tapMode: TapMode, startsPaired: Bool = false) -> some View {
+    SettingsFoot(tapMode: tapMode, startsPaired: startsPaired)
 }
 
 private struct SettingsFoot: View {
     @State var tapMode: TapMode
+
+    @State var startsPaired: Bool
 
     @State private var ruleset = Ruleset.classic(setsToWin: 2, goldenPoint: true)
 
@@ -135,7 +156,8 @@ private struct SettingsFoot: View {
     var body: some View {
         NavigationStack {
             StartSettings(
-                ruleset: $ruleset, recordsToHealth: $recordsToHealth, tapMode: $tapMode)
+                ruleset: $ruleset, recordsToHealth: $recordsToHealth,
+                startsPaired: $startsPaired, tapMode: $tapMode)
         }
         .defaultScrollAnchor(.bottom)
     }
@@ -186,6 +208,10 @@ private struct SettingsFoot: View {
 #Preview("In Russian: the settings page's foot: tap zones") {
     inRussian(settingsFoot(.tapZones))
 }
+
+#Preview("Scored on iPhone") { settingsFoot(.multiTap, startsPaired: true) }
+
+#Preview("In Russian: scored on iPhone") { inRussian(settingsFoot(.multiTap, startsPaired: true)) }
 
 #Preview("At the largest type: the settings page's foot") {
     atLargestType(settingsFoot(.tapZones))

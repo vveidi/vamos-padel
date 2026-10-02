@@ -140,6 +140,8 @@ enum MatchPayload {
             [Key.intent: Kind.undo, Key.base: base]
         case .end(let base):
             [Key.intent: Kind.end, Key.base: base]
+        case .scoringAlone:
+            [Key.intent: Kind.scoringAlone]
         }
     }
 
@@ -155,6 +157,8 @@ enum MatchPayload {
             .undo(base: try base(in: payload))
         case Kind.end:
             .end(base: try base(in: payload))
+        case Kind.scoringAlone:
+            .scoringAlone
         case let kind:
             throw MatchPayloadError.unreadable(reason: "an intent of kind \"\(kind ?? "—")\"")
         }
@@ -230,6 +234,7 @@ enum MatchPayload {
         static let rally = "rally"
         static let undo = "undo"
         static let end = "end"
+        static let scoringAlone = "scoringAlone"
     }
 }
 

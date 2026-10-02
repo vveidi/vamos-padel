@@ -41,7 +41,7 @@ struct RootView: View {
         TabView(selection: $tab) {
             Tab("New match", systemImage: "plus.circle", value: Screen.newMatch) {
                 NavigationStack {
-                    NewMatchView(store: store, scorer: scorer, workout: workout, startsPaired: false) {
+                    NewMatchView(store: store, scorer: scorer, workout: workout) {
                         running = $0
                         isPaired = $1
                     }

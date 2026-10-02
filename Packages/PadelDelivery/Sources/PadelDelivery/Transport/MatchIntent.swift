@@ -8,4 +8,8 @@ public enum MatchIntent: Equatable, Sendable {
     case rally(wonBy: Side, base: Int)
     case undo(base: Int)
     case end(base: Int)
+
+    /// Not an ask: the remote's answer to being raised into a paired match
+    /// while it scores one of its own. Never echoed.
+    case scoringAlone
 }

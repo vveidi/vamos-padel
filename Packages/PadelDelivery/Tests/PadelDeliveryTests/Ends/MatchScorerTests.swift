@@ -232,6 +232,32 @@ struct MatchScorerTests {
         #expect(heldMatch(of: link)?.match.journal == RallyJournal([Rally(wonBy: .them)]))
     }
 
+    // MARK: The remote declining
+
+    @Test("A remote scoring alone is heard, and its answer changes nothing and is not echoed")
+    func aDeclineIsHeardAndNotEchoed() async throws {
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let sentBefore = link.sent
+        let declines = scorer.remoteDeclines()
+
+        link.deliver(.scoringAlone)
+
+        #expect(await declines.first(1).count == 1)
+        #expect(link.sent == sentBefore)
+        #expect(try store.match(id: started.id)?.match == started.match)
+    }
+
+    @Test("A broadcast that keeps nothing replays nothing to a listener that arrives late")
+    func aBroadcastThatKeepsNothingReplaysNothing() async {
+        let broadcast = Broadcast<Int>(keepsLatest: false)
+        broadcast.send(1)
+
+        let late = broadcast.stream()
+        broadcast.send(2)
+
+        #expect(await late.first(1) == [2])
+    }
+
     // MARK: The stream
 
     @Test("The stream starts at the update as it stands and follows every change")

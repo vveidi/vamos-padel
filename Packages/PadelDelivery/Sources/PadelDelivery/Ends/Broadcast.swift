@@ -2,7 +2,7 @@ import Foundation
 import Synchronization
 
 /// Every value to every listener in the order it was sent, and the latest one
-/// first to a listener that arrives late.
+/// first to a listener that arrives late — unless made with `keepsLatest: false`.
 final class Broadcast<Value: Sendable>: Sendable {
     private struct Listeners {
         var latest: Value?
@@ -10,14 +10,16 @@ final class Broadcast<Value: Sendable>: Sendable {
     }
 
     private let listeners: Mutex<Listeners>
+    private let keepsLatest: Bool
 
-    init(_ initial: Value? = nil) {
+    init(_ initial: Value? = nil, keepsLatest: Bool = true) {
         listeners = Mutex(Listeners(latest: initial))
+        self.keepsLatest = keepsLatest
     }
 
     func send(_ value: Value) {
-        listeners.withLock { listeners in
-            listeners.latest = value
+        listeners.withLock { [keepsLatest] listeners in
+            if keepsLatest { listeners.latest = value }
 
             for continuation in listeners.continuations.values { continuation.yield(value) }
         }

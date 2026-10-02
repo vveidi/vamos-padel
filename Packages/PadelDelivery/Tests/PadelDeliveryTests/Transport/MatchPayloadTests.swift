@@ -67,6 +67,7 @@ struct MatchPayloadTests {
             .rally(wonBy: .them, base: 27),
             .undo(base: 5),
             .end(base: 12),
+            .scoringAlone,
         ])
     func anIntentSurvivesTheRoundTrip(intent: MatchIntent) throws {
         #expect(try MatchPayload.decode(MatchPayload.encode(.intent(intent))) == .intent(intent))

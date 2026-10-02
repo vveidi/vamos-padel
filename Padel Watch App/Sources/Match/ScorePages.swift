@@ -11,7 +11,7 @@ struct ScorePages: View {
     let sets: SideCounts?
     let servingSide: Side
     let servingHalf: ServingHalf?
-    let tapMode: TapMode
+    @Binding var tapMode: TapMode
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -23,25 +23,34 @@ struct ScorePages: View {
     private enum Page {
         case controls
         case score
+        case tapMode
     }
 
     var body: some View {
-        TabView(selection: $page) {
-            MatchControls(onAbandon: onAbandon)
-                .tag(Page.controls)
+        // Around the pages, as `StartPages` has it, and with the bar left alone
+        // for the same reason: the untitled score draws none, and the titled
+        // tap-mode page needs one to push its list from.
+        NavigationStack {
+            TabView(selection: $page) {
+                MatchControls(onAbandon: onAbandon)
+                    .tag(Page.controls)
 
-            ScoreView(
-                points: points,
-                games: games,
-                sets: sets,
-                servingSide: servingSide,
-                servingHalf: servingHalf,
-                tapMode: tapMode,
-                onRallyWon: onRallyWon,
-                onUndo: onUndo)
-                .tag(Page.score)
+                ScoreView(
+                    points: points,
+                    games: games,
+                    sets: sets,
+                    servingSide: servingSide,
+                    servingHalf: servingHalf,
+                    tapMode: tapMode,
+                    onRallyWon: onRallyWon,
+                    onUndo: onUndo)
+                    .tag(Page.score)
+
+                TapModePage(tapMode: $tapMode)
+                    .tag(Page.tapMode)
+            }
+            .tabViewStyle(.verticalPage)
         }
-        .tabViewStyle(.page)
     }
 }
 
@@ -78,16 +87,24 @@ private struct MatchControls: View {
 
 #if DEBUG
 
-private let pages = ScorePages(
-    points: .game(SideCounts(us: 3, them: 2)),
-    games: SideCounts(us: 4, them: 5),
-    sets: nil,
-    servingSide: .us,
-    servingHalf: .right,
-    tapMode: .multiTap,
-    onRallyWon: { _ in },
-    onUndo: {},
-    onAbandon: {})
+private struct Pages: View {
+    @State private var tapMode = TapMode.multiTap
+
+    var body: some View {
+        ScorePages(
+            points: .game(SideCounts(us: 3, them: 2)),
+            games: SideCounts(us: 4, them: 5),
+            sets: nil,
+            servingSide: .us,
+            servingHalf: .right,
+            tapMode: $tapMode,
+            onRallyWon: { _ in },
+            onUndo: {},
+            onAbandon: {})
+    }
+}
+
+private let pages = Pages()
 
 #Preview { pages }
 

@@ -37,11 +37,13 @@ They are not used, for two reasons that have nothing to do with padel:
 
 - **The watch's clock** is drawn over the opponents' top trailing corner and
   cannot be hidden by a third-party app.
-- **`ScorePages`' page dots** sit over our bottom.
+- **`ScorePages`' page indicator** sits on the trailing edge, up by the crown,
+  about 66pt down a 45mm screen — beside the opponents' sets digit.
 
-The inner corners are clear of both, they keep their distance from the sets
-digit at the trailing edge, and they put the two balls either side of the net,
-mirroring each other the way the halves do.
+The inner corners are clear of both: the indicator ends well above the net. The
+trailing furniture — the sets digit and the ball in either trailing corner —
+stands 16pt in rather than 12pt, so nothing meets the dots. The two balls sit
+either side of the net, mirroring each other the way the halves do.
 
 ## Consequences
 

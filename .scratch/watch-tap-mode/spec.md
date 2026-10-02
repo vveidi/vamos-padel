@@ -177,6 +177,10 @@ and the README's "Two artboards" goes to three and back again.
 
 ## Consequences, stated plainly
 
+- **A second tap begun in the last ~100 ms of the double-tap window is lost.**
+  The first tap scores as ours and the second scores nothing, with no haptic.
+  Accepted after it was felt on a wrist, where the taps behaved fine; see 06.
+
 - **Two quick taps meant as two of our points award one to the opponents.** This
   is the default mode, so it is the default hazard. The answer is the long press,
   which is one gesture to fix a mistake that any confirmation would tax every

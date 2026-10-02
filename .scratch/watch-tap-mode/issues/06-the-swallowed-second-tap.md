@@ -8,7 +8,7 @@ no haptic.
 
 **Blocked by:** 03
 
-**Status:** needs-triage
+**Status:** done
 
 ## What was measured
 
@@ -26,9 +26,9 @@ started in the last ~100 ms of the window.
 
 ## What to decide
 
-- [ ] Felt on a wrist: does the band exist on hardware, and does a player land
+- [x] Felt on a wrist: does the band exist on hardware, and does a player land
       in it in practice — say, two of our points scored quickly
-- [ ] Either accept it, as 03 accepts the two-quick-taps hazard, and record why;
+- [x] Either accept it, as 03 accepts the two-quick-taps hazard, and record why;
       or replace the framework's double with a recognizer of our own that
       counts a late second tap as a second single
 
@@ -37,3 +37,10 @@ started in the last ~100 ms of the window.
 The silence is what separates it from the known hazard. A misattributed point
 buzzes the wrong way and the long press fixes it; a lost point buzzes nothing
 for the second tap, which a player not looking may never notice.
+
+## Comments
+
+Closed `done` by the owner on 2026-10-02: tapped on a wrist, the taps behave
+fine, so the band is accepted and the framework's double stays. Nothing was
+built. The spec's "Consequences, stated plainly" now lists it beside the
+two-quick-taps hazard.

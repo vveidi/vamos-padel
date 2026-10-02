@@ -1,3 +1,4 @@
+import PadelScoring
 import SwiftUI
 
 // MARK: - The court
@@ -147,3 +148,66 @@ private struct LightBoard: View {
 }
 
 #Preview("The light") { LightBoard() }
+
+// MARK: - The rally mark
+
+private struct RallyMarkBoard: View {
+    private static let frameStep: TimeInterval = 0.04
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                ForEach(RallyMark.Tier.allCases, id: \.self) { tier in
+                    VStack(alignment: .leading, spacing: 10) {
+                        label(".\(tier), at its peak")
+
+                        HStack(spacing: 10) {
+                            ForEach(Side.allCases, id: \.self) { side in
+                                marked(side)
+                            }
+                        }
+
+                        label("every \(Int(Self.frameStep * 1000))ms")
+                        filmstrip(tier)
+                    }
+                }
+            }
+            .padding(14)
+        }
+        .background(Color.night)
+    }
+
+    private func marked(_ side: Side) -> some View {
+        VStack(spacing: 0) {
+            CourtHalf().overlay { side == .them ? RallyMarkFill(level: 1) : nil }
+            NetLine().zIndex(1)
+            CourtHalf().overlay { side == .us ? RallyMarkFill(level: 1) : nil }
+        }
+        .frame(height: 160)
+        .overlay(alignment: side == .us ? .bottom : .top) { label(".\(side)") }
+    }
+
+    private func filmstrip(_ tier: RallyMark.Tier) -> some View {
+        let timeline = KeyframeTimeline(initialValue: 0.0) { RallyMarkPlayer.keyframes(tier) }
+        let frames = Int((timeline.duration / Self.frameStep).rounded(.up))
+
+        return HStack(spacing: 2) {
+            ForEach(0...frames, id: \.self) { frame in
+                CourtHalf()
+                    .overlay {
+                        RallyMarkFill(level: timeline.value(time: Double(frame) * Self.frameStep))
+                    }
+                    .frame(height: 24)
+            }
+        }
+    }
+
+    private func label(_ text: String) -> some View {
+        Text(verbatim: text)
+            .textStyle(.caption)
+            .foregroundStyle(.ink.weight(.secondary))
+            .padding(6)
+    }
+}
+
+#Preview("The rally mark") { RallyMarkBoard() }

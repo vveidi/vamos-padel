@@ -16,6 +16,15 @@ enum CourtDimming {
     static let paint = 0.5
 }
 
+/// How much of ``SwiftUI/Color/courtLit`` a rally mark reaches at its peak — a
+/// property of the surface, not of the mark (ADR-0011).
+enum CourtMark {
+    /// Settled by eye on stills at watch size against 0.4, 0.6 and 0.8: below
+    /// full the half reads as a slightly different blue rather than as lit. At
+    /// full it is still blue and the score on it still reads.
+    static let peak = 1.0
+}
+
 extension Color {
     public static func courtSurface(dimmed: Bool = false) -> Color {
         dimmed ? Color.court.towardNight(CourtDimming.surface) : .court

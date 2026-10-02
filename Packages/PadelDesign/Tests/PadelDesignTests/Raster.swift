@@ -104,15 +104,25 @@ struct Raster {
     /// is written against a patch and not a pixel: the weave lies over the
     /// whole surface, and a single pixel is either on a stripe or between two.
     func meanLuminance(columns: Range<Int>, rows: Range<Int>) -> Double {
-        var total = 0.0
+        meanPixel(columns: columns, rows: rows).luminance
+    }
+
+    func meanPixel(columns: Range<Int>, rows: Range<Int>) -> Pixel {
+        var red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0
 
         for row in rows {
             for column in columns {
-                total += luminance(column, row)
+                let pixel = pixel(column, row)
+                red += pixel.red
+                green += pixel.green
+                blue += pixel.blue
+                alpha += pixel.alpha
             }
         }
 
-        return total / Double(columns.count * rows.count)
+        let count = Double(columns.count * rows.count)
+
+        return Pixel(red: red / count, green: green / count, blue: blue / count, alpha: alpha / count)
     }
 
     /// Whether a patch of this raster is painted the same as `other`'s.

@@ -12,12 +12,16 @@ public struct CourtHalf: View {
     public var body: some View {
         Rectangle()
             .fill(Color.courtSurface(dimmed: isLuminanceReduced))
-            .overlay { weave }
+            .overlay { CourtWeave(dimmed: isLuminanceReduced) }
     }
+}
 
-    private var weave: some View {
+struct CourtWeave: View {
+    let dimmed: Bool
+
+    var body: some View {
         Weave(stripe: CourtMetrics.weave)
-            .fill(Color.courtWeave(dimmed: isLuminanceReduced))
+            .fill(Color.courtWeave(dimmed: dimmed))
             // The stripes are cut from a square large enough to still cover
             // the half once it is turned, so they run well past its edges.
             .clipped()

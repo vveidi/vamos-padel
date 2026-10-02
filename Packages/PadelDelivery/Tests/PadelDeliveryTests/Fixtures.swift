@@ -92,6 +92,80 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
     }
 }
 
+/// One end of the live link, with the other end played by the test. A send
+/// while unreachable throws and is not kept, as the real one's is.
+class FakeLiveLink<Outgoing: Sendable, Incoming: Sendable>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var outgoing: [Outgoing] = []
+    private var reachable: Bool
+    private var receive: (@Sendable (Incoming) -> Void)?
+    private var reachabilityChange: (@Sendable (Bool) -> Void)?
+
+    init(reachable: Bool = true) {
+        self.reachable = reachable
+    }
+
+    var sent: [Outgoing] { lock.withLock { outgoing } }
+
+    var lastSent: Outgoing? { sent.last }
+
+    var isReachable: Bool { lock.withLock { reachable } }
+
+    func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {
+        lock.withLock { reachabilityChange = change }
+    }
+
+    func keep(_ value: Outgoing) throws {
+        try lock.withLock {
+            guard reachable else { throw LiveLinkError.unreachable }
+
+            outgoing.append(value)
+        }
+    }
+
+    func setReceiver(_ handle: @escaping @Sendable (Incoming) -> Void) {
+        lock.withLock { receive = handle }
+    }
+
+    func deliver(_ value: Incoming) {
+        lock.withLock { receive }?(value)
+    }
+
+    func becomeReachable(_ isReachable: Bool) {
+        let change = lock.withLock {
+            reachable = isReachable
+            return reachabilityChange
+        }
+
+        change?(isReachable)
+    }
+}
+
+final class FakeScorerLink: FakeLiveLink<MatchUpdate, MatchIntent>, ScorerLink, @unchecked Sendable {
+    func send(_ update: MatchUpdate) throws { try keep(update) }
+
+    func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) { setReceiver(receive) }
+}
+
+final class FakeRemoteLink: FakeLiveLink<MatchIntent, MatchUpdate>, RemoteLink, @unchecked Sendable {
+    func send(_ intent: MatchIntent) throws { try keep(intent) }
+
+    func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) { setReceiver(receive) }
+}
+
+extension AsyncStream {
+    func first(_ count: Int) async -> [Element] {
+        var values: [Element] = []
+
+        for await value in self {
+            values.append(value)
+            if values.count == count { break }
+        }
+
+        return values
+    }
+}
+
 struct FailingMatchStore: MatchStore {
     struct Failure: Error {}
 

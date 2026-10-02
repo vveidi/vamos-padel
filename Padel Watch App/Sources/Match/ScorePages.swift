@@ -1,3 +1,4 @@
+import PadelDesign
 import PadelScoring
 import SwiftUI
 import WatchKit
@@ -12,6 +13,7 @@ struct ScorePages: View {
     let servingSide: Side
     let servingHalf: ServingHalf?
     let tapMode: TapMode
+    let mark: RallyMark?
     let onRallyWon: (Side) -> Void
     let onUndo: () -> Void
 
@@ -37,6 +39,7 @@ struct ScorePages: View {
                 servingSide: servingSide,
                 servingHalf: servingHalf,
                 tapMode: tapMode,
+                mark: mark,
                 onRallyWon: onRallyWon,
                 onUndo: onUndo)
                 .tag(Page.score)
@@ -85,6 +88,7 @@ private let pages = ScorePages(
     servingSide: .us,
     servingHalf: .right,
     tapMode: .multiTap,
+    mark: nil,
     onRallyWon: { _ in },
     onUndo: {},
     onAbandon: {})

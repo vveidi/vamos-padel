@@ -1,5 +1,6 @@
 import os
 import PadelDelivery
+import PadelDesign
 import PadelScoring
 import PadelStorage
 import SwiftUI
@@ -17,6 +18,10 @@ struct MatchView: View {
     private let tapMode: TapMode
 
     private let onFinish: () -> Void
+
+    /// `nil` until a rally lands while the match is on screen: one that landed
+    /// before it appeared marks nothing.
+    @State private var mark: RallyMark?
 
     init(
         match: SavedMatch,
@@ -52,6 +57,7 @@ struct MatchView: View {
                     servingSide: state.servingSide,
                     servingHalf: state.servingHalf,
                     tapMode: tapMode,
+                    mark: mark,
                     onRallyWon: record(rallyWonBy:),
                     onUndo: undo,
                     onAbandon: abandon)
@@ -68,6 +74,22 @@ struct MatchView: View {
                 workout.end()
             }
         }
+        // On the journal, never on the tap that plays the haptic — ADR-0011.
+        .onChange(of: saved.match.journal) { old, new in
+            guard new.count > old.count, let rally = new.last else { return }
+
+            mark = RallyMark(side: rally.winner, tier: tier(ofRallyAfter: old), trigger: (mark?.trigger ?? 0) + 1)
+        }
+    }
+
+    /// A match to N points has no games and no sets, so all its rallies are
+    /// one tier.
+    private func tier(ofRallyAfter journal: RallyJournal) -> RallyMark.Tier {
+        let match = saved.match
+        let before = Match(ruleset: match.ruleset, firstServer: match.firstServer, journal: journal).state
+        let after = match.state
+
+        return before.games == after.games && before.sets == after.sets ? .rally : .gameOrSet
     }
 
     /// Asked of the ruleset, not of the sets played: a multi-set match

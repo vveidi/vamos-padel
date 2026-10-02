@@ -1,5 +1,7 @@
 # A match has one scorer, and it is the device it was started on
 
+*Superseded in part by ADR-0017: this holds for a match scored alone. A paired match's scorer is the phone, and pairing is a setting.*
+
 The device a match is started on holds its rally journal from the first rally to the last. Start on the watch and the watch scores it, keeps it in its own store, and delivers it to the phone when it is over — what the app has always done. Start on the phone and the phone scores it, writing the journal into the same store the history is read from, so the match is in the history from its first point. The two devices say nothing to each other while a match runs.
 
 The alternative was to give the match a single home on the phone and reduce the watch to a remote that holds nothing and asks for every rally. It is the better end state and it is not abandoned — it is deferred, and reframed: pairing the two devices becomes a third way to score rather than the only one, and it is specced in `.scratch/paired-scoring/`. What sent it back was its price of entry. It needs a live link in both directions, an intent protocol, a mirrored workout session to keep the phone alive in the background, `startWatchApp`, and a run-through on real hardware before any of it can be trusted — all of that before the phone can draw a single digit. The scoreboard needs none of it.

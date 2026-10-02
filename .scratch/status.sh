@@ -65,13 +65,22 @@ report_feature() {
     nums+=("$num")
     titles+=("$title")
     statuses+=("$status")
-    deps+=("$(printf '%s' "$blocked" | grep -oE '[0-9]{2}' | tr '\n' ' ' || true)")
+    deps+=("$(printf '%s' "$blocked" | grep -oE '([a-z0-9-]+/)?[0-9]{2}' | tr '\n' ' ' || true)")
     checked+=("$done_n")
     totals+=("$total")
   done
 
+  # A blocker is NN within this feature, or <feature>/NN in another one, which
+  # may since have been archived.
   is_done() {
-    local want=$1 i
+    local want=$1 i f
+    if [[ $want == */* ]]; then
+      for f in "$scratch/${want%/*}/issues/${want##*/}"-*.md \
+               "$scratch/archive/${want%/*}/issues/${want##*/}"-*.md; do
+        [ -e "$f" ] && [ "$(field Status "$f")" = done ] && return 0
+      done
+      return 1
+    fi
     for i in "${!nums[@]}"; do
       if [ "${nums[$i]}" = "$want" ] && [ "${statuses[$i]}" = done ]; then return 0; fi
     done
@@ -119,6 +128,7 @@ report_feature() {
     pad "${nums[$i]}" 4
     pad "${titles[$i]:0:$TITLE_WIDTH}" $((TITLE_WIDTH + 2))
     pad "${depends:-—}" 10
+    [ ${#depends} -lt 10 ] || printf ' '
     pad "$criteria" 10
     printf '%s\n' "$state"
   done

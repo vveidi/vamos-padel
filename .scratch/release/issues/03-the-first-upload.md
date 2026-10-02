@@ -3,7 +3,7 @@
 **What to build:** Nothing. This ticket is the proof that the other two work —
 a build that leaves the machine, finishes processing, and appears on a wrist.
 
-**Blocked by:** 01, 02
+**Blocked by:** 01, 02, paired-scoring/07
 
 **Status:** ready-for-agent
 

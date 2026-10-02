@@ -12,6 +12,8 @@ struct PadelApp: App {
     /// drop the subscription.
     private let reception: MatchReception
 
+    private let scorer: MatchScorer
+
     init() {
         do {
             store = try DatabaseMatchStore.inApplicationSupport()
@@ -21,18 +23,20 @@ struct PadelApp: App {
             store = NoMatchStore()
         }
 
-        // The session comes up after reception has subscribed: a parcel that
+        // The session comes up after both ends have subscribed: a parcel that
         // arrives into an app without a handler will not arrive a second time.
         let transport = WatchConnectivityTransport()
 
         reception = MatchReception(store: store, receiver: transport)
+
+        scorer = MatchScorer(store: store, link: transport)
 
         transport.activate()
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: store)
+            RootView(store: store, scorer: scorer)
                 // The app is one court at dusk and there is no second design
                 // for noon (ADR-0006). A phone set to light would otherwise
                 // hand the system's own views — a navigation bar, a spinner, a

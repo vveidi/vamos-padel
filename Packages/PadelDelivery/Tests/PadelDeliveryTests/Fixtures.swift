@@ -1,6 +1,7 @@
 import Foundation
 import PadelScoring
 import PadelStorage
+import Synchronization
 
 @testable import PadelDelivery
 
@@ -29,43 +30,46 @@ extension SavedMatch {
     }
 }
 
-final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
-    private let lock = NSLock()
-    private var queued: [SavedMatch] = []
-    private var written: [SavedMatch] = []
-    private var transportReady: (@Sendable () -> Void)?
-    private var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
-    private var receiveMatch: (@Sendable (SavedMatch) -> Void)?
+final class FakeTransport: MatchSender, MatchReceiver, Sendable {
+    private struct Queue {
+        var queued: [SavedMatch] = []
+        var written: [SavedMatch] = []
+        var transportReady: (@Sendable () -> Void)?
+        var confirmDelivery: (@Sendable (SavedMatch) -> Void)?
+        var receiveMatch: (@Sendable (SavedMatch) -> Void)?
+    }
+
+    private let queue = Mutex(Queue())
 
     /// What the watch handed over since the last ``forget()``.
-    var sent: [SavedMatch] { lock.withLock { queued } }
+    var sent: [SavedMatch] { queue.withLock { $0.queued } }
 
     /// What the phone signed for since the last ``forget()``.
-    var receipts: [SavedMatch] { lock.withLock { written } }
+    var receipts: [SavedMatch] { queue.withLock { $0.written } }
 
     func send(_ match: SavedMatch) {
-        lock.withLock { queued.append(match) }
+        queue.withLock { $0.queued.append(match) }
     }
 
     func confirmArrival(of match: SavedMatch) {
-        lock.withLock { written.append(match) }
+        queue.withLock { $0.written.append(match) }
     }
 
     func onReady(_ ready: @escaping @Sendable () -> Void) {
-        lock.withLock { transportReady = ready }
+        queue.withLock { $0.transportReady = ready }
     }
 
     func onDelivery(_ confirm: @escaping @Sendable (SavedMatch) -> Void) {
-        lock.withLock { confirmDelivery = confirm }
+        queue.withLock { $0.confirmDelivery = confirm }
     }
 
     func onArrival(_ receive: @escaping @Sendable (SavedMatch) -> Void) {
-        lock.withLock { receiveMatch = receive }
+        queue.withLock { $0.receiveMatch = receive }
     }
 
     /// The session came up.
     func becomeReady() {
-        lock.withLock { transportReady }?()
+        queue.withLock { $0.transportReady }?()
     }
 
     func confirmDelivered() {
@@ -74,21 +78,104 @@ final class FakeTransport: MatchSender, MatchReceiver, @unchecked Sendable {
 
     /// Receipts get through for exactly the listed versions of the matches.
     func deliverReceipts(for matches: [SavedMatch]) {
-        let confirm = lock.withLock { confirmDelivery }
+        let confirm = queue.withLock { $0.confirmDelivery }
 
         for match in matches { confirm?(match) }
     }
 
     /// A match arrived on the phone.
     func deliver(_ match: SavedMatch) {
-        lock.withLock { receiveMatch }?(match)
+        queue.withLock { $0.receiveMatch }?(match)
     }
 
     func forget() {
-        lock.withLock {
-            queued = []
-            written = []
+        queue.withLock { queue in
+            queue.queued = []
+            queue.written = []
         }
+    }
+}
+
+/// One end of the live link, with the other end played by the test. A send
+/// while unreachable throws and is not kept, as the real one's is.
+final class FakeLiveLink<Outgoing: Sendable, Incoming: Sendable>: Sendable {
+    private struct Wire {
+        var outgoing: [Outgoing] = []
+        var reachable: Bool
+        var receive: (@Sendable (Incoming) -> Void)?
+        var reachabilityChange: (@Sendable (Bool) -> Void)?
+    }
+
+    private let wire: Mutex<Wire>
+
+    init(reachable: Bool = true) {
+        wire = Mutex(Wire(reachable: reachable))
+    }
+
+    var sent: [Outgoing] { wire.withLock { $0.outgoing } }
+
+    var lastSent: Outgoing? { sent.last }
+
+    var isReachable: Bool { wire.withLock { $0.reachable } }
+
+    func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {
+        wire.withLock { $0.reachabilityChange = change }
+    }
+
+    fileprivate func keep(_ value: Outgoing) throws {
+        try wire.withLock { wire in
+            guard wire.reachable else { throw LiveLinkError.unreachable }
+
+            wire.outgoing.append(value)
+        }
+    }
+
+    fileprivate func setReceiver(_ handle: @escaping @Sendable (Incoming) -> Void) {
+        wire.withLock { $0.receive = handle }
+    }
+
+    func deliver(_ value: Incoming) {
+        wire.withLock { $0.receive }?(value)
+    }
+
+    func becomeReachable(_ isReachable: Bool) {
+        let change = wire.withLock { wire in
+            wire.reachable = isReachable
+            return wire.reachabilityChange
+        }
+
+        change?(isReachable)
+    }
+}
+
+typealias FakeScorerLink = FakeLiveLink<MatchUpdate, MatchIntent>
+
+typealias FakeRemoteLink = FakeLiveLink<MatchIntent, MatchUpdate>
+
+extension FakeLiveLink: LiveLink {}
+
+extension FakeLiveLink: ScorerLink where Outgoing == MatchUpdate, Incoming == MatchIntent {
+    func send(_ update: MatchUpdate) throws { try keep(update) }
+
+    func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) { setReceiver(receive) }
+}
+
+extension FakeLiveLink: RemoteLink where Outgoing == MatchIntent, Incoming == MatchUpdate {
+    func send(_ intent: MatchIntent) throws { try keep(intent) }
+
+    func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) { setReceiver(receive) }
+}
+
+extension AsyncStream {
+    func first(_ count: Int) async -> [Element] {
+        var values: [Element] = []
+
+        for await value in self {
+            values.append(value)
+            if values.count == count { break }
+        }
+
+        return values
     }
 }
 

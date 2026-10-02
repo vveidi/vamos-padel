@@ -7,34 +7,34 @@ WatchConnectivity is.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `MatchHost` in `PadelDelivery`: holds the running match, applies intents,
+- [x] `MatchHost` in `PadelDelivery`: holds the running match, applies intents,
       writes to the store after every change, and broadcasts a `MatchUpdate`
       after every change and on every request
-- [ ] Every match the phone scores goes through it — a paired match and one the
+- [x] Every match the phone scores goes through it — a paired match and one the
       phone scores alone. The scoreboard calls `record(rallyWonBy:)`, `undo()`,
       `end()` on the host, and the host is the only place on the phone a rally
       is ever recorded
-- [ ] An intent is refused, with nothing changed and the current update sent
+- [x] An intent is refused, with nothing changed and the current update sent
       back with a refused echo, when: there is no match, the match is over, or
       `base` is not the current number of rallies
-- [ ] `start` is refused while a match is running — paired or not, one match at
+- [x] `start` is refused while a match is running — paired or not, one match at
       a time, which is what the history's live tile relies on and what the watch
       is told when the phone is busy (ticket 08)
-- [ ] `MatchRemote` on the other end: keeps the last update, sends intents, and
+- [x] `MatchRemote` on the other end: keeps the last update, sends intents, and
       holds no match of its own
-- [ ] Both hand their state out as an `AsyncStream` — the updates, and on the
+- [x] Both hand their state out as an `AsyncStream` — the updates, and on the
       remote whether the link is alive — and neither is `@Observable`: the
       screen holds the `@State`, as everywhere else in the packages
-- [ ] The host restores a match in progress from the store at launch and
-      broadcasts it
-- [ ] Tests: a rally recorded through an intent and through the host's own
+- ~~The host restores a match in progress from the store at launch and
+  broadcasts it~~ — dropped by the owner, see the closing note
+- [x] Tests: a rally recorded through an intent and through the host's own
       method reach the same journal; a duplicate intent records once; a stale
       intent is refused and answers with the truth; an intent into a finished
       match is refused; the echo names the intent it answers; the remote's
       stream yields exactly what it was sent and nothing of its own
-- [ ] `swift test` is green in `PadelDelivery`
+- [x] `swift test` is green in `PadelDelivery`
 
 ## The judgment, in one place
 
@@ -81,3 +81,23 @@ the matches it scores alone; the remote never writes to it.
 **Failure to write is not failure to score.** The host follows what `MatchView`
 does today: a store that will not write gets a line in the log, and the match
 goes on. On court the score matters more than what becomes of it in the evening.
+
+## Comments
+
+Shipped as `MatchScorer`, not `MatchHost`: `CONTEXT.md` lists "host" under
+Avoid, and ticket 03 had already named the link `ScorerLink`. Both ends sit on
+03's `ScorerLink` and `RemoteLink`, and the phone's scorer is linked to the
+real transport. `NewMatchView` and the scoreboard go through the scorer and
+write to no store themselves.
+
+- **No restore at launch.** The owner dropped it: the phone has no way back to
+  a running match (the live tile is wontfix), so a restored match would only
+  block the next start. Leaving the scoreboard calls `release()`, and the
+  match stays in the store as it was.
+- **"On every request" is the link coming back.** 03's protocol carries no
+  request, so the scorer sends the match as it stands whenever the link
+  becomes reachable. Ticket 05 reads it from there.
+- **`start` is refused while a held match is not over.** An ended match makes
+  room for the next one, from the phone or the watch.
+- A live send that fails is dropped silently: unreachable is the normal case
+  for a match scored alone, and a stale remote is answered on its next intent.

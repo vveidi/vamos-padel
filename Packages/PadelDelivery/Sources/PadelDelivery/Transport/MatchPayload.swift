@@ -156,7 +156,7 @@ enum MatchPayload {
     }
 
     // Not defaulted: an intent read as formed against no rallies would be
-    // taken by a host holding a fresh match.
+    // taken by a scorer holding a fresh match.
     private static func base(in payload: [String: Any]) throws -> Int {
         guard let base = payload[Key.base] as? Int, base >= 0 else {
             throw MatchPayloadError.unreadable(reason: "an intent without the journal it was formed against")

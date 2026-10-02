@@ -11,7 +11,7 @@ let package = Package(
     platforms: [
         .iOS(.v18),
         .watchOS(.v11),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(name: "PadelDelivery", targets: ["PadelDelivery"])

@@ -1,4 +1,5 @@
 import os
+import PadelDelivery
 import PadelDesign
 import PadelScoring
 import PadelStorage
@@ -6,6 +7,8 @@ import SwiftUI
 
 struct NewMatchView: View {
     private let store: any MatchStore
+
+    private let scorer: MatchScorer
 
     private let onStart: (SavedMatch) -> Void
 
@@ -15,8 +18,9 @@ struct NewMatchView: View {
     /// back does not cost what was already dialled into this one.
     @State private var numbers: Numbers
 
-    init(store: any MatchStore, onStart: @escaping (SavedMatch) -> Void) {
+    init(store: any MatchStore, scorer: MatchScorer, onStart: @escaping (SavedMatch) -> Void) {
         self.store = store
+        self.scorer = scorer
         self.onStart = onStart
         _numbers = State(initialValue: Numbers(Self.lastRuleset(of: store)))
     }
@@ -208,20 +212,13 @@ struct NewMatchView: View {
             }
     }
 
-    /// Written down before it is handed on, so a match begun and then
-    /// backgrounded comes back from the store. A write that fails is logged
-    /// and the match starts unsaved: refusing to start would be worse.
     private func startMatch() {
-        let saved = SavedMatch(
-            match: Match(ruleset: numbers.ruleset, firstServer: firstServer), startedAt: .now)
-
-        do {
-            try store.save(saved)
-        } catch {
-            logger.error("the new match was not saved: \(error.localizedDescription)")
+        guard let started = scorer.start(ruleset: numbers.ruleset, firstServer: firstServer) else {
+            logger.error("the new match was refused: another one is running")
+            return
         }
 
-        onStart(saved)
+        onStart(started)
     }
 
     /// A read failure leaves the defaults in place: starting a match on
@@ -348,7 +345,10 @@ private enum Board {
 
 private func screen(lastRuleset: Ruleset?) -> some View {
     NavigationStack {
-        NewMatchView(store: PreviewMatchStore(last: lastRuleset), onStart: { _ in })
+        NewMatchView(
+            store: PreviewMatchStore(last: lastRuleset),
+            scorer: MatchScorer(store: NoMatchStore(), link: NoMatchTransport()),
+            onStart: { _ in })
     }
     .preferredColorScheme(.dark)
 }

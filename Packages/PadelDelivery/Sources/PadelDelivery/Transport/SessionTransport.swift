@@ -1,5 +1,6 @@
 import Foundation
 import PadelStorage
+import Synchronization
 
 /// A device's one session to the other app. Both channels carry the
 /// dictionaries ``MatchPayload`` writes.
@@ -132,9 +133,8 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
     }
 }
 
-/// Set when the app is assembled and called from the session's queue, so
-/// every read and write goes through the lock.
-private final class Handlers: @unchecked Sendable {
+/// Set when the app is assembled and called from the session's queue.
+private final class Handlers: Sendable {
     struct Slots {
         var ready: (@Sendable () -> Void)?
         var receipt: (@Sendable (SavedMatch) -> Void)?
@@ -144,14 +144,13 @@ private final class Handlers: @unchecked Sendable {
         var update: (@Sendable (MatchUpdate) -> Void)?
     }
 
-    private let lock = NSLock()
-    private var handlers = Slots()
+    private let handlers = Mutex(Slots())
 
-    func set<Handler>(_ slot: WritableKeyPath<Slots, Handler?>, to handle: Handler) {
-        lock.withLock { handlers[keyPath: slot] = handle }
+    func set<Handler: Sendable>(_ slot: WritableKeyPath<Slots, Handler?>, to handle: Handler) {
+        handlers.withLock { $0[keyPath: slot] = handle }
     }
 
-    func get<Handler>(_ slot: KeyPath<Slots, Handler?>) -> Handler? {
-        lock.withLock { handlers[keyPath: slot] }
+    func get<Handler: Sendable>(_ slot: KeyPath<Slots, Handler?>) -> Handler? {
+        handlers.withLock { $0[keyPath: slot] }
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 import PadelScoring
 import PadelStorage
 import PadelStorageDatabase
+import Synchronization
 import Testing
 
 @testable import PadelDelivery
@@ -169,48 +170,61 @@ struct SessionTransportTests {
     }
 }
 
-private final class StubSession: DeviceSession, @unchecked Sendable {
-    private let lock = NSLock()
-    private var activated: Bool
-    private var reachable: Bool
-    private var queue: [[String: Any]] = []
-    private var live: [[String: Any]] = []
+/// Keeps each parcel as the property list WatchConnectivity would carry: a
+/// dictionary of `Any` cannot be held behind a lock the compiler checks.
+private final class StubSession: DeviceSession, Sendable {
+    private struct Wire {
+        var activated: Bool
+        var reachable: Bool
+        var queue: [Data] = []
+        var live: [Data] = []
+    }
+
+    private let wire: Mutex<Wire>
 
     init(isActivated: Bool = true, isReachable: Bool = true) {
-        activated = isActivated
-        reachable = isReachable
+        wire = Mutex(Wire(activated: isActivated, reachable: isReachable))
     }
 
     var isActivated: Bool {
-        get { lock.withLock { activated } }
-        set { lock.withLock { activated = newValue } }
+        get { wire.withLock { $0.activated } }
+        set { wire.withLock { $0.activated = newValue } }
     }
 
     var isReachable: Bool {
-        get { lock.withLock { reachable } }
-        set { lock.withLock { reachable = newValue } }
+        get { wire.withLock { $0.reachable } }
+        set { wire.withLock { $0.reachable = newValue } }
     }
 
-    var enqueued: [[String: Any]] { lock.withLock { queue } }
+    var enqueued: [[String: Any]] { wire.withLock { $0.queue }.map(Self.payload) }
 
-    var sentNow: [[String: Any]] { lock.withLock { live } }
+    var sentNow: [[String: Any]] { wire.withLock { $0.live }.map(Self.payload) }
 
     func enqueue(_ payload: [String: Any]) {
-        lock.withLock { queue.append(payload) }
+        let parcel = Self.parcel(payload)
+        wire.withLock { $0.queue.append(parcel) }
     }
 
     func sendNow(_ payload: [String: Any]) {
-        lock.withLock { live.append(payload) }
+        let parcel = Self.parcel(payload)
+        wire.withLock { $0.live.append(parcel) }
+    }
+
+    private static func parcel(_ payload: [String: Any]) -> Data {
+        try! PropertyListSerialization.data(fromPropertyList: payload, format: .binary, options: 0)
+    }
+
+    private static func payload(_ parcel: Data) -> [String: Any] {
+        try! PropertyListSerialization.propertyList(from: parcel, format: nil) as! [String: Any]
     }
 }
 
-private final class Inbox<Item: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var taken: [Item] = []
+private final class Inbox<Item: Sendable>: Sendable {
+    private let taken = Mutex<[Item]>([])
 
-    var items: [Item] { lock.withLock { taken } }
+    var items: [Item] { taken.withLock { $0 } }
 
     func take(_ item: Item) {
-        lock.withLock { taken.append(item) }
+        taken.withLock { $0.append(item) }
     }
 }

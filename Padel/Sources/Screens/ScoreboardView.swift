@@ -1,4 +1,4 @@
-import os
+import PadelDelivery
 import PadelDesign
 import PadelScoring
 import PadelStorage
@@ -6,9 +6,10 @@ import SwiftUI
 import UIKit
 
 struct ScoreboardView: View {
+    /// Moves only when the scorer says the match did.
     @State private var saved: SavedMatch
 
-    private let store: any MatchStore
+    private let scorer: MatchScorer
 
     private let onLeave: () -> Void
 
@@ -30,11 +31,11 @@ struct ScoreboardView: View {
     /// - Parameter mirrored: The court's facing to open on. Ours is on the left
     ///   unless the players are standing the other way round.
     init(
-        match: SavedMatch, store: any MatchStore, mirrored: Bool = false,
+        match: SavedMatch, scorer: MatchScorer, mirrored: Bool = false,
         markHeldAtPeak: Side? = nil, onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
-        self.store = store
+        self.scorer = scorer
         _isMirrored = State(initialValue: mirrored)
         self.markHeldAtPeak = markHeldAtPeak
         self.onLeave = onLeave
@@ -59,7 +60,7 @@ struct ScoreboardView: View {
             isPresented: $isConfirmingEnd
         ) {
             Button("End", role: .destructive) {
-                abandon()
+                scorer.end()
 
                 onLeave()
             }
@@ -73,8 +74,17 @@ struct ScoreboardView: View {
 
             mark = RallyMark(side: rally.winner, tier: tier(ofRallyAfter: old), trigger: (mark?.trigger ?? 0) + 1)
         }
+        .task { await follow() }
         .onAppear { takeTheScreen() }
         .onDisappear { releaseTheScreen() }
+    }
+
+    private func follow() async {
+        for await update in scorer.updates() {
+            guard case .match(let match, _) = update, match.id == saved.id else { continue }
+
+            saved = match
+        }
     }
 
     /// A match to N points has no games and no sets, so all its rallies are
@@ -144,8 +154,8 @@ struct ScoreboardView: View {
             ballFromTheEnd: arrangement.ballFromTheEnd,
             mark: mark,
             isHeldAtPeak: markHeldAtPeak == side,
-            onRallyWon: record(rallyWonBy:),
-            onUndo: undo)
+            onRallyWon: scorer.record(rallyWonBy:),
+            onUndo: scorer.undo)
         .accessibilitySortPriority(side == .us ? 1 : 0)
     }
 
@@ -221,7 +231,7 @@ struct ScoreboardView: View {
     /// side they keep to the middle, under the net.
     private func controls(_ arrangement: Arrangement, safeArea: EdgeInsets) -> some View {
         HStack(spacing: Board.controlGap) {
-            PillButton(icon("arrow.uturn.backward"), variant: .quiet, action: undo)
+            PillButton(icon("arrow.uturn.backward"), variant: .quiet, action: scorer.undo)
                 .accessibilityLabel("Undo the last rally")
 
             PillButton(icon(arrangement.mirrorSymbol), variant: .quiet) { isMirrored.toggle() }
@@ -238,39 +248,6 @@ struct ScoreboardView: View {
 
     private func icon(_ systemName: String) -> Text {
         Text(Image(systemName: systemName))
-    }
-
-    // MARK: The writes
-
-    /// The write lands before the digits move: `@State` redraws once this has
-    /// returned, not on the mutation.
-    private func record(rallyWonBy side: Side) {
-        saved.record(rallyWonBy: side, at: .now)
-
-        persist()
-    }
-
-    private func undo() {
-        saved.undo(at: .now)
-
-        persist()
-    }
-
-    /// Already confirmed by the alert when this is called.
-    private func abandon() {
-        saved.abandon()
-
-        persist()
-    }
-
-    /// A write failure is logged and swallowed: on court the score on the
-    /// screen matters more than the record of it.
-    private func persist() {
-        do {
-            try store.save(saved)
-        } catch {
-            logger.error("the match was not saved: \(error.localizedDescription)")
-        }
     }
 
     // MARK: The screen itself
@@ -798,7 +775,7 @@ private enum Board {
 private let splitViewHalf: PreviewTrait<Preview.ViewTraits> = .fixedLayout(width: 340, height: 720)
 
 private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
-    ScoreboardView(match: match, store: NoMatchStore(), mirrored: mirrored, onLeave: {})
+    ScoreboardView(match: match, scorer: previewScorer, mirrored: mirrored, onLeave: {})
         .preferredColorScheme(.dark)
 }
 
@@ -807,7 +784,7 @@ private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
 private func marked(_ side: Side, by tier: RallyMark.Tier, mirrored: Bool = false) -> some View {
     ScoreboardView(
         match: tier == .rally ? .preview(justAfterARallyTo: side) : .preview(justAfterAGameTo: side),
-        store: NoMatchStore(),
+        scorer: previewScorer,
         mirrored: mirrored, markHeldAtPeak: side, onLeave: {}
     )
     .preferredColorScheme(.dark)
@@ -821,6 +798,7 @@ private func atLargestType(_ view: some View) -> some View {
     view.environment(\.dynamicTypeSize, .accessibility5)
 }
 
-#endif
+/// Holds no match, so a preview's board stays at the score it was drawn with.
+private let previewScorer = MatchScorer(store: NoMatchStore(), link: NoMatchTransport())
 
-private let logger = Logger(subsystem: "com.vveidi.padel", category: "scoreboard")
+#endif

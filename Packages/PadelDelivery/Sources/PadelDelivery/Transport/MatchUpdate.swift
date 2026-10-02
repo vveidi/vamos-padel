@@ -1,6 +1,6 @@
 import PadelStorage
 
-/// What the host broadcasts after every change. `echo` is `nil` when the host
+/// What the scorer broadcasts after every change. `echo` is `nil` when the scorer
 /// sent it on its own rather than in answer to an intent.
 public enum MatchUpdate: Equatable, Sendable {
     case match(SavedMatch, echo: Echo?)

@@ -95,6 +95,19 @@ extension SavedMatch {
             ruleset: .classic(setsToWin: 1, goldenPoint: false), startedAt: .previewKickOff)
     }
 
+    static func preview(justAfterARallyTo side: Side) -> SavedMatch {
+        .preview(
+            games([.us, .them, .us]) + [side.opposite, side],
+            ruleset: .classic(setsToWin: 1, goldenPoint: false), startedAt: .previewKickOff)
+    }
+
+    /// The rally that took the game is the last one in its journal.
+    static func preview(justAfterAGameTo side: Side) -> SavedMatch {
+        .preview(
+            games([side.opposite, side, side.opposite, side]),
+            ruleset: .classic(setsToWin: 1, goldenPoint: false), startedAt: .previewKickOff)
+    }
+
     static var previewInTieBreak: SavedMatch {
         .preview(
             games(Array(repeating: [Side.us, .them], count: 6).flatMap { $0 })

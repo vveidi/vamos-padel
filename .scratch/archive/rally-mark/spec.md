@@ -1,6 +1,6 @@
 # The rally mark: the court answers, so a rally is seen and not only counted
 
-Status: ready-for-agent
+Status: done
 
 ## Problem Statement
 

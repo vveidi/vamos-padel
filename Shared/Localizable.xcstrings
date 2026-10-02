@@ -995,6 +995,16 @@
         }
       }
     },
+    "Watch unreachable" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Часы недоступны"
+          }
+        }
+      }
+    },
     "We serve" : {
       "localizations" : {
         "ru" : {

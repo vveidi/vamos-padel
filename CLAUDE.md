@@ -128,7 +128,8 @@ sources are grouped by what the player is doing at the time:
                                Workout/   the workout the match runs inside
                                Settings/  the tap mode, before a match and during one
 
-    Padel/Sources/             App/       the entry point, the store, reception and the two tabs
+    Padel/Sources/             App/       the entry point, the store, reception, the mirrored workout
+                                          and the two tabs
                                Screens/   the history, its rows and the match card
 
 `Settings/` is the one watch folder named for a screen rather than for what the
@@ -137,6 +138,9 @@ page.
 
 `MatchWording.swift` and `MatchFixtures.swift` sit at `Padel/Sources/`'s root
 because they belong to both screens rather than to either.
+
+`Shared/` is a member of both app targets: the string catalog, and
+`PadelWorkout.swift`, the one workout configuration both devices start.
 
 `Resources/` holds the asset catalog, and on the watch the `Info.plist` and the
 catalog that localizes it. The entitlements stay at the target's root: they are

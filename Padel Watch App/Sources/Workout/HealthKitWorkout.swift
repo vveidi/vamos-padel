@@ -7,18 +7,6 @@ import os
 final class HealthKitWorkout: NSObject, Workout {
     private let healthStore = HKHealthStore()
 
-    /// Heart rate is deliberately absent: the system writes it, we only read.
-    private static let typesToShare: Set<HKSampleType> = [
-        HKObjectType.workoutType(),
-        HKQuantityType(.activeEnergyBurned),
-    ]
-
-    /// What the live builder collects on its own.
-    private static let typesToRead: Set<HKObjectType> = [
-        HKQuantityType(.heartRate),
-        HKQuantityType(.activeEnergyBurned),
-    ]
-
     /// Non-nil exactly when a workout is running.
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
@@ -28,12 +16,12 @@ final class HealthKitWorkout: NSObject, Workout {
     /// and both write into ``session``.
     private var pending: Task<Void, Never>?
 
-    func start() {
-        enqueue { await self.begin() }
+    func start(sharedWithPhone: Bool) {
+        enqueue { await self.begin(sharedWithPhone: sharedWithPhone) }
     }
 
-    func end() {
-        enqueue { await self.finish() }
+    func end(saving: Bool) {
+        enqueue { await self.finish(saving: saving) }
     }
 
     private func enqueue(_ operation: @escaping () async -> Void) {
@@ -45,7 +33,7 @@ final class HealthKitWorkout: NSObject, Workout {
         }
     }
 
-    private func begin() async {
+    private func begin(sharedWithPhone: Bool) async {
         guard session == nil, HKHealthStore.isHealthDataAvailable() else { return }
 
         // Logged either side because the request is silent about what it did.
@@ -56,22 +44,14 @@ final class HealthKitWorkout: NSObject, Workout {
 
         do {
             try await healthStore.requestAuthorization(
-                toShare: Self.typesToShare, read: Self.typesToRead)
+                toShare: PadelWorkout.typesToShare, read: PadelWorkout.typesToRead)
         } catch {
             logger.error("health permission was not granted: \(error.localizedDescription)")
         }
 
         logger.notice("health share permission after asking: \(self.shareStatus(), privacy: .public)")
 
-        let configuration = HKWorkoutConfiguration()
-
-        // HealthKit has no padel; tennis is the closest estimate of effort.
-        // The match therefore appears in Health under "Tennis".
-        configuration.activityType = .tennis
-
-        // Indoor keeps the GPS asleep, which nothing here needs and which
-        // would cost the battery a second match.
-        configuration.locationType = .indoor
+        let configuration = PadelWorkout.configuration
 
         do {
             let session = try HKWorkoutSession(
@@ -98,13 +78,26 @@ final class HealthKitWorkout: NSObject, Workout {
             self.builder = builder
         } catch {
             logger.error("the workout did not start: \(error.localizedDescription)")
+            return
+        }
+
+        if sharedWithPhone, let session = self.session { await share(session) }
+    }
+
+    /// A failure leaves the workout running on the wrist alone, and the phone
+    /// then holds its screen on as it does for a match it scores alone.
+    private func share(_ session: HKWorkoutSession) async {
+        do {
+            try await session.startMirroringToCompanionDevice()
+        } catch {
+            logger.error("the workout was not mirrored to the phone: \(error.localizedDescription)")
         }
     }
 
     /// The written types only: HealthKit answers `notDetermined` for a read
     /// type whatever the truth, so that a refusal reveals nothing.
     private func shareStatus() -> String {
-        Self.typesToShare
+        PadelWorkout.typesToShare
             .map { "\($0.identifier): \(Self.name(of: healthStore.authorizationStatus(for: $0)))" }
             .sorted()
             .joined(separator: ", ")
@@ -119,7 +112,7 @@ final class HealthKitWorkout: NSObject, Workout {
         }
     }
 
-    private func finish() async {
+    private func finish(saving: Bool) async {
         guard let session, let builder else { return }
 
         // Cleared before the first await, so a second `end` cannot close the
@@ -128,13 +121,19 @@ final class HealthKitWorkout: NSObject, Workout {
         self.builder = nil
 
         let endedAt = Date()
+
+        // Ending the session stops its mirroring as well.
         session.end()
 
         do {
             try await builder.endCollection(at: endedAt)
 
-            // The call that actually writes the workout into Health.
-            try await builder.finishWorkout()
+            if saving {
+                // The call that actually writes the workout into Health.
+                try await builder.finishWorkout()
+            } else {
+                builder.discardWorkout()
+            }
         } catch {
             logger.error("the workout was not written: \(error.localizedDescription)")
         }
@@ -161,6 +160,18 @@ extension HealthKitWorkout: HKWorkoutSessionDelegate {
 
         Task { @MainActor in
             logger.error("the workout was interrupted: \(description)")
+        }
+    }
+
+    /// The phone is out of range or its app was closed. The workout goes on
+    /// here, unmirrored.
+    nonisolated func workoutSession(
+        _ workoutSession: HKWorkoutSession, didDisconnectFromRemoteDeviceWithError error: Error?
+    ) {
+        let description = error?.localizedDescription ?? "no error"
+
+        Task { @MainActor in
+            logger.notice("the phone let go of the mirrored workout: \(description, privacy: .public)")
         }
     }
 }

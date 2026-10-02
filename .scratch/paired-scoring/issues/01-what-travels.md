@@ -7,28 +7,28 @@ that answers it says whether it was taken.
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `MatchIntent` exists in `PadelDelivery`: `start(ruleset:firstServer:)`,
+- [x] `MatchIntent` exists in `PadelDelivery`: `start(ruleset:firstServer:)`,
       `rally(wonBy:base:)`, `undo(base:)`, `end(base:)`
-- [ ] `base` is the number of rallies the watch's screen was showing when the
+- [x] `base` is the number of rallies the watch's screen was showing when the
       intent was formed; `start` carries none, having no journal to stand on
-- [ ] The outgoing side of the wire is `MatchUpdate`: either the whole match
+- [x] The outgoing side of the wire is `MatchUpdate`: either the whole match
       (`SavedMatch`) or `noMatch` — the phone saying there is nothing running
-- [ ] An update sent in answer to an intent carries its **echo**: the intent it
+- [x] An update sent in answer to an intent carries its **echo**: the intent it
       answers and whether it was `accepted` or `refused`. An update the host
       sends on its own — a rally awarded on the phone, a request for the
       current match — carries none
-- [ ] `MatchPayload` encodes and decodes all of it, key by key and by hand, as
+- [x] `MatchPayload` encodes and decodes all of it, key by key and by hand, as
       it does today: the keys are a contract between two separately updated
       apps and must not follow a rename in the engine
-- [ ] The existing match keys are unchanged, so a payload written before this
+- [x] The existing match keys are unchanged, so a payload written before this
       ticket still decodes, and the delivery of a match scored on the watch
       alone — `Arrival.receipt` included — goes on working untouched
-- [ ] Tests round-trip every intent, both updates with and without an echo, and
+- [x] Tests round-trip every intent, both updates with and without an echo, and
       both rulesets, and assert that a payload missing its journal, its kind, or
       its base is refused rather than defaulted
-- [ ] `swift test` is green in `PadelDelivery`
+- [x] `swift test` is green in `PadelDelivery`
 
 ## The shape
 
@@ -81,3 +81,13 @@ like the watch's in the journal, and the watch's was refused.
 **The delivery stays.** A match scored on the watch alone still reaches the
 history the way it does today (ADR-0017); its keys and its receipt are not this
 ticket's to touch.
+
+## Comments
+
+Shipped as sketched: `MatchIntent`, `MatchUpdate` and `Echo` in `Transport/`,
+encoded by `MatchPayload` beside the match and the receipt. The new wire kinds
+are `intent`, `liveMatch` and `noMatch`. An echo is a nested parcel: the
+intent's own keys plus `accepted`. The match keys are untouched, and a test
+decodes a parcel written by hand in the old shape. A negative base is refused
+along with a missing one. `WatchConnectivityTransport` logs and drops the new
+kinds until ticket 03 opens the link.

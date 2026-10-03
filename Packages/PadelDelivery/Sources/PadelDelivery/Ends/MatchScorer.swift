@@ -19,6 +19,8 @@ public final class MatchScorer: Sendable {
     private let reachability = Broadcast<Bool>()
     private let declines = Broadcast<Void>(keepsLatest: false)
 
+    private let matchLog = MatchLog(subsystem: "com.vveidi.padel")
+
     /// Takes the phone's own unfinished match back from the store.
     /// - Important: Build it before the link comes up, or the remote hears
     ///   that there is no match and closes the one it was showing.
@@ -29,6 +31,8 @@ public final class MatchScorer: Sendable {
         let restored = Self.restore(from: store)
         held = Mutex(restored)
         broadcast = Broadcast(Self.update(restored, echo: nil))
+
+        if let restored { matchLog.restored(restored) }
 
         link.onIntent { [weak self] intent in self?.apply(intent) }
 
@@ -170,6 +174,7 @@ public final class MatchScorer: Sendable {
             startedAt: .now)
 
         held = started
+        matchLog.started(started)
         persist(started)
 
         return true
@@ -189,6 +194,7 @@ public final class MatchScorer: Sendable {
         guard match != before else { return false }
 
         held = match
+        matchLog.changed(from: before, to: match)
         persist(match)
 
         return true

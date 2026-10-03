@@ -24,9 +24,16 @@ struct PadelWatchApp: App {
 
     private let pairedWorkout: PairedWorkout
 
+    @Environment(\.scenePhase) private var scenePhase
+
     init() {
+        appLogger.info("the app launched")
+
         do {
-            store = try DatabaseMatchStore.inApplicationSupport()
+            let opened = try DatabaseMatchStore.inApplicationSupport()
+            store = opened
+
+            logOpened(opened)
         } catch {
             logger.error("the store did not open: \(error.localizedDescription)")
 
@@ -56,6 +63,7 @@ struct PadelWatchApp: App {
                 store: store, workout: workout, delivery: delivery, remote: remote,
                 pairedWorkout: pairedWorkout)
         }
+        .onChange(of: scenePhase, logPhaseChange)
     }
 }
 
@@ -71,4 +79,24 @@ final class PadelWatchAppDelegate: NSObject, WKApplicationDelegate {
     }
 }
 
+private func logOpened(_ store: some MatchStore) {
+    do {
+        let count = try store.matches().count
+
+        logger.info("the store opened, matches in it: \(count)")
+    } catch {
+        logger.error("the matches were not counted: \(error.localizedDescription)")
+    }
+}
+
+private func logPhaseChange(from old: ScenePhase, to new: ScenePhase) {
+    switch (old, new) {
+    case (_, .background): appLogger.info("the app went to the background")
+    case (.background, _): appLogger.info("the app came back")
+    default: break
+    }
+}
+
 private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "storage")
+
+private let appLogger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "app")

@@ -123,6 +123,7 @@ struct RootView: View {
             match: Match(ruleset: ruleset, firstServer: firstServer), scoring: .aloneOnWatch,
             startedAt: .now)
         match = started
+        matchLog.started(started)
 
         // At once rather than on the first rally: the phone may raise the watch
         // before then, and ``PairedWorkout`` asks the store whether one runs.
@@ -158,6 +159,8 @@ struct RootView: View {
     private func restore() {
         do {
             match = try store.matchInProgress()
+            if let match { matchLog.restored(match) }
+
             ruleset = try store.lastRuleset() ?? .defaultClassic
         } catch {
             logger.error("the previous match was not restored: \(error.localizedDescription)")
@@ -200,6 +203,7 @@ struct RootView: View {
         guard match == nil, pairedMatch == nil, let phonesPairedMatch else { return }
 
         pairedMatch = phonesPairedMatch
+        matchLog.joined(phonesPairedMatch)
         isWaitingForPhone = false
         refusal = nil
     }
@@ -235,3 +239,5 @@ struct RootView: View {
 }
 
 private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")
+
+private let matchLog = MatchLog(subsystem: "com.vveidi.padel.watchkitapp")

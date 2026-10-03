@@ -76,6 +76,8 @@ final class HealthKitWorkout: NSObject, Workout {
 
             self.session = session
             self.builder = builder
+
+            logger.info("the workout started")
         } catch {
             logger.error("the workout did not start: \(error.localizedDescription)")
             return
@@ -89,6 +91,8 @@ final class HealthKitWorkout: NSObject, Workout {
     private func share(_ session: HKWorkoutSession) async {
         do {
             try await session.startMirroringToCompanionDevice()
+
+            logger.info("the workout was mirrored to the phone")
         } catch {
             logger.error("the workout was not mirrored to the phone: \(error.localizedDescription)")
         }
@@ -125,14 +129,20 @@ final class HealthKitWorkout: NSObject, Workout {
         // Ending the session stops its mirroring as well.
         session.end()
 
+        logger.info("the workout ended")
+
         do {
             try await builder.endCollection(at: endedAt)
 
             if saving {
                 // The call that actually writes the workout into Health.
                 try await builder.finishWorkout()
+
+                logger.info("the workout was written to Health")
             } else {
                 builder.discardWorkout()
+
+                logger.info("the workout was discarded")
             }
         } catch {
             logger.error("the workout was not written: \(error.localizedDescription)")

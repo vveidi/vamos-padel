@@ -97,6 +97,7 @@ struct MatchView: View {
 
             markLastRally()
         }
+        .onChange(of: saved) { old, new in matchLog.changed(from: old, to: new) }
         .task { await followUpdates() }
         .task { await followReachability() }
     }
@@ -376,3 +377,5 @@ private func paired(
 #endif
 
 private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")
+
+private let matchLog = MatchLog(subsystem: "com.vveidi.padel.watchkitapp")

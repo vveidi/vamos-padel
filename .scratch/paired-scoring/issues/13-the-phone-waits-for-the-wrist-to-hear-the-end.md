@@ -70,7 +70,7 @@ type.
 Left open: the last criterion. A simulator cannot cut the link between the end
 reaching the watch and its answer, so that drive moved to ticket 07, with
 Close on a won match, which was ticked on the code alone. A phone relaunched
-while it waits loses the wait: ticket 15.
+while it waits loses the wait; the owner ruled that not worth handling.
 
 The answer comes from the transport, not the screen: a relaunched watch, or one
 scoring its own match, answers too, so the phone does not wait on a watch that

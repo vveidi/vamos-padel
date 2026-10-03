@@ -17,6 +17,7 @@
 		AA01A000000000000000005D /* PadelLogging in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000005C /* PadelLogging */; };
 		AA01A000000000000000005E /* PadelLogging in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000005B /* PadelLogging */; };
 		AA01A000000000000000006D /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000006C /* PulseUI */; };
+		AA01A000000000000000006E /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000006B /* PulseUI */; };
 		DDE9576530478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001C /* PadelStorage */; };
 		DDE9576630478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001B /* PadelStorage */; };
 		DDFEE3113046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000B /* PadelScoring */; };
@@ -135,6 +136,7 @@
 				AA01A000000000000000002E /* PadelDelivery in Frameworks */,
 				AA01A000000000000000003E /* PadelDesign in Frameworks */,
 				AA01A000000000000000005E /* PadelLogging in Frameworks */,
+				AA01A000000000000000006E /* PulseUI in Frameworks */,
 				DDE9576630478A830054DB3F /* PadelStorage in Frameworks */,
 				AA01A000000000000000004E /* PadelStorageDatabase in Frameworks */,
 				DDFEE3113046086400C7278D /* PadelScoring in Frameworks */,
@@ -247,6 +249,7 @@
 				AA01A000000000000000002B /* PadelDelivery */,
 				AA01A000000000000000003B /* PadelDesign */,
 				AA01A000000000000000005B /* PadelLogging */,
+				AA01A000000000000000006B /* PulseUI */,
 			);
 			productName = Padel;
 			productReference = DDFEE2E13045B80C00C7278D /* Padel.app */;
@@ -782,6 +785,11 @@
 		AA01A000000000000000005C /* PadelLogging */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PadelLogging;
+		};
+		AA01A000000000000000006B /* PulseUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA01A000000000000000006A /* XCRemoteSwiftPackageReference "Pulse" */;
+			productName = PulseUI;
 		};
 		AA01A000000000000000006C /* PulseUI */ = {
 			isa = XCSwiftPackageProductDependency;

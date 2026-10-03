@@ -20,6 +20,8 @@ struct NewMatchView: View {
 
     @State private var refusal: WatchRefusal?
 
+    @State private var isConsoleShown = false
+
     @Environment(\.scenePhase) private var scenePhase
 
     /// Both rulesets' numbers, so that glancing at the other one and coming
@@ -197,6 +199,8 @@ struct NewMatchView: View {
             .foregroundStyle(.ink.weight(.secondary))
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onQuickTaps(10) { isConsoleShown = true }
+            .sheet(isPresented: $isConsoleShown) { DiagnosticsConsole() }
     }
 
     /// Whole clauses, so the catalog declines the counted noun.

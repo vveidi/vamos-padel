@@ -6,7 +6,7 @@ once the phone can be handed a rally it did not record.
 
 **Blocked by:** 05
 
-**Status:** needs-triage
+**Status:** ready-for-agent
 
 - [ ] **Every rally is marked, whatever awarded it.** A rally tapped into the
       wrist marks the board. The phone has no origin filter, and the one 05
@@ -26,3 +26,12 @@ once the phone can be handed a rally it did not record.
 awarding every rally, because under ADR-0009 there was no other origin. These
 three criteria were its own and moved here; nothing on the phone needs writing
 for them unless 05 moves where the board's journal comes from.
+
+## Comments
+
+**Triage.** 05 and 09 kept the one path. Every match change, from the phone's
+own tap or from the wrist's intent, reaches the board through
+`MatchScorer.updates()` into `ScoreboardView.follow()`, and the mark is drawn
+only by the `onChange` on the journal, which ignores a journal that shrank. No
+code is expected: the first two criteria are read off the code and checked;
+the third is the simulator drive, and a mark that fails it is a bug fixed here.

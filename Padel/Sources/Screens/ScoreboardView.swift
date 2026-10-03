@@ -75,7 +75,7 @@ struct ScoreboardView: View {
             Button("End", role: .destructive) {
                 scorer.end()
 
-                onLeave()
+                if canLeave { onLeave() }
             }
             Button("Keep playing", role: .cancel) {}
         } message: {
@@ -117,6 +117,12 @@ struct ScoreboardView: View {
 
     private var isWatchLost: Bool {
         isPaired && !isWatchReachable
+    }
+
+    /// Leaving releases the match, which a paired one still in play must not
+    /// be: the watch would drop it mid-rally. It ends there, or through "End".
+    private var canLeave: Bool {
+        !isPaired || saved.match.state.outcome.isOver
     }
 
     /// A match to N points has no games and no sets, so all its rallies are
@@ -202,7 +208,7 @@ struct ScoreboardView: View {
 
     private func strip(safeArea: EdgeInsets) -> some View {
         HStack(spacing: Board.stripGap) {
-            wayOut
+            if canLeave { wayOut }
 
             if isWatchLost {
                 watchLost
@@ -217,6 +223,8 @@ struct ScoreboardView: View {
 
             clock
         }
+        // As tall without the way back as with it, so its return moves nothing.
+        .frame(minHeight: Board.chevronHit)
         .padding(.top, safeArea.top + Board.stripInset)
         .padding(.leading, safeArea.leading + Board.inset)
         .padding(.trailing, safeArea.trailing + Board.inset)
@@ -701,6 +709,26 @@ private enum Board {
     atLargestType(inRussian(watchLost(.previewInSecondSet)))
 }
 
+// MARK: A paired match
+
+#Preview("A paired match in play: no way back", traits: .landscapeLeft) { paired(.previewInPlay) }
+
+#Preview("In Russian: a paired match in play", traits: .landscapeLeft) {
+    inRussian(paired(.previewInPlay))
+}
+
+#Preview("A paired match over: the way back", traits: .landscapeLeft) {
+    paired(.preview(classicWonBy: .us))
+}
+
+#Preview("A paired match ended on the watch", traits: .landscapeLeft) {
+    paired(.previewClassicAbandoned)
+}
+
+#Preview("Stacked, at the largest type: a paired match in play", traits: .portrait) {
+    atLargestType(paired(.previewInSecondSet))
+}
+
 // MARK: The rally mark
 
 #Preview("A rally to us, marked", traits: .landscapeLeft) { marked(.us, by: .rally) }
@@ -840,6 +868,11 @@ private func watchLost(_ match: SavedMatch) -> some View {
         .preferredColorScheme(.dark)
 }
 
+private func paired(_ match: SavedMatch) -> some View {
+    ScoreboardView(match: match, scorer: reachableWatchScorer, isPaired: true, onLeave: {})
+        .preferredColorScheme(.dark)
+}
+
 /// The two tiers differ in time only, so at the peak what tells them apart is
 /// the score the rally left behind.
 private func marked(_ side: Side, by tier: RallyMark.Tier, mirrored: Bool = false) -> some View {
@@ -861,5 +894,19 @@ private func atLargestType(_ view: some View) -> some View {
 
 /// Holds no match, so a preview's board stays at the score it was drawn with.
 private let previewScorer = MatchScorer(store: NoMatchStore(), link: NoMatchTransport())
+
+private let reachableWatchScorer = MatchScorer(store: NoMatchStore(), link: ReachableWatch())
+
+/// Always reachable and never answering, so a paired board finds its watch
+/// there and its score stays as drawn.
+private struct ReachableWatch: ScorerLink {
+    var isReachable: Bool { true }
+
+    func onReachabilityChange(_ change: @escaping @Sendable (Bool) -> Void) {}
+
+    func send(_ update: MatchUpdate) throws {}
+
+    func onIntent(_ receive: @escaping @Sendable (MatchIntent) -> Void) {}
+}
 
 #endif

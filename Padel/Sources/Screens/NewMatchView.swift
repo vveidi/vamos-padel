@@ -12,9 +12,6 @@ struct NewMatchView: View {
 
     private let workout: WatchWorkout
 
-    /// The match, and whether it is paired.
-    private let onStart: (SavedMatch, Bool) -> Void
-
     @AppStorage("starts-paired") private var startsPaired = false
 
     @State private var firstServer = Side.us
@@ -32,12 +29,11 @@ struct NewMatchView: View {
     /// - Parameter refusal: Up from the start, for a preview.
     init(
         store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout,
-        refusal: WatchRefusal? = nil, onStart: @escaping (SavedMatch, Bool) -> Void
+        refusal: WatchRefusal? = nil
     ) {
         self.store = store
         self.scorer = scorer
         self.workout = workout
-        self.onStart = onStart
         _numbers = State(initialValue: Numbers(Self.lastRuleset(of: store)))
         _refusal = State(initialValue: refusal)
     }
@@ -279,13 +275,9 @@ struct NewMatchView: View {
     }
 
     private func begin(paired: Bool) {
-        guard let started = scorer.start(ruleset: numbers.ruleset, firstServer: firstServer, isPaired: paired)
-        else {
+        if scorer.start(ruleset: numbers.ruleset, firstServer: firstServer, isPaired: paired) == nil {
             logger.error("the new match was refused: another one is running")
-            return
         }
-
-        onStart(started, paired)
     }
 
     /// A read failure leaves the defaults in place: starting a match on
@@ -508,8 +500,7 @@ private func screen(
             store: PreviewMatchStore(last: lastRuleset),
             scorer: previewScorer,
             workout: WatchWorkout(scorer: previewScorer),
-            refusal: refusal,
-            onStart: { _, _ in })
+            refusal: refusal)
     }
     .defaultAppStorage(defaults)
     .preferredColorScheme(.dark)

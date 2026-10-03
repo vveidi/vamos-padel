@@ -81,8 +81,12 @@ public final class MatchScorer: Sendable {
     }
 
     /// The match stays in the store as it is, and the scorer holds nothing.
-    public func release() {
+    /// Does nothing once the scorer holds another match: one the remote
+    /// started after `matchID` was read.
+    public func release(_ matchID: UUID) {
         held.withLock { held in
+            guard held?.saved.id == matchID else { return }
+
             held = nil
 
             publish(held, echo: nil)

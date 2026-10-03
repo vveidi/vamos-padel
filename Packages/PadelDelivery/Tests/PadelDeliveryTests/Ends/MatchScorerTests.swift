@@ -180,13 +180,27 @@ struct MatchScorerTests {
     func aStartFollowsTheEndOrTheRelease() throws {
         scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true)
         scorer.end()
-        #expect(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true) != nil)
+        let next = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
 
-        scorer.release()
+        scorer.release(next.id)
         #expect(link.lastSent == .noMatch(echo: nil))
 
         scorer.apply(.start(ruleset: toTwo, firstServer: .them))
         #expect(echo(of: link.lastSent)?.accepted == true)
+    }
+
+    @Test("Letting go of a match the scorer no longer holds keeps the one it does")
+    func aStaleReleaseKeepsTheNewMatch() throws {
+        let over = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        scorer.end()
+
+        scorer.apply(.start(ruleset: toTwo, firstServer: .them))
+        let started = link.lastSent
+
+        scorer.release(over.id)
+
+        #expect(link.lastSent == started)
+        #expect(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: false) == nil)
     }
 
     @Test("A link that comes back is sent the match as it stands, with no echo")

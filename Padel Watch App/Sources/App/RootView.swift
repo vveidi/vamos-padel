@@ -1,5 +1,5 @@
-import os
 import PadelDelivery
+import PadelLogging
 import PadelScoring
 import PadelStorage
 import SwiftUI
@@ -234,4 +234,4 @@ struct RootView: View {
             workout: NoWorkout(), remote: remote, savesToHealth: { false }, isScoringAlone: { false }))
 }
 
-private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "match")

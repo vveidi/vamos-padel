@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../PadelScoring"),
         .package(path: "../PadelStorage"),
+        .package(path: "../PadelLogging"),
     ],
     targets: [
         .target(
@@ -26,6 +27,7 @@ let package = Package(
             dependencies: [
                 .product(name: "PadelScoring", package: "PadelScoring"),
                 .product(name: "PadelStorage", package: "PadelStorage"),
+                .product(name: "PadelLogging", package: "PadelLogging"),
             ]),
         // The link itself knows only the interface; its tests need a real store
         // to deliver out of, and that is the one in `PadelStorageDatabase`.

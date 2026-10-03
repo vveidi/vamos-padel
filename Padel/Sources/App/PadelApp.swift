@@ -1,5 +1,5 @@
-import os
 import PadelDelivery
+import PadelLogging
 import PadelStorage
 import PadelStorageDatabase
 import SwiftUI
@@ -50,4 +50,4 @@ struct PadelApp: App {
     }
 }
 
-private let logger = Logger(subsystem: "com.vveidi.padel", category: "storage")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel", category: "storage")

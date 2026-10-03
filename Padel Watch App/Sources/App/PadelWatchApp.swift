@@ -1,6 +1,6 @@
 import HealthKit
-import os
 import PadelDelivery
+import PadelLogging
 import PadelStorage
 import PadelStorageDatabase
 import SwiftUI
@@ -71,4 +71,4 @@ final class PadelWatchAppDelegate: NSObject, WKApplicationDelegate {
     }
 }
 
-private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "storage")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "storage")

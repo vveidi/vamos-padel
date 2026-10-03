@@ -100,8 +100,9 @@ it:
                     Controls/    the five controls and their metrics
                     Gestures/    taps that count without showing it
 
-    PadelLogging/                one file, no folders: the logger every message
-                                 goes through, to os.Logger and to Pulse's store
+    PadelLogging/                two files, no folders: the logger every message
+                                 goes through, to os.Logger and to Pulse's store,
+                                 and the store's copy that travels to the phone
 
 What is *not* in a folder is deliberate: a package's shared test harness and
 its isolation test sit at the test target's root, and `Logging.swift` sits at

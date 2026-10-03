@@ -42,6 +42,8 @@ struct PadelApp: App {
 
         workout = WatchWorkout(scorer: scorer)
 
+        transport.onLogs(keepTheWatchLogs)
+
         transport.activate()
     }
 
@@ -68,6 +70,22 @@ private func logOpened(_ store: some MatchStore) {
     }
 }
 
+extension LatestLogStore {
+    nonisolated static let fromTheWatch = LatestLogStore(
+        directory: URL.applicationSupportDirectory.appending(path: "Watch logs"))
+}
+
+/// Called on the session's queue, which runs one file at a time.
+private nonisolated func keepTheWatchLogs(_ logs: LogSnapshot) {
+    do {
+        try LatestLogStore.fromTheWatch.keep(logs)
+
+        appLogger.info("kept the watch's log store")
+    } catch {
+        appLogger.error("the watch's log store was not kept: \(error.localizedDescription)")
+    }
+}
+
 private func logPhaseChange(from old: ScenePhase, to new: ScenePhase) {
     switch (old, new) {
     case (_, .background): appLogger.info("the app went to the background")
@@ -78,4 +96,4 @@ private func logPhaseChange(from old: ScenePhase, to new: ScenePhase) {
 
 private let logger = PadelLogger(subsystem: "com.vveidi.padel", category: "storage")
 
-private let appLogger = PadelLogger(subsystem: "com.vveidi.padel", category: "app")
+nonisolated private let appLogger = PadelLogger(subsystem: "com.vveidi.padel", category: "app")

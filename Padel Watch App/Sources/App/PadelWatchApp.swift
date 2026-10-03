@@ -24,6 +24,8 @@ struct PadelWatchApp: App {
 
     private let pairedWorkout: PairedWorkout
 
+    private let logSender: any LogSender
+
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -54,6 +56,8 @@ struct PadelWatchApp: App {
             isScoringAlone: { [store] in (try? store.matchInProgress()) != nil })
         PadelWatchAppDelegate.pairedWorkout = pairedWorkout
 
+        logSender = transport
+
         transport.activate()
     }
 
@@ -61,7 +65,9 @@ struct PadelWatchApp: App {
         WindowGroup {
             RootView(
                 store: store, workout: workout, delivery: delivery, remote: remote,
-                pairedWorkout: pairedWorkout)
+                pairedWorkout: pairedWorkout
+            )
+            .environment(\.logSender, logSender)
         }
         .onChange(of: scenePhase, logPhaseChange)
     }

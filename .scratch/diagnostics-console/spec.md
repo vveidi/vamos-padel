@@ -34,8 +34,9 @@ logs its success path too, not only its failures.
   that answers no tap today, both are there in every state of the history, and
   neither is on a screen where a tap scores a rally.
 - **The console opens in a sheet** with a Done button.
-- **The watch keeps its own store and its own console.** Its logs leave only
-  through the console's own "Share Store". They do not travel to the phone.
+- **The watch keeps its own store and its own console.** Its console sends a
+  copy of the store to the phone, which keeps the latest one and opens it as
+  "Watch logs" (05): the watch's own share sheet offers only Mail and Messages.
 - **Naming:** "diagnostics console" in code and tickets. `CONTEXT.md` gets no
   entry: it is a developer's tool, not the domain, and the glossary already
   keeps "log" away from the rally journal.
@@ -46,9 +47,9 @@ logs its success path too, not only its failures.
 2. The phone's console (blocked by 01)
 3. The watch's console (blocked by 01)
 4. The success path logged (blocked by 01)
+5. The watch's logs reach the phone (blocked by 03)
 
 ## Out of Scope
 
-- The watch's logs reaching the phone's console
 - Network logging and Pulse's remote logger
 - Any visible setting or menu entry for the console

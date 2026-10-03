@@ -1,15 +1,16 @@
 #if canImport(WatchConnectivity)
 
     import Foundation
+    import PadelLogging
     import PadelStorage
     import WatchConnectivity
 
-    /// The finished match is enqueued with `transferUserInfo`, whose queue
-    /// keeps its order and survives the app being unloaded; the live link goes
-    /// with `sendMessage`, which needs the other app reachable this moment.
-    /// One object stands at both ends because a device has a single session.
+    /// The finished match goes with `transferUserInfo`, whose queue keeps its
+    /// order and survives the app being unloaded, and a log store with
+    /// `transferFile`, which waits the same way; the live link goes with
+    /// `sendMessage`, which needs the other app reachable this moment.
     public final class WatchConnectivityTransport: NSObject, MatchSender, MatchReceiver, ScorerLink,
-        RemoteLink
+        RemoteLink, LogSender, LogReceiver
     {
         private let transport: SessionTransport
 
@@ -72,6 +73,14 @@
         public func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) {
             transport.onUpdate(receive)
         }
+
+        public func send(_ logs: LogSnapshot) throws {
+            try transport.send(logs)
+        }
+
+        public func onLogs(_ receive: @escaping @Sendable (LogSnapshot) -> Void) {
+            transport.onLogs(receive)
+        }
     }
 
     extension WatchConnectivityTransport: WCSessionDelegate {
@@ -114,6 +123,28 @@
             transport.received(live: message)
         }
 
+        /// The file is ours until it is delivered or given up on, either way
+        /// once, so it is deleted here.
+        public func session(
+            _ session: WCSession,
+            didFinish fileTransfer: WCSessionFileTransfer,
+            error: (any Error)?
+        ) {
+            guard LogPayload.isLogs(fileTransfer.file.metadata) else { return }
+
+            if let error {
+                logger.error("the log store was not delivered: \(error.localizedDescription)")
+            } else {
+                logger.info("the log store was delivered")
+            }
+
+            try? FileManager.default.removeItem(at: fileTransfer.file.fileURL)
+        }
+
+        public func session(_ session: WCSession, didReceive file: WCSessionFile) {
+            transport.received(file: file.fileURL, metadata: file.metadata)
+        }
+
         #if os(iOS)
             // Required by the protocol on iOS, where the session breaks when
             // the paired watch changes. Beyond reporting the link gone, only
@@ -143,6 +174,18 @@
             WCSession.default.sendMessage(payload, replyHandler: nil) { error in
                 logger.error("the live parcel was not delivered: \(error.localizedDescription)")
             }
+        }
+
+        /// Whether a cancelled transfer reports its finish is undocumented, so
+        /// its file goes here as well.
+        func transferLogs(_ file: URL, metadata: [String: Any]) {
+            for waiting in WCSession.default.outstandingFileTransfers
+            where LogPayload.isLogs(waiting.file.metadata) {
+                waiting.cancel()
+                try? FileManager.default.removeItem(at: waiting.file.fileURL)
+            }
+
+            WCSession.default.transferFile(file, metadata: metadata)
         }
     }
 

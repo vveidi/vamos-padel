@@ -601,6 +601,16 @@
         }
       }
     },
+    "No watch logs yet" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Логов с часов пока нет"
+          }
+        }
+      }
+    },
     "Open Settings" : {
       "localizations" : {
         "ru" : {
@@ -779,6 +789,26 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Send them from the console on the watch." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправьте их из консоли на часах."
+          }
+        }
+      }
+    },
+    "Send to iPhone" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправить на iPhone"
           }
         }
       }
@@ -1015,6 +1045,16 @@
         }
       }
     },
+    "The watch logs did not open" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Логи с часов не открылись"
+          }
+        }
+      }
+    },
     "their point" : {
       "localizations" : {
         "ru" : {
@@ -1161,6 +1201,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Часы ведут свой матч"
+          }
+        }
+      }
+    },
+    "Watch logs" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Логи с часов"
           }
         }
       }

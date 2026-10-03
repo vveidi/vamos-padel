@@ -1,4 +1,5 @@
 import Foundation
+import PadelLogging
 import PadelStorage
 import Synchronization
 
@@ -13,12 +14,19 @@ protocol DeviceSession: Sendable {
 
     /// Leaves now; a failure after leaving is the session's to log.
     func sendNow(_ payload: [String: Any])
+
+    /// Kept by the system like ``enqueue(_:)``, and replaces any log store
+    /// still waiting.
+    func transferLogs(_ file: URL, metadata: [String: Any])
 }
 
 /// What ``WatchConnectivityTransport`` does, over a session it does not name.
 /// The queue carries the finished match and its receipt, the live channel
-/// intents and updates, and neither carries the other's.
-final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink, Sendable {
+/// intents and updates, and neither carries the other's. A log store travels
+/// as a file, on a channel of its own.
+final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink, LogSender,
+    LogReceiver, Sendable
+{
     /// `nil` on a device without a pair, such as an iPad.
     private let session: (any DeviceSession)?
     private let handlers = Handlers()
@@ -98,6 +106,23 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
         log("sent", arrival)
     }
 
+    // MARK: The log store
+
+    func send(_ logs: LogSnapshot) throws {
+        guard let session, session.isActivated else {
+            logger.error("the session is not activated, the log store was not sent")
+            throw LogSenderError.noSession
+        }
+
+        session.transferLogs(logs.database, metadata: LogPayload.encode(logs))
+
+        logger.info("sent the log store")
+    }
+
+    func onLogs(_ receive: @escaping @Sendable (LogSnapshot) -> Void) {
+        handlers.set(\.logs, to: receive)
+    }
+
     // MARK: What the session reports
 
     func sessionActivated() {
@@ -129,6 +154,18 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
         case .update(let update): handlers.get(\.update)?(update)
         case .match, .receipt: logger.error("a queued parcel arrived live and was dropped")
         case nil: break
+        }
+    }
+
+    func received(file: URL, metadata: [String: Any]?) {
+        do {
+            let logs = try LogPayload.decode(file: file, metadata: metadata)
+
+            logger.info("received the log store")
+
+            handlers.get(\.logs)?(logs)
+        } catch {
+            logger.error("the file that arrived was not read: \(error.localizedDescription)")
         }
     }
 
@@ -190,6 +227,7 @@ private final class Handlers: Sendable {
         var reachability: (@Sendable (Bool) -> Void)?
         var intent: (@Sendable (MatchIntent) -> Void)?
         var update: (@Sendable (MatchUpdate) -> Void)?
+        var logs: (@Sendable (LogSnapshot) -> Void)?
     }
 
     private let handlers = Mutex(Slots())

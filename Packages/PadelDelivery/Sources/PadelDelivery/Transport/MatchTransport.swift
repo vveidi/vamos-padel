@@ -1,4 +1,5 @@
 import Foundation
+import PadelLogging
 import PadelStorage
 
 public protocol MatchSender: Sendable {
@@ -59,7 +60,9 @@ public enum LiveLinkError: Error, Equatable {
     case unreachable
 }
 
-public struct NoMatchTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink {
+public struct NoMatchTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink, LogSender,
+    LogReceiver
+{
     public init() {}
 
     public var isReachable: Bool { false }
@@ -87,4 +90,10 @@ public struct NoMatchTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLi
     public func onArrival(_ receive: @escaping @Sendable (SavedMatch) -> Void) {}
 
     public func confirmArrival(of match: SavedMatch) {}
+
+    public func send(_ logs: LogSnapshot) throws {
+        throw LogSenderError.noSession
+    }
+
+    public func onLogs(_ receive: @escaping @Sendable (LogSnapshot) -> Void) {}
 }

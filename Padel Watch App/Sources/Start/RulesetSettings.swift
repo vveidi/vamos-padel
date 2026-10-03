@@ -1,6 +1,5 @@
 import PadelDesign
 import PadelScoring
-import PulseUI
 import SwiftUI
 
 /// Where the watch bounds a ruleset: ``PadelScoring`` passes no judgment on
@@ -65,11 +64,7 @@ struct RulesetSettings: View {
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .onQuickTaps(10) { showsConsole = true }
-            .sheet(isPresented: $showsConsole) {
-                // Pulse opens on its network tab by default, and the app has
-                // no network of its own.
-                NavigationStack { ConsoleView(mode: .logs) }
-            }
+            .sheet(isPresented: $showsConsole) { DiagnosticsConsole() }
     }
 
     /// Whole clauses, so the catalog declines the counted noun. The two

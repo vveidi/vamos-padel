@@ -1,4 +1,5 @@
 import Foundation
+import PadelLogging
 import PadelScoring
 import PadelStorage
 import PadelStorageDatabase
@@ -168,6 +169,48 @@ struct SessionTransportTests {
         #expect(matches.items.isEmpty)
         #expect(intents.items.isEmpty)
     }
+
+    @Test("A log store goes out as a file and arrives with its manifest")
+    func aLogStoreMakesTheTrip() throws {
+        let watch = StubSession(isReachable: false)
+        let phone = SessionTransport(session: StubSession())
+        let arrived = Inbox<LogSnapshot>()
+        let file = URL(filePath: "/tmp/logs.sqlite")
+
+        phone.onLogs(arrived.take)
+        try SessionTransport(session: watch).send(LogSnapshot(database: file, manifest: Data("{}".utf8)))
+        watch.transferred.forEach { phone.received(file: $0.file, metadata: $0.metadata) }
+
+        let logs = try #require(arrived.items.first)
+        #expect(arrived.items.count == 1)
+        #expect(logs.database == file)
+        #expect(logs.manifest == Data("{}".utf8))
+        #expect(watch.enqueued.isEmpty)
+    }
+
+    @Test("A log store is refused by a session that has not activated")
+    func aLogStoreIsRefusedWithoutASession() {
+        let session = StubSession(isActivated: false)
+
+        #expect(throws: LogSenderError.noSession) {
+            try SessionTransport(session: session).send(
+                LogSnapshot(database: URL(filePath: "/tmp/logs.sqlite"), manifest: Data()))
+        }
+        #expect(session.transferred.isEmpty)
+    }
+
+    @Test(
+        "A file that is not a log store, or has lost its manifest, is dropped",
+        arguments: [nil, ["kind": "match"], ["kind": "logs"]] as [[String: String]?])
+    func aStrangeFileIsDropped(metadata: [String: String]?) {
+        let transport = SessionTransport(session: StubSession())
+        let arrived = Inbox<LogSnapshot>()
+
+        transport.onLogs(arrived.take)
+        transport.received(file: URL(filePath: "/tmp/logs.sqlite"), metadata: metadata)
+
+        #expect(arrived.items.isEmpty)
+    }
 }
 
 /// Keeps each parcel as the property list WatchConnectivity would carry: a
@@ -178,6 +221,7 @@ private final class StubSession: DeviceSession, Sendable {
         var reachable: Bool
         var queue: [Data] = []
         var live: [Data] = []
+        var files: [(file: URL, metadata: Data)] = []
     }
 
     private let wire: Mutex<Wire>
@@ -208,6 +252,15 @@ private final class StubSession: DeviceSession, Sendable {
     func sendNow(_ payload: [String: Any]) {
         let parcel = Self.parcel(payload)
         wire.withLock { $0.live.append(parcel) }
+    }
+
+    var transferred: [(file: URL, metadata: [String: Any])] {
+        wire.withLock { $0.files }.map { ($0.file, Self.payload($0.metadata)) }
+    }
+
+    func transferLogs(_ file: URL, metadata: [String: Any]) {
+        let parcel = Self.parcel(metadata)
+        wire.withLock { $0.files.append((file, parcel)) }
     }
 
     private static func parcel(_ payload: [String: Any]) -> Data {

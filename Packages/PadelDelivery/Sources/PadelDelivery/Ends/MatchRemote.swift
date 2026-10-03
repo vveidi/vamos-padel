@@ -11,7 +11,15 @@ public final class MatchRemote: Sendable {
     public init(link: any RemoteLink) {
         self.link = link
 
-        link.onUpdate { [arrivals] update in arrivals.send(update) }
+        // Answered after it is passed on, so the end is on every stream before
+        // the scorer can let go of it — and again on each resend.
+        link.onUpdate { [arrivals] update in
+            arrivals.send(update)
+
+            if case .match(let saved, _) = update, saved.isPaired, saved.match.state.outcome == .abandoned {
+                try? link.send(.heardEnd(of: saved.id))
+            }
+        }
         link.onReachabilityChange { [reachability] isReachable in reachability.send(isReachable) }
 
         // Read after subscribing, so a change made in between is not lost.

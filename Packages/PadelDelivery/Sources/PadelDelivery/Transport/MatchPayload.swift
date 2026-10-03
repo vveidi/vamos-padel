@@ -55,9 +55,7 @@ enum MatchPayload {
     }
 
     private static func savedMatch(from payload: [String: Any]) throws -> SavedMatch {
-        guard let id = payload[Key.id] as? String, let id = UUID(uuidString: id) else {
-            throw MatchPayloadError.unreadable(reason: "a parcel without a match identifier")
-        }
+        let id = try matchID(in: payload)
 
         guard let startedAt = payload[Key.startedAt] as? Date,
             let lastRallyAt = payload[Key.lastRallyAt] as? Date
@@ -149,6 +147,8 @@ enum MatchPayload {
             [Key.intent: Kind.end, Key.base: base]
         case .scoringAlone:
             [Key.intent: Kind.scoringAlone]
+        case .heardEnd(let matchID):
+            [Key.intent: Kind.heardEnd, Key.id: matchID.uuidString]
         }
     }
 
@@ -166,9 +166,19 @@ enum MatchPayload {
             .end(base: try base(in: payload))
         case Kind.scoringAlone:
             .scoringAlone
+        case Kind.heardEnd:
+            .heardEnd(of: try matchID(in: payload))
         case let kind:
             throw MatchPayloadError.unreadable(reason: "an intent of kind \"\(kind ?? "—")\"")
         }
+    }
+
+    private static func matchID(in payload: [String: Any]) throws -> UUID {
+        guard let id = payload[Key.id] as? String, let id = UUID(uuidString: id) else {
+            throw MatchPayloadError.unreadable(reason: "a parcel without a match identifier")
+        }
+
+        return id
     }
 
     // Not defaulted: an intent read as formed against no rallies would be
@@ -233,6 +243,7 @@ enum MatchPayload {
         static let undo = "undo"
         static let end = "end"
         static let scoringAlone = "scoringAlone"
+        static let heardEnd = "heardEnd"
     }
 }
 

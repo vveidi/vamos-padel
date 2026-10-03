@@ -77,6 +77,7 @@ struct MatchPayloadTests {
             .undo(base: 5),
             .end(base: 12),
             .scoringAlone,
+            .heardEnd(of: UUID()),
         ])
     func anIntentSurvivesTheRoundTrip(intent: MatchIntent) throws {
         #expect(try MatchPayload.decode(MatchPayload.encode(.intent(intent))) == .intent(intent))
@@ -140,6 +141,8 @@ struct MatchPayloadTests {
             ("a rally without its winner", without("winner", in: rally)),
             ("an undo without its base", ["kind": "intent", "intent": "undo"]),
             ("an end without its base", ["kind": "intent", "intent": "end"]),
+            ("an end heard of no match", ["kind": "intent", "intent": "heardEnd"]),
+            ("an end heard of a match not named", ["kind": "intent", "intent": "heardEnd", "id": "court"]),
             (
                 "a start without its first server",
                 ["kind": "intent", "intent": "start", "ruleset": "pointsTo", "target": 16,

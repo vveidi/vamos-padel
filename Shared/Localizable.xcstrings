@@ -491,6 +491,16 @@
         }
       }
     },
+    "Leave anyway" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всё равно выйти"
+          }
+        }
+      }
+    },
     "long press" : {
       "localizations" : {
         "ru" : {
@@ -1131,6 +1141,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Пульт на часах"
+          }
+        }
+      }
+    },
+    "Waiting for the watch" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ждём часы"
           }
         }
       }

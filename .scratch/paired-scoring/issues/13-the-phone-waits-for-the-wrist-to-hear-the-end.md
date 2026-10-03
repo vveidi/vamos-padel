@@ -12,26 +12,26 @@ Until then the board shows that it is waiting.
 
 **Blocked by:** 12
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] **The watch answers.** A new message travels from the watch to the
+- [x] **The watch answers.** A new message travels from the watch to the
       phone: "I have ended match `<id>`". The watch sends it once it holds the
       ended match, and again for every resend of that match it receives
-- [ ] **The board waits.** After End on a paired match, from either device, the
+- [x] **The board waits.** After End on a paired match, from either device, the
       board shows a loader until that answer arrives. It leaves for the history
       after that, and not before. The scorer releases the match on the answer,
       not on End
-- [ ] **A lost send is resent.** While the phone waits it still holds the ended
+- [x] **A lost send is resent.** While the phone waits it still holds the ended
       match, so a reconnect resends it, and the watch answers again
-- [ ] **The watch's outcome is never skipped.** Once the watch has the ended
+- [x] **The watch's outcome is never skipped.** Once the watch has the ended
       match, it shows "Match unfinished", whatever happens to the link
       afterwards
-- [ ] **A watch that never answers does not trap the board.** After about ten
+- [x] **A watch that never answers does not trap the board.** After about ten
       seconds without an answer the loader stays and a "Leave anyway" button
       appears under it. Leaving releases the match as today
-- [ ] "Close" on a won paired match does not wait: the watch already holds
+- [x] "Close" on a won paired match does not wait: the watch already holds
       that match and shows its outcome
-- [ ] A solo match is unchanged: End leaves at once
+- [x] A solo match is unchanged: End leaves at once
 - [ ] Covered in `MatchScorerTests`. Driven on a simulator pair with the link
       cut between the end and the release
 
@@ -51,3 +51,27 @@ Triage settled the three open questions:
 - **"Close" does not wait.** The watch ignores a release once its match is over
   (`MatchView.followUpdates`), and a won match reached it with the winning
   rally.
+
+## Comments
+
+**Closed.** The watch answers with `MatchIntent.heardEnd(of:)`, sent by
+`MatchRemote` for every ended paired match it receives. `MatchScorer` lets go
+of an abandoned match only on that answer. The board shows "Waiting for the
+watch", then "Leave anyway" after ten seconds.
+
+Covered in `MatchScorerTests`, `MatchRemoteTests` and `MatchPayloadTests`.
+Driven on a simulator pair: solo End leaves at once; paired End from either
+device with the link up shows "Match unfinished" on the watch and the history
+on the phone; with the watch app killed before End the board waits, offers to
+leave, and "Leave anyway" leaves; relaunching the watch instead resends the
+end and the board leaves on the answer. Checked in Russian and at the largest
+type.
+
+Left open: the last criterion. A simulator cannot cut the link between the end
+reaching the watch and its answer, so that drive moved to ticket 07, with
+Close on a won match, which was ticked on the code alone. A phone relaunched
+while it waits loses the wait: ticket 15.
+
+The answer comes from the transport, not the screen: a relaunched watch, or one
+scoring its own match, answers too, so the phone does not wait on a watch that
+no longer shows the match.

@@ -51,6 +51,44 @@ struct MatchRemoteTests {
         #expect(await alive.first(3) == [false, true, false])
     }
 
+    @Test("A paired match ended is passed on, then answered, on every arrival")
+    func anEndIsAnsweredEachTime() async {
+        var ended = SavedMatch.played([.us], scoring: .paired)
+        ended.abandon()
+        let updates = remote.updates()
+
+        link.deliver(.match(ended, echo: nil))
+        link.deliver(.match(ended, echo: nil))
+
+        #expect(await updates.first(2) == [.match(ended, echo: nil), .match(ended, echo: nil)])
+        #expect(link.sent == [.heardEnd(of: ended.id), .heardEnd(of: ended.id)])
+    }
+
+    @Test("A match running, won, or not paired is not answered")
+    func onlyAPairedEndIsAnswered() {
+        var alone = SavedMatch.played([.us], scoring: .aloneOnPhone)
+        alone.abandon()
+
+        link.deliver(.match(.played([.us], scoring: .paired), echo: nil))
+        link.deliver(.match(.played([.us, .us], ruleset: toTwo, scoring: .paired), echo: nil))
+        link.deliver(.match(alone, echo: nil))
+        link.deliver(.noMatch(echo: nil))
+
+        #expect(link.sent.isEmpty)
+    }
+
+    @Test("An end that arrives as the phone goes out of reach is still passed on")
+    func anUnanswerableEndIsStillPassedOn() async {
+        var ended = SavedMatch.played([.us], scoring: .paired)
+        ended.abandon()
+        link.becomeReachable(false)
+
+        link.deliver(.match(ended, echo: nil))
+
+        #expect(await remote.updates().first(1) == [.match(ended, echo: nil)])
+        #expect(link.sent.isEmpty)
+    }
+
     @Test("An intent sent while the phone is unreachable fails at once and is kept nowhere")
     func anUnreachableSendFails() async {
         let updates = remote.updates()

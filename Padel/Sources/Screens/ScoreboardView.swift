@@ -41,9 +41,10 @@ struct ScoreboardView: View {
     init(
         match: SavedMatch, scorer: MatchScorer,
         holdsTheWatchsWorkout: Bool = false, mirrored: Bool = false,
-        markHeldAtPeak: Side? = nil, onLeave: @escaping () -> Void
+        markHeldAtPeak: Side? = nil, confirmingEnd: Bool = false, onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
+        _isConfirmingEnd = State(initialValue: confirmingEnd)
         self.scorer = scorer
         self.holdsTheWatchsWorkout = holdsTheWatchsWorkout
         _isMirrored = State(initialValue: mirrored)
@@ -65,18 +66,16 @@ struct ScoreboardView: View {
         .background(Color.night)
         // An alert and not the watch's confirmation dialog, which in landscape
         // drops its cancel button and leaves "End" standing on its own.
-        .alert(
-            "End the match?",
-            isPresented: $isConfirmingEnd
-        ) {
-            Button("End", role: .destructive) {
-                scorer.end()
-
-                if canLeave { onLeave() }
+        .alert(endQuestion, isPresented: $isConfirmingEnd) {
+            if isOver {
+                Button("Close", action: onLeave)
+                Button("Cancel", role: .cancel) {}
+            } else {
+                Button("End", role: .destructive, action: scorer.end)
+                Button("Keep playing", role: .cancel) {}
             }
-            Button("Keep playing", role: .cancel) {}
         } message: {
-            Text("The match will be saved as unfinished.")
+            Text(endConsequence)
         }
         // On the journal, never on the tap — ADR-0011.
         .onChange(of: saved.match.journal) { old, new in
@@ -116,10 +115,20 @@ struct ScoreboardView: View {
         saved.isPaired && !isWatchReachable
     }
 
-    /// Leaving releases the match, which a paired one still in play must not
-    /// be: the watch would drop it mid-rally. It ends there, or through "End".
-    private var canLeave: Bool {
-        !saved.isPaired || saved.match.state.outcome.isOver
+    private var isOver: Bool {
+        saved.match.state.outcome.isOver
+    }
+
+    private var wayOffLabel: LocalizedStringKey {
+        isOver ? "Close" : "End"
+    }
+
+    private var endQuestion: LocalizedStringKey {
+        isOver ? "Close the match?" : "End the match?"
+    }
+
+    private var endConsequence: LocalizedStringKey {
+        isOver ? "The match is saved with its result." : "The match will be saved as unfinished."
     }
 
     /// A match to N points has no games and no sets, so all its rallies are
@@ -205,8 +214,6 @@ struct ScoreboardView: View {
 
     private func strip(safeArea: EdgeInsets) -> some View {
         HStack(spacing: Board.stripGap) {
-            if canLeave { wayOut }
-
             if isWatchLost {
                 watchLost
             } else {
@@ -220,8 +227,7 @@ struct ScoreboardView: View {
 
             clock
         }
-        // As tall without the way back as with it, so its return moves nothing.
-        .frame(minHeight: Board.chevronHit)
+        .frame(minHeight: Board.stripHeight)
         .padding(.top, safeArea.top + Board.stripInset)
         .padding(.leading, safeArea.leading + Board.inset)
         .padding(.trailing, safeArea.trailing + Board.inset)
@@ -244,20 +250,6 @@ struct ScoreboardView: View {
         .accessibilityAddTraits(.isStaticText)
     }
 
-    private var wayOut: some View {
-        Button(action: onLeave) {
-            Image(systemName: "chevron.backward")
-                .font(.system(size: Board.chevron, weight: .semibold))
-                .foregroundStyle(.ink.weight(.control))
-                .frame(width: Board.chevronWell, height: Board.chevronWell)
-                .background(Circle().fill(.ink.weight(.surface)))
-                .frame(width: Board.chevronHit, height: Board.chevronHit)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Back to your matches")
-    }
-
     private var clock: some View {
         HStack(spacing: Board.dotGap) {
             Circle()
@@ -276,7 +268,7 @@ struct ScoreboardView: View {
     /// While the match runs the clock is the wall's, and it restarts at the
     /// first rally: that is the moment ``SavedMatch/startedAt`` moves to.
     @ViewBuilder private var duration: some View {
-        if saved.match.state.outcome.isOver {
+        if isOver {
             Text(saved.lasted(in: locale))
         } else {
             Text(saved.startedAt, style: .timer)
@@ -296,7 +288,7 @@ struct ScoreboardView: View {
                 .accessibilityLabel("Mirror the board")
 
             PillButton(icon("xmark"), variant: .quiet) { isConfirmingEnd = true }
-                .accessibilityLabel("End")
+                .accessibilityLabel(wayOffLabel)
         }
         .frame(maxWidth: arrangement == .sideBySide ? Board.controlsWidth : .infinity)
         .padding(.leading, safeArea.leading + Board.inset)
@@ -584,14 +576,9 @@ private enum Board {
 
     static let dotGap: CGFloat = 8
 
-    /// The chevron and its well are the board's alone — it draws no way out —
-    /// and neither scales: furniture does not grow with the type beside it.
-    static let chevron: CGFloat = 16
-
-    static let chevronWell: CGFloat = 34
-
-    /// What the finger has to hit, larger than the circle drawn under it.
-    static let chevronHit: CGFloat = 44
+    /// The height of a control's hit area, which the strip keeps so its words
+    /// stay where the board put them.
+    static let stripHeight: CGFloat = 44
 
     /// The board's `margin-left: 12px` between the score and the games beside
     /// it, spent again to keep the pair off the half's edges.
@@ -696,6 +683,18 @@ private enum Board {
     atLargestType(inRussian(board(.previewCountingPoints)))
 }
 
+// MARK: A match won
+
+#Preview("A match won", traits: .landscapeLeft) { board(.preview(classicWonBy: .them)) }
+
+#Preview("A match won: End asks", traits: .landscapeLeft) { askingToEnd(.preview(classicWonBy: .us)) }
+
+#Preview("In Russian: End on a match won", traits: .landscapeLeft) {
+    inRussian(askingToEnd(.preview(classicWonBy: .us)))
+}
+
+#Preview("A match in play: End asks", traits: .landscapeLeft) { askingToEnd(.previewInPlay) }
+
 // MARK: The watch lost
 
 #Preview("A paired match whose watch is lost", traits: .landscapeLeft) { watchLost(.previewInPlay) }
@@ -714,13 +713,7 @@ private enum Board {
     inRussian(paired(.previewInPlay))
 }
 
-#Preview("A paired match over: the way back", traits: .landscapeLeft) {
-    paired(.preview(classicWonBy: .us))
-}
-
-#Preview("A paired match ended on the watch", traits: .landscapeLeft) {
-    paired(.previewClassicAbandoned)
-}
+#Preview("A paired match won", traits: .landscapeLeft) { paired(.preview(classicWonBy: .us)) }
 
 #Preview("Stacked, at the largest type: a paired match in play", traits: .portrait) {
     atLargestType(paired(.previewInSecondSet))
@@ -855,6 +848,11 @@ private let splitViewHalf: PreviewTrait<Preview.ViewTraits> = .fixedLayout(width
 
 private func board(_ match: SavedMatch, mirrored: Bool = false) -> some View {
     ScoreboardView(match: match, scorer: previewScorer, mirrored: mirrored, onLeave: {})
+        .preferredColorScheme(.dark)
+}
+
+private func askingToEnd(_ match: SavedMatch) -> some View {
+    ScoreboardView(match: match, scorer: previewScorer, confirmingEnd: true, onLeave: {})
         .preferredColorScheme(.dark)
 }
 

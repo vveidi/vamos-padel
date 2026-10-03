@@ -187,16 +187,6 @@
         }
       }
     },
-    "Back to your matches" : {
-      "localizations" : {
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "К списку матчей"
-          }
-        }
-      }
-    },
     "Bring your iPhone closer to go on." : {
       "localizations" : {
         "ru" : {
@@ -295,6 +285,26 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        }
+      }
+    },
+    "Close the match?" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть матч?"
           }
         }
       }
@@ -961,6 +971,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Зоны экрана"
+          }
+        }
+      }
+    },
+    "The match is saved with its result." : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Результат матча сохранён."
           }
         }
       }

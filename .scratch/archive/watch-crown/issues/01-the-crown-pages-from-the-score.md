@@ -24,15 +24,20 @@ the start, so the paging works and the crown alone is out of step with it.
 **Closing note.** The cause: the pager preloads the page next to the one on
 screen, and a `ScrollView` there takes the crown's first turn toward it — tap
 mode below the score, the settings below the start. Both pages now scroll only
-while on screen (`.scrollDisabled`). `ScorePages` also starts with no page and
-picks the score in `onAppear`; built straight on the score, the crown thinks it
-is on the first page and turning up is dead. The `NavigationStack` moved into
-the pages that push, on both screens: a stack always goes inside a `TabView`.
+while on screen (`.scrollDisabled`).
+
+`ScorePages` also starts with no page and picks the score in the first page's
+`onAppear`. Built straight on the score, the crown thinks it is on the first
+page and turning up is dead. The pager's own `onAppear` is too early on a
+match started from the start pages: the move lands before the first page is
+laid out and never reaches the crown. A delay, a loader between the screens
+and animating the move were tried and dropped.
+
+The `NavigationStack` moved into the pages that push, on both screens: a stack
+always goes inside a `TabView`.
 
 Driven with a throwaway XCUITest probe (`XCUIDevice.rotateDigitalCrown`, 0.8 a
-page) and by the owner with the trackpad: down and up from the score after a
-start and after a relaunch, down and up on the start pages, the crown still
-scrolling the settings, swipes both ways. One gap the probe still shows: on a
-match just started from the start pages, the very first turn *up* does not
-page; the owner's trackpad run found it fine. Animating the move to the score
-did not change it.
+page) and by the owner with the trackpad: up first and down first from the
+score, after a start and after a relaunch; the start pages both ways; swipes
+both ways. The screen recording shows no frame of the controls when the match
+opens.

@@ -17,8 +17,6 @@ struct ScoreboardView: View {
     /// up and no longer.
     @State private var isMirrored: Bool
 
-    private let isPaired: Bool
-
     /// The watch's workout reaches the phone, so the app runs on with the
     /// screen off.
     private let holdsTheWatchsWorkout: Bool
@@ -41,14 +39,13 @@ struct ScoreboardView: View {
     /// - Parameter mirrored: The court's facing to open on. Ours is on the left
     ///   unless the players are standing the other way round.
     init(
-        match: SavedMatch, scorer: MatchScorer, isPaired: Bool = false,
+        match: SavedMatch, scorer: MatchScorer,
         holdsTheWatchsWorkout: Bool = false, mirrored: Bool = false,
         markHeldAtPeak: Side? = nil, confirmingEnd: Bool = false, onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         _isConfirmingEnd = State(initialValue: confirmingEnd)
         self.scorer = scorer
-        self.isPaired = isPaired
         self.holdsTheWatchsWorkout = holdsTheWatchsWorkout
         _isMirrored = State(initialValue: mirrored)
         self.markHeldAtPeak = markHeldAtPeak
@@ -96,7 +93,7 @@ struct ScoreboardView: View {
 
     private func follow() async {
         for await update in scorer.updates() {
-            guard case .match(let match, _, _) = update, match.id == saved.id else { continue }
+            guard case .match(let match, _) = update, match.id == saved.id else { continue }
 
             saved = match
         }
@@ -111,11 +108,11 @@ struct ScoreboardView: View {
     /// Only the mirrored workout keeps the app running once the screen locks;
     /// without it the board stays lit, as in a match scored alone.
     private var holdsTheScreen: Bool {
-        !(isPaired && holdsTheWatchsWorkout)
+        !(saved.isPaired && holdsTheWatchsWorkout)
     }
 
     private var isWatchLost: Bool {
-        isPaired && !isWatchReachable
+        saved.isPaired && !isWatchReachable
     }
 
     private var isOver: Bool {
@@ -862,12 +859,12 @@ private func askingToEnd(_ match: SavedMatch) -> some View {
 /// The preview scorer's link is never reachable, so a paired board finds its
 /// watch gone.
 private func watchLost(_ match: SavedMatch) -> some View {
-    ScoreboardView(match: match, scorer: previewScorer, isPaired: true, onLeave: {})
+    ScoreboardView(match: match.asPaired, scorer: previewScorer, onLeave: {})
         .preferredColorScheme(.dark)
 }
 
 private func paired(_ match: SavedMatch) -> some View {
-    ScoreboardView(match: match, scorer: reachableWatchScorer, isPaired: true, onLeave: {})
+    ScoreboardView(match: match.asPaired, scorer: reachableWatchScorer, onLeave: {})
         .preferredColorScheme(.dark)
 }
 

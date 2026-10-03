@@ -7,7 +7,10 @@ public protocol MatchStore: Sendable {
     /// written.
     func save(_ match: SavedMatch) throws
 
-    func matchInProgress() throws -> SavedMatch?
+    /// The last match scored one of `ways`, unless it is over. An unfinished
+    /// match older than that one never comes back, however long ago it was
+    /// left and however it was scored.
+    func matchInProgress(scored ways: Set<MatchScoring>) throws -> SavedMatch?
 
     /// A recorded match however it ended. Unlike ``matchInProgress()``, this
     /// hands back finished and abandoned matches too.
@@ -29,13 +32,19 @@ public protocol MatchStore: Sendable {
     func matchesObserved() -> AsyncThrowingStream<[SavedMatch], any Error>
 }
 
+extension MatchStore {
+    public func matchInProgress() throws -> SavedMatch? {
+        try matchInProgress(scored: Set(MatchScoring.allCases))
+    }
+}
+
 /// For previews, and for the app whose database did not open.
 public struct NoMatchStore: MatchStore, MatchDeliveryQueue {
     public init() {}
 
     public func save(_ match: SavedMatch) throws {}
 
-    public func matchInProgress() throws -> SavedMatch? { nil }
+    public func matchInProgress(scored ways: Set<MatchScoring>) throws -> SavedMatch? { nil }
 
     public func match(id: UUID) throws -> SavedMatch? { nil }
 

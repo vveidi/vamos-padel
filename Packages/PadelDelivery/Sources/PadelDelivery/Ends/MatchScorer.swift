@@ -13,15 +13,22 @@ public final class MatchScorer: Sendable {
     /// Held across the write and both sends, so two changes never go out in
     /// the opposite order to the one they were made in. The link is sent to
     /// under it and must not call back before returning.
-    private let held = Mutex<Held?>(nil)
+    private let held: Mutex<SavedMatch?>
 
-    private let broadcast = Broadcast<MatchUpdate>(.noMatch(echo: nil))
+    private let broadcast: Broadcast<MatchUpdate>
     private let reachability = Broadcast<Bool>()
     private let declines = Broadcast<Void>(keepsLatest: false)
 
+    /// Takes the phone's own unfinished match back from the store.
+    /// - Important: Build it before the link comes up, or the remote hears
+    ///   that there is no match and closes the one it was showing.
     public init(store: any MatchStore, link: any ScorerLink) {
         self.store = store
         self.link = link
+
+        let restored = Self.restore(from: store)
+        held = Mutex(restored)
+        broadcast = Broadcast(Self.update(restored, echo: nil))
 
         link.onIntent { [weak self] intent in self?.apply(intent) }
 
@@ -53,17 +60,20 @@ public final class MatchScorer: Sendable {
         declines.stream()
     }
 
+    /// - Precondition: `scoring` is not ``MatchScoring/aloneOnWatch``.
     /// - Returns: `nil` when refused, because a match is already running.
     @discardableResult
-    public func start(ruleset: Ruleset, firstServer: Side, isPaired: Bool) -> SavedMatch? {
-        held.withLock { held in
-            guard start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: isPaired) else {
+    public func start(ruleset: Ruleset, firstServer: Side, scoring: MatchScoring) -> SavedMatch? {
+        precondition(scoring != .aloneOnWatch, "the phone does not score the watch's match")
+
+        return held.withLock { held in
+            guard start(&held, ruleset: ruleset, firstServer: firstServer, scoring: scoring) else {
                 return nil
             }
 
             publish(held, echo: nil)
 
-            return held?.saved
+            return held
         }
     }
 
@@ -85,7 +95,7 @@ public final class MatchScorer: Sendable {
     /// started after `matchID` was read.
     public func release(_ matchID: UUID) {
         held.withLock { held in
-            guard held?.saved.id == matchID else { return }
+            guard held?.id == matchID else { return }
 
             held = nil
 
@@ -106,17 +116,12 @@ public final class MatchScorer: Sendable {
                 case .undo(let base) where held.answers(on: base): change(&held, .undo)
                 case .end(let base) where held.answers(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
-                    start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: true)
+                    start(&held, ruleset: ruleset, firstServer: firstServer, scoring: .paired)
                 case .rally, .undo, .end, .scoringAlone: false
                 }
 
             publish(held, echo: Echo(intent: intent, accepted: accepted))
         }
-    }
-
-    fileprivate struct Held {
-        var saved: SavedMatch
-        let isPaired: Bool
     }
 
     private enum Change {
@@ -137,23 +142,42 @@ public final class MatchScorer: Sendable {
         held.withLock { held in publish(held, echo: nil) }
     }
 
+    /// A read that fails is logged and the scorer starts empty, as on a fresh
+    /// install.
+    private static func restore(from store: any MatchStore) -> SavedMatch? {
+        do {
+            return try store.matchInProgress(scored: [.aloneOnPhone, .paired])
+        } catch {
+            logger.error("the match in progress was not read: \(error.localizedDescription)")
+
+            return nil
+        }
+    }
+
+    private static func update(_ held: SavedMatch?, echo: Echo?) -> MatchUpdate {
+        held.map { .match($0, echo: echo) } ?? .noMatch(echo: echo)
+    }
+
     // MARK: Under the lock
 
-    private func start(_ held: inout Held?, ruleset: Ruleset, firstServer: Side, isPaired: Bool) -> Bool {
+    private func start(
+        _ held: inout SavedMatch?, ruleset: Ruleset, firstServer: Side, scoring: MatchScoring
+    ) -> Bool {
         guard !held.isRunning else { return false }
 
         let started = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: scoring,
+            startedAt: .now)
 
-        held = Held(saved: started, isPaired: isPaired)
+        held = started
         persist(started)
 
         return true
     }
 
     /// - Returns: `false` when the match was left as it was.
-    private func change(_ held: inout Held?, _ change: Change) -> Bool {
-        guard let before = held?.saved else { return false }
+    private func change(_ held: inout SavedMatch?, _ change: Change) -> Bool {
+        guard let before = held else { return false }
 
         var match = before
         switch change {
@@ -164,15 +188,14 @@ public final class MatchScorer: Sendable {
 
         guard match != before else { return false }
 
-        held?.saved = match
+        held = match
         persist(match)
 
         return true
     }
 
-    private func publish(_ held: Held?, echo: Echo?) {
-        let update: MatchUpdate =
-            held.map { .match($0.saved, isPaired: $0.isPaired, echo: echo) } ?? .noMatch(echo: echo)
+    private func publish(_ held: SavedMatch?, echo: Echo?) {
+        let update = Self.update(held, echo: echo)
 
         broadcast.send(update)
 
@@ -192,12 +215,12 @@ public final class MatchScorer: Sendable {
     }
 }
 
-extension Optional where Wrapped == MatchScorer.Held {
+extension Optional where Wrapped == SavedMatch {
     fileprivate var isRunning: Bool {
-        map { !$0.saved.match.state.outcome.isOver } ?? false
+        map { !$0.match.state.outcome.isOver } ?? false
     }
 
     fileprivate func answers(on base: Int) -> Bool {
-        isRunning && self?.isPaired == true && self?.saved.match.journal.count == base
+        isRunning && self?.isPaired == true && self?.match.journal.count == base
     }
 }

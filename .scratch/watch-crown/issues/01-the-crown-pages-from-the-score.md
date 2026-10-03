@@ -7,13 +7,13 @@ the start, so the paging works and the crown alone is out of step with it.
 
 **Blocked by:** None
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] **Down first.** The crown turned down from a freshly opened score pages
       to tap mode, with no turn up before it
 - [x] **Up still works.** The crown turned up from the score pages to the
       controls, and back down to the score
-- [ ] **Swipes untouched.** A swipe still pages both ways
+- [x] **Swipes untouched.** A swipe still pages both ways
 - [x] **The match still opens on the score**, with no visible jump from
       another page
 - [x] Driven on a watch simulator: the crown turned down, up and down again
@@ -21,15 +21,18 @@ the start, so the paging works and the crown alone is out of step with it.
 
 ## Comments
 
-**Closing note.** The fix is two changes together; neither alone did it. The
-`NavigationStack` moved from around the `TabView` into the page that pushes
-(tap mode on the match, settings on the start), and `ScorePages` builds on
-`.controls` and moves to `.score` in `onAppear`. The start pages got the same
-move although their crown worked: a stack always goes inside a `TabView`.
+**Closing note.** The cause: the pager preloads the page next to the one on
+screen, and a `ScrollView` there takes the crown's first turn toward it — tap
+mode below the score, the settings below the start. Both pages now scroll only
+while on screen (`.scrollDisabled`). `ScorePages` also starts with no page and
+picks the score in `onAppear`; built straight on the score, the crown thinks it
+is on the first page and turning up is dead. The `NavigationStack` moved into
+the pages that push, on both screens: a stack always goes inside a `TabView`.
 
-Verified by the owner on a simulator with the trackpad as the crown. An
-XCUITest probe (`XCUIDevice.rotateDigitalCrown`) disagreed — it still saw the
-first turn down eaten — but it was noisy across identical runs, so the owner's
-check stands. Left for the owner: swipes both ways after the change, and that
-the lists pushed from tap mode and the rules now land under the page
-indicator rather than over it.
+Driven with a throwaway XCUITest probe (`XCUIDevice.rotateDigitalCrown`, 0.8 a
+page) and by the owner with the trackpad: down and up from the score after a
+start and after a relaunch, down and up on the start pages, the crown still
+scrolling the settings, swipes both ways. One gap the probe still shows: on a
+match just started from the start pages, the very first turn *up* does not
+page; the owner's trackpad run found it fine. Animating the move to the score
+did not change it.

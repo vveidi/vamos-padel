@@ -41,6 +41,9 @@ the ticket rather than the feature: several tabs run it at once, and which tab
 gets which ticket is the owner's call. See
 `.claude/skills/next-ticket/SKILL.md`.
 
+`.claude/bin/take <feature>/<NN> ...` is the owner's way in from a shell: it
+opens one Terminal window per ticket named, each running `/next-ticket` on it.
+
 `/backlog [feature]` reads the board — `.scratch/status.sh` — and says what is
 takeable, what is blocked and on what. See `.claude/skills/backlog/SKILL.md`.
 

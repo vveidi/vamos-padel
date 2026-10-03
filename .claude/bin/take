@@ -1,0 +1,28 @@
+#!/bin/zsh
+# Opens one Terminal.app window per ticket, each running `/next-ticket <ticket>`
+# from the repository's own directory, where the skill's sweep has to start.
+# The first run asks macOS for permission to control Terminal.
+set -euo pipefail
+
+if (( $# == 0 )); then
+  print -u2 "usage: take <feature>/<NN> [<feature>/<NN> ...]"
+  exit 64
+fi
+
+for ticket in "$@"; do
+  if [[ ! $ticket =~ '^[a-z0-9-]+/[0-9]{2}$' ]]; then
+    print -u2 "take: '$ticket' is not <feature>/<NN>"
+    exit 64
+  fi
+done
+
+root=${$(git -C ${0:A:h} rev-parse --path-format=absolute --git-common-dir):h}
+
+for ticket in "$@"; do
+  osascript \
+    -e 'on run argv' \
+    -e 'tell application "Terminal" to do script (item 1 of argv)' \
+    -e 'end run' \
+    "cd ${(q)root} && claude ${(q):-/next-ticket $ticket}" >/dev/null
+done
+osascript -e 'tell application "Terminal" to activate'

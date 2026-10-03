@@ -53,6 +53,7 @@ enum MatchPayload {
             Key.startedAt: saved.startedAt,
             Key.lastRallyAt: saved.lastRallyAt,
             Key.abandoned: saved.match.isAbandoned,
+            Key.scoring: saved.scoring.rawValue,
             Key.rallies: saved.match.journal.rallies.map(\.winner.rawValue),
         ]) { _, field in field }
     }
@@ -76,13 +77,22 @@ enum MatchPayload {
             throw MatchPayloadError.unreadable(reason: "a parcel without a rally journal")
         }
 
+        // Not defaulted: a match the watch scored, read as the phone's, would
+        // come back onto the phone's court after a relaunch.
+        guard let scoring = payload[Key.scoring] as? String,
+            let scoring = MatchScoring(rawValue: scoring)
+        else {
+            throw MatchPayloadError.unreadable(reason: "a parcel that does not say how the match was scored")
+        }
+
         let match = Match(
             ruleset: try ruleset(from: payload),
             firstServer: try side(named: payload[Key.firstServer] as? String),
             journal: RallyJournal(try winners.map { Rally(wonBy: try side(named: $0)) }),
             isAbandoned: isAbandoned)
 
-        return SavedMatch(id: id, match: match, startedAt: startedAt, lastRallyAt: lastRallyAt)
+        return SavedMatch(
+            id: id, match: match, scoring: scoring, startedAt: startedAt, lastRallyAt: lastRallyAt)
     }
 
     private static func fields(of ruleset: Ruleset) -> [String: Any] {
@@ -210,6 +220,7 @@ enum MatchPayload {
         static let startedAt = "startedAt"
         static let lastRallyAt = "lastRallyAt"
         static let abandoned = "abandoned"
+        static let scoring = "scoring"
         static let rallies = "rallies"
 
         static let intent = "intent"

@@ -51,8 +51,8 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
                 sql: """
                     INSERT INTO match
                         (id, ruleset, setsToWin, goldenPoint, target, serveChangesEvery,
-                         firstServer, startedAt, lastRallyAt, abandoned)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         firstServer, startedAt, lastRallyAt, abandoned, scoring)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id) DO UPDATE SET
                         lastRallyAt = excluded.lastRallyAt,
                         abandoned = excluded.abandoned,
@@ -62,7 +62,7 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
                     id, ruleset.kind, ruleset.setsToWin, ruleset.goldenPoint,
                     ruleset.target, ruleset.serveChangesEvery,
                     saved.match.firstServer.rawValue, saved.startedAt, saved.lastRallyAt,
-                    saved.match.isAbandoned,
+                    saved.match.isAbandoned, saved.scoring.rawValue,
                 ])
 
             let rallies = saved.match.journal.rallies
@@ -81,12 +81,19 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
         }
     }
 
-    public func matchInProgress() throws -> SavedMatch? {
+    public func matchInProgress(scored ways: Set<MatchScoring>) throws -> SavedMatch? {
         try dbQueue.read { db in
+            let placeholders = Array(repeating: "?", count: ways.count).joined(separator: ", ")
+
             // The last match, not the first unfinished one that turns up: one
             // left at 3:2 a month ago must not rise from the dead in the
             // middle of a court.
-            guard let row = try Row.fetchOne(db, sql: Self.lastMatch) else { return nil }
+            let row = try Row.fetchOne(
+                db,
+                sql: "SELECT * FROM match WHERE scoring IN (\(placeholders)) \(Self.onlyTheLast)",
+                arguments: StatementArguments(ways.map(\.rawValue)))
+
+            guard let row else { return nil }
 
             let saved = try Self.savedMatch(row: row, db: db)
 
@@ -96,7 +103,8 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
 
     public func lastRuleset() throws -> Ruleset? {
         try dbQueue.read { db in
-            guard let row = try Row.fetchOne(db, sql: Self.lastMatch) else { return nil }
+            guard let row = try Row.fetchOne(db, sql: "SELECT * FROM match \(Self.onlyTheLast)")
+            else { return nil }
 
             return try Self.ruleset(from: row)
         }
@@ -106,8 +114,7 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
     /// and the two must not be unified: a match begun earlier but played out
     /// later is the later one to continue, while the history shows starts and
     /// would argue with its own dates if it were ordered by anything else.
-    private static let lastMatch =
-        "SELECT * FROM match ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
+    private static let onlyTheLast = "ORDER BY lastRallyAt DESC, rowid DESC LIMIT 1"
 
     public func match(id: UUID) throws -> SavedMatch? {
         try dbQueue.read { db in
@@ -215,9 +222,16 @@ public final class DatabaseMatchStore: MatchStore, MatchDeliveryQueue {
             journal: RallyJournal(rallies),
             isAbandoned: row["abandoned"])
 
+        let scoring: String = row["scoring"]
+
+        guard let scoring = MatchScoring(rawValue: scoring) else {
+            throw MatchStoreError.unreadableMatch(reason: "unknown scoring \"\(scoring)\"")
+        }
+
         return SavedMatch(
             id: uuid,
             match: match,
+            scoring: scoring,
             startedAt: row["startedAt"],
             lastRallyAt: row["lastRallyAt"])
     }

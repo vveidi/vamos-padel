@@ -120,7 +120,8 @@ struct RootView: View {
         pairedWorkout.standDown()
 
         let started = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: .now)
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: .aloneOnWatch,
+            startedAt: .now)
         match = started
 
         // At once rather than on the first rally: the phone may raise the watch

@@ -8,7 +8,7 @@ import Testing
 struct SavedMatchTests {
     @Test("The match starts with its first rally, not with the app opening")
     func theMatchStartsWithItsFirstRally() {
-        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
+        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), scoring: .aloneOnWatch, startedAt: aMoment)
 
         saved.record(rallyWonBy: .us, at: aMoment.addingTimeInterval(10 * 60))
 
@@ -69,7 +69,7 @@ struct SavedMatchTests {
 
     @Test("An undo on an empty journal moves nothing")
     func anUndoOnAnEmptyJournalMovesNothing() {
-        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
+        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), scoring: .aloneOnWatch, startedAt: aMoment)
         let untouched = saved
 
         saved.undo(at: aMoment.addingTimeInterval(60 * 60))

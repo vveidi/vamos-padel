@@ -51,7 +51,7 @@ struct MatchStoreTests {
     @Test("The journal is written after every rally, not at the end of the match")
     func theJournalIsWrittenAfterEveryRally() throws {
         let store = try DatabaseMatchStore.inMemory()
-        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: aMoment)
+        var saved = SavedMatch(match: Match(ruleset: .defaultClassic), scoring: .aloneOnWatch, startedAt: aMoment)
 
         for (played, winner) in [Side.us, .them, .us, .us].enumerated() {
             saved.record(rallyWonBy: winner, at: aMoment.addingTimeInterval(TimeInterval(played)))
@@ -212,6 +212,49 @@ struct MatchStoreTests {
     @Test("A match that was never written is not in the store")
     func anUnknownMatchIsNotFound() throws {
         #expect(try DatabaseMatchStore.inMemory().match(id: UUID()) == nil)
+    }
+
+    // MARK: How a match was scored
+
+    @Test("How a match was scored reads back", arguments: MatchScoring.allCases)
+    func theScoringReadsBack(scoring: MatchScoring) throws {
+        let store = try DatabaseMatchStore.inMemory()
+        let saved = SavedMatch.played([.us, .them], scoring: scoring)
+
+        try store.save(saved)
+
+        #expect(try store.match(id: saved.id)?.scoring == scoring)
+        #expect(try store.matchInProgress() == saved)
+    }
+
+    @Test("Only the last match scored one of the ways asked for is continued")
+    func theLastMatchScoredOneWayIsContinued() throws {
+        let store = try DatabaseMatchStore.inMemory()
+        let thePhones = SavedMatch.played([.us], scoring: .paired)
+        let theWatchs = SavedMatch.played(
+            [.them], scoring: .aloneOnWatch, from: aMoment.addingTimeInterval(3600))
+
+        try store.save(thePhones)
+        try store.save(theWatchs)
+
+        #expect(try store.matchInProgress(scored: [.aloneOnPhone, .paired]) == thePhones)
+        #expect(try store.matchInProgress(scored: [.aloneOnWatch]) == theWatchs)
+        #expect(try store.matchInProgress(scored: [.aloneOnPhone]) == nil)
+        #expect(try store.matchInProgress(scored: []) == nil)
+    }
+
+    @Test("A finished match of the ways asked for keeps an older unfinished one buried")
+    func aFinishedMatchKeepsAnOlderOneBuried() throws {
+        let store = try DatabaseMatchStore.inMemory()
+        let older = SavedMatch.played([.us], scoring: .paired)
+        let finished = SavedMatch.played(
+            [.us, .us], ruleset: toTwo, scoring: .aloneOnPhone,
+            from: aMoment.addingTimeInterval(3600))
+
+        try store.save(older)
+        try store.save(finished)
+
+        #expect(try store.matchInProgress(scored: [.aloneOnPhone, .paired]) == nil)
     }
 
     // MARK: The previous match's rules
@@ -415,7 +458,7 @@ struct MatchStoreTests {
     @Test("A match without a single rally awaits nothing")
     func aMatchWithoutRalliesAwaitsNothing() throws {
         let store = try DatabaseMatchStore.inMemory()
-        var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
+        var empty = SavedMatch(match: Match(ruleset: toTwo), scoring: .aloneOnWatch, startedAt: aMoment)
         empty.abandon()
 
         try store.save(empty)

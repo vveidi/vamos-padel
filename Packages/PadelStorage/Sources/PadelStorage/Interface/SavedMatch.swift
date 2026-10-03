@@ -8,6 +8,8 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
     /// is what ``record(rallyWonBy:at:)`` and ``undo(at:)`` are for.
     public private(set) var match: Match
 
+    public let scoring: MatchScoring
+
     /// The moment of the first rally, not of the app opening.
     public var startedAt: Date
 
@@ -18,13 +20,23 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
     public var duration: TimeInterval { lastRallyAt.timeIntervalSince(startedAt) }
 
     public init(
-        id: UUID = UUID(), match: Match, startedAt: Date, lastRallyAt: Date? = nil
+        id: UUID = UUID(), match: Match, scoring: MatchScoring, startedAt: Date,
+        lastRallyAt: Date? = nil
     ) {
         self.id = id
         self.match = match
+        self.scoring = scoring
         self.startedAt = startedAt
         self.lastRallyAt = lastRallyAt ?? startedAt
     }
+}
+
+/// Decided when the match starts and never changed afterwards. A paired match
+/// is always the phone's to score (ADR-0017).
+public enum MatchScoring: String, CaseIterable, Sendable {
+    case aloneOnWatch
+    case aloneOnPhone
+    case paired
 }
 
 extension SavedMatch {

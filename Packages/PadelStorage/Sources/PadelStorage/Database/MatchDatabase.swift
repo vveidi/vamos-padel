@@ -28,6 +28,9 @@ enum MatchDatabase {
 
                 t.column("abandoned", .boolean).notNull()
 
+                t.column("scoring", .text).notNull()
+                    .check(sql: "scoring IN ('aloneOnWatch', 'aloneOnPhone', 'paired')")
+
                 // The default is there because writing the match knows nothing
                 // about delivery, and should not: it happens after every rally,
                 // while delivery happens once, at the end.

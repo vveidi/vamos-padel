@@ -286,6 +286,97 @@ struct MatchScorerTests {
         #expect(values.last == link.lastSent)
     }
 
+    // MARK: After a relaunch
+
+    @Test("A paired match left unfinished is held again, and the remote goes on with it")
+    func anUnfinishedPairedMatchComesBack() async throws {
+        let left = SavedMatch.played([.us, .them, .us], scoring: .paired)
+        try store.save(left)
+
+        let link = FakeScorerLink()
+        let relaunched = MatchScorer(store: store, link: link)
+
+        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: true, echo: nil)])
+
+        relaunched.apply(.rally(wonBy: .them, base: 3))
+
+        #expect(echo(of: link.lastSent)?.accepted == true)
+        #expect(try store.match(id: left.id)?.match.journal.count == 4)
+    }
+
+    @Test("A match the phone scored alone is held again, and stays the phone's alone")
+    func anUnfinishedSoloMatchComesBack() async throws {
+        let left = SavedMatch.played([.us, .them], scoring: .aloneOnPhone)
+        try store.save(left)
+
+        let link = FakeScorerLink()
+        let relaunched = MatchScorer(store: store, link: link)
+
+        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: false, echo: nil)])
+
+        relaunched.apply(.rally(wonBy: .them, base: 2))
+
+        #expect(echo(of: link.lastSent)?.accepted == false)
+        relaunched.record(rallyWonBy: .them)
+        #expect(try store.match(id: left.id)?.match.journal.count == 3)
+    }
+
+    @Test("A match the watch scored is never taken up, whatever its state")
+    func theWatchsMatchIsNotTakenUp() async throws {
+        try store.save(SavedMatch.played([.us], scoring: .aloneOnWatch))
+
+        let relaunched = MatchScorer(store: store, link: FakeScorerLink())
+
+        #expect(await relaunched.updates().first(1) == [.noMatch(echo: nil)])
+    }
+
+    @Test("The phone's own last match comes back past one the watch delivered after it")
+    func thePhonesMatchComesBackPastTheWatchs() async throws {
+        let left = SavedMatch.played([.us], scoring: .paired)
+        let delivered = SavedMatch.played(
+            [.them, .them], ruleset: toTwo, scoring: .aloneOnWatch,
+            from: aMoment.addingTimeInterval(3600))
+        try store.save(left)
+        try store.save(delivered)
+
+        let relaunched = MatchScorer(store: store, link: FakeScorerLink())
+
+        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: true, echo: nil)])
+    }
+
+    @Test("A phone match that is over leaves an older unfinished one where it is")
+    func anOverMatchKeepsAnOlderOneBuried() async throws {
+        let older = SavedMatch.played([.us], scoring: .paired)
+        var over = SavedMatch.played(
+            [.us, .them], scoring: .aloneOnPhone, from: aMoment.addingTimeInterval(3600))
+        over.abandon()
+        try store.save(older)
+        try store.save(over)
+
+        let relaunched = MatchScorer(store: store, link: FakeScorerLink())
+
+        #expect(await relaunched.updates().first(1) == [.noMatch(echo: nil)])
+    }
+
+    @Test("The first update the remote hears after a relaunch is the match as it stood")
+    func theRemoteHearsTheMatchFirst() throws {
+        let left = SavedMatch.played([.us, .them], scoring: .paired)
+        try store.save(left)
+
+        let link = FakeScorerLink(reachable: false)
+        let relaunched = MatchScorer(store: store, link: link)
+        withExtendedLifetime(relaunched) { link.becomeReachable(true) }
+
+        #expect(link.sent == [.match(left, isPaired: true, echo: nil)])
+    }
+
+    @Test("A match is started as the phone's, paired or alone", arguments: [true, false])
+    func aStartedMatchSaysHowItIsScored(isPaired: Bool) throws {
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: isPaired))
+
+        #expect(try store.match(id: started.id)?.scoring == (isPaired ? .paired : .aloneOnPhone))
+    }
+
     // MARK: Reading what went out
 
     private func heldMatch(of link: FakeScorerLink) -> SavedMatch? {

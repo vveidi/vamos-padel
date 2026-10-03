@@ -530,7 +530,7 @@ private struct PreviewMatchStore: MatchStore {
 
     func save(_ match: SavedMatch) throws {}
 
-    func matchInProgress() throws -> SavedMatch? { nil }
+    func matchInProgress(scored ways: Set<MatchScoring>) throws -> SavedMatch? { nil }
 
     func match(id: UUID) throws -> SavedMatch? { nil }
 

@@ -43,13 +43,22 @@ struct MatchPayloadTests {
         #expect(arrived.match.isAbandoned)
     }
 
+    @Test("How a match was scored travels with it", arguments: MatchScoring.allCases)
+    func theScoringTravels(scoring: MatchScoring) throws {
+        let saved = SavedMatch.played([.us, .them], scoring: scoring)
+        let update = MatchUpdate.match(saved, isPaired: scoring == .paired, echo: nil)
+
+        #expect(try MatchPayload.decode(MatchPayload.encode(.match(saved))) == .match(saved))
+        #expect(try MatchPayload.decode(MatchPayload.encode(.update(update))) == .update(update))
+    }
+
     @Test("A match parcel written before the live link still decodes, under the same keys")
     func aMatchParcelKeepsItsKeys() throws {
         let saved = SavedMatch.played([.us, .them], ruleset: .classic(setsToWin: 2, goldenPoint: true))
         let written: [String: Any] = [
             "kind": "match", "id": saved.id.uuidString, "firstServer": "us",
             "startedAt": aMoment, "lastRallyAt": aMoment.addingTimeInterval(1),
-            "abandoned": false, "rallies": ["us", "them"],
+            "abandoned": false, "rallies": ["us", "them"], "scoring": "aloneOnWatch",
             "ruleset": "classic", "setsToWin": 2, "goldenPoint": true,
         ]
 
@@ -204,6 +213,20 @@ struct MatchPayloadTests {
                     "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
                     "firstServer": "us",
                 ].merging(times) { a, _ in a }
+            ),
+            (
+                "a match that does not say how it was scored",
+                [
+                    "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
+                    "firstServer": "us",
+                ].merging(times) { a, _ in a }.merging(journal) { a, _ in a }
+            ),
+            (
+                "an unknown way of scoring",
+                [
+                    "id": id, "ruleset": "pointsTo", "target": 16, "serveChangesEvery": 4,
+                    "firstServer": "us", "scoring": "byTheReferee",
+                ].merging(times) { a, _ in a }.merging(journal) { a, _ in a }
             ),
             (
                 "a parcel of an unknown kind",

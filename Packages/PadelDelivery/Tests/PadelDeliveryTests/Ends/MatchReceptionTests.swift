@@ -20,6 +20,24 @@ struct MatchReceptionTests {
         #expect(try store.match(id: saved.id) == saved)
     }
 
+    @Test("A match the watch delivers is stored as the watch's")
+    func aDeliveredMatchIsTheWatchs() throws {
+        let store = try DatabaseMatchStore.inMemory()
+        let transport = FakeTransport()
+        let delivered = SavedMatch.played([.them, .them], ruleset: toTwo, scoring: .aloneOnWatch)
+
+        guard case .match(let arrived) = try MatchPayload.decode(MatchPayload.encode(.match(delivered)))
+        else {
+            Issue.record("the match arrived as something other than a match")
+            return
+        }
+
+        _ = MatchReception(store: store, receiver: transport)
+        transport.deliver(arrived)
+
+        #expect(try store.match(id: delivered.id)?.scoring == .aloneOnWatch)
+    }
+
     @Test("Arriving twice does not create a second match")
     func arrivingTwiceDoesNotDuplicateTheMatch() throws {
         let store = try DatabaseMatchStore.inMemory()

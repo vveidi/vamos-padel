@@ -50,5 +50,5 @@ until the match is over; "End" on a paired match keeps the outcome up.
 A solo board is unchanged. `MatchScorer.release` now takes the match id
 and lets go of nothing else, so a late tap on an old board cannot drop a
 match the watch has just started. Driven on a paired simulator in both
-languages and at the largest type. Open for the owner: End and Undo
-stay on the board of a match that is over, as they do for a solo one.
+languages and at the largest type. End and Undo still stay on the board
+of a match that is over, as they do for a solo one: that is ticket 12.

@@ -16,6 +16,7 @@
 		AA01A000000000000000004E /* PadelStorageDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000004B /* PadelStorageDatabase */; };
 		AA01A000000000000000005D /* PadelLogging in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000005C /* PadelLogging */; };
 		AA01A000000000000000005E /* PadelLogging in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000005B /* PadelLogging */; };
+		AA01A000000000000000006D /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000006C /* PulseUI */; };
 		DDE9576530478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001C /* PadelStorage */; };
 		DDE9576630478A830054DB3F /* PadelStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000001B /* PadelStorage */; };
 		DDFEE3113046086400C7278D /* PadelScoring in Frameworks */ = {isa = PBXBuildFile; productRef = AA01A000000000000000000B /* PadelScoring */; };
@@ -113,6 +114,7 @@
 				AA01A000000000000000002D /* PadelDelivery in Frameworks */,
 				AA01A000000000000000003D /* PadelDesign in Frameworks */,
 				AA01A000000000000000005D /* PadelLogging in Frameworks */,
+				AA01A000000000000000006D /* PulseUI in Frameworks */,
 				DDE9576530478A830054DB3F /* PadelStorage in Frameworks */,
 				AA01A000000000000000004D /* PadelStorageDatabase in Frameworks */,
 				DDFEE3123046086400C7278D /* PadelScoring in Frameworks */,
@@ -190,6 +192,7 @@
 				AA01A000000000000000002C /* PadelDelivery */,
 				AA01A000000000000000003C /* PadelDesign */,
 				AA01A000000000000000005C /* PadelLogging */,
+				AA01A000000000000000006C /* PulseUI */,
 			);
 			productName = "Padel Watch App";
 			productReference = AA01A0000000000000000001 /* Padel Watch App.app */;
@@ -287,6 +290,7 @@
 				AA01A000000000000000002A /* XCLocalSwiftPackageReference "Packages/PadelDelivery" */,
 				AA01A000000000000000003A /* XCLocalSwiftPackageReference "Packages/PadelDesign" */,
 				AA01A000000000000000005A /* XCLocalSwiftPackageReference "Packages/PadelLogging" */,
+				AA01A000000000000000006A /* XCRemoteSwiftPackageReference "Pulse" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DDFEE2E23045B80C00C7278D /* Products */;
@@ -719,6 +723,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		AA01A000000000000000006A /* XCRemoteSwiftPackageReference "Pulse" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Pulse";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 5.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		AA01A000000000000000000B /* PadelScoring */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -767,6 +782,11 @@
 		AA01A000000000000000005C /* PadelLogging */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PadelLogging;
+		};
+		AA01A000000000000000006C /* PulseUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA01A000000000000000006A /* XCRemoteSwiftPackageReference "Pulse" */;
+			productName = PulseUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -98,6 +98,7 @@ it:
     PadelDesign/    Tokens/      what a screen names: palette, ramp, radii
                     Court/       the court, net, ball and the two lights
                     Controls/    the five controls and their metrics
+                    Gestures/    taps that count without showing it
 
     PadelLogging/                one file, no folders: the logger every message
                                  goes through, to os.Logger and to Pulse's store

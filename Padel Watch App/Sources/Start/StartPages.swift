@@ -18,14 +18,19 @@ struct StartPages: View {
         case settings
     }
 
+    @State private var page = Page.start
+
     var body: some View {
-        TabView {
+        TabView(selection: $page) {
             StartView(onStart: onStart)
                 .tag(Page.start)
 
+            // A scroll view on a page off screen still takes the crown's
+            // first turn toward it.
             StartSettings(
                 ruleset: $ruleset, recordsToHealth: $recordsToHealth,
                 startsPaired: $startsPaired, tapMode: $tapMode)
+                .scrollDisabled(page != .settings)
                 .tag(Page.settings)
         }
         .tabViewStyle(.verticalPage)

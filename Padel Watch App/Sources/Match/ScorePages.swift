@@ -29,9 +29,9 @@ struct ScorePages: View {
     /// Already confirmed by the control page when this is called.
     let onAbandon: () -> Void
 
-    /// Built on the first page and moved to the score on appear: a vertical
-    /// `TabView` built on a later page leaves the crown on the first one.
-    @State private var page = Page.controls
+    /// Empty until appear, then the score: a vertical `TabView` built on a
+    /// later page leaves the crown on the first one.
+    @State private var page: Page?
 
     private enum Page {
         case controls
@@ -64,7 +64,10 @@ struct ScorePages: View {
                 .animation(.easeInOut(duration: Board.staleFade), value: isPhoneUnreachable)
                 .tag(Page.score)
 
+            // A scroll view on a page off screen still takes the crown's
+            // first turn toward it.
             TapModePage(tapMode: $tapMode)
+                .scrollDisabled(page != .tapMode)
                 .tag(Page.tapMode)
         }
         .tabViewStyle(.verticalPage)

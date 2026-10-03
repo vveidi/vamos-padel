@@ -1,5 +1,5 @@
-import os
 import PadelDesign
+import PadelLogging
 import PadelScoring
 import PadelStorage
 import SwiftUI
@@ -287,4 +287,4 @@ private struct PreviewMatchStore: MatchStore {
 
 #endif
 
-private let logger = Logger(subsystem: "com.vveidi.padel", category: "history")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel", category: "history")

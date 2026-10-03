@@ -1,7 +1,7 @@
 import HealthKit
 import Observation
-import os
 import PadelDelivery
+import PadelLogging
 
 /// The phone's half of a paired match's workout: the session the watch
 /// mirrors here, which is what lets the app run on in a pocket (ADR-0010).
@@ -202,4 +202,4 @@ extension WatchWorkout: HKWorkoutSessionDelegate {
     }
 }
 
-private let logger = Logger(subsystem: "com.vveidi.padel", category: "workout")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel", category: "workout")

@@ -13,21 +13,21 @@ sites keep reading `logger.error("…")`. The move is one `ast-grep` rule, not
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `Packages/PadelLogging` exists, depends on Pulse, and supports the same
+- [x] `Packages/PadelLogging` exists, depends on Pulse, and supports the same
       platforms as the other packages
-- [ ] `PadelDelivery` and both app targets depend on it, and no file in the
+- [x] `PadelDelivery` and both app targets depend on it, and no file in the
       repo builds an `os.Logger` of its own any more
-- [ ] The three `privacy: .public` interpolations in `HealthKitWorkout.swift`
+- [x] The three `privacy: .public` interpolations in `HealthKitWorkout.swift`
       are plain interpolations: everything is public now
-- [ ] A message written through it shows up in `LoggerStore` with its level
+- [x] A message written through it shows up in `LoggerStore` with its level
       and its category as the label — covered by a test against an in-memory
       store
-- [ ] Subsystems stay as they are: `com.vveidi.padel` on the phone,
+- [x] Subsystems stay as they are: `com.vveidi.padel` on the phone,
       `com.vveidi.padel.watchkitapp` on the watch
-- [ ] Both packages and both app schemes build; all tests pass
-- [ ] `CLAUDE.md`'s "Where things live in the packages" names the new package
+- [x] Both packages and both app schemes build; all tests pass
+- [x] `CLAUDE.md`'s "Where things live in the packages" names the new package
 
 ## Notes
 
@@ -43,3 +43,10 @@ Pulse ships a `PrivacyInfo.xcprivacy` of its own (FileTimestamp, UserDefaults);
 nothing needs adding to ours.
 
 ## Comments
+
+Shipped as `PadelLogger`, not `Logger`: the apps' SwiftUI files see
+`os.Logger` too, and one name for two types would be ambiguous. Each method
+also takes `file`, `function` and `line` with defaults, so a Pulse entry
+points at the call site rather than at the wrapper. Pinned to Pulse 5.2.3.
+Checked on a watch simulator: a notice and an error landed in `os_log` as
+plain text and in `current.pulse` with label `workout`, levels 4 and 6.

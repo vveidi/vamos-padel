@@ -99,6 +99,9 @@ it:
                     Court/       the court, net, ball and the two lights
                     Controls/    the five controls and their metrics
 
+    PadelLogging/                one file, no folders: the logger every message
+                                 goes through, to os.Logger and to Pulse's store
+
 What is *not* in a folder is deliberate: a package's shared test harness and
 its isolation test sit at the test target's root, and `Logging.swift` sits at
 `PadelDelivery`'s, because they belong to no one subsystem.

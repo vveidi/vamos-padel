@@ -1,3 +1,3 @@
-import os
+import PadelLogging
 
-let logger = Logger(subsystem: "com.vveidi.padel", category: "delivery")
+let logger = PadelLogger(subsystem: "com.vveidi.padel", category: "delivery")

@@ -1,5 +1,5 @@
 import HealthKit
-import os
+import PadelLogging
 
 /// Two guarantees over `HKWorkoutSession`: no failure ever reaches the match —
 /// unavailable Health, a refused permission, a session dying mid-game are all
@@ -40,7 +40,7 @@ final class HealthKitWorkout: NSObject, Workout {
         // Still "not determined" afterwards means the system declined to ask —
         // a locked watch answers everything that way; "denied" means an answer
         // is on file from an earlier install and no dialog is coming.
-        logger.notice("health share permission before asking: \(self.shareStatus(), privacy: .public)")
+        logger.notice("health share permission before asking: \(self.shareStatus())")
 
         do {
             try await healthStore.requestAuthorization(
@@ -49,7 +49,7 @@ final class HealthKitWorkout: NSObject, Workout {
             logger.error("health permission was not granted: \(error.localizedDescription)")
         }
 
-        logger.notice("health share permission after asking: \(self.shareStatus(), privacy: .public)")
+        logger.notice("health share permission after asking: \(self.shareStatus())")
 
         let configuration = PadelWorkout.configuration
 
@@ -171,9 +171,9 @@ extension HealthKitWorkout: HKWorkoutSessionDelegate {
         let description = error?.localizedDescription ?? "no error"
 
         Task { @MainActor in
-            logger.notice("the phone let go of the mirrored workout: \(description, privacy: .public)")
+            logger.notice("the phone let go of the mirrored workout: \(description)")
         }
     }
 }
 
-private let logger = Logger(subsystem: "com.vveidi.padel.watchkitapp", category: "workout")
+private let logger = PadelLogger(subsystem: "com.vveidi.padel.watchkitapp", category: "workout")

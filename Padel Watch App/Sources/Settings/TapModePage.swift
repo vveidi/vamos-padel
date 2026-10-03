@@ -7,18 +7,20 @@ struct TapModePage: View {
     @Binding var tapMode: TapMode
 
     var body: some View {
-        ScrollView {
-            TapModeSettings(tapMode: $tapMode)
-                .padding(.top, Board.titleGap)
-                .padding(.horizontal, Board.inset)
-                .padding(.bottom, Board.inset)
+        NavigationStack {
+            ScrollView {
+                TapModeSettings(tapMode: $tapMode)
+                    .padding(.top, Board.titleGap)
+                    .padding(.horizontal, Board.inset)
+                    .padding(.bottom, Board.inset)
+            }
+            .background {
+                Color.night
+                    .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
+                    .ignoresSafeArea()
+            }
+            .navigationTitle("Tap mode")
         }
-        .background {
-            Color.night
-                .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
-                .ignoresSafeArea()
-        }
-        .navigationTitle("Tap mode")
     }
 }
 
@@ -53,7 +55,7 @@ private struct TapModeScreen: View {
     @State var tapMode: TapMode
 
     var body: some View {
-        NavigationStack { TapModePage(tapMode: $tapMode) }
+        TapModePage(tapMode: $tapMode)
     }
 }
 

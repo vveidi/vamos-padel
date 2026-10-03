@@ -29,7 +29,9 @@ struct ScorePages: View {
     /// Already confirmed by the control page when this is called.
     let onAbandon: () -> Void
 
-    @State private var page = Page.score
+    /// Built on the first page and moved to the score on appear: a vertical
+    /// `TabView` built on a later page leaves the crown on the first one.
+    @State private var page = Page.controls
 
     private enum Page {
         case controls
@@ -38,38 +40,36 @@ struct ScorePages: View {
     }
 
     var body: some View {
-        // Around the pages, as `StartPages` has it, and with the bar left alone
-        // for the same reason: the untitled score draws none, and the titled
-        // tap-mode page needs one to push its list from.
-        NavigationStack {
-            TabView(selection: $page) {
-                MatchControls(onAbandon: onAbandon)
-                    .disabled(isPhoneUnreachable)
-                    .tag(Page.controls)
+        TabView(selection: $page) {
+            MatchControls(onAbandon: onAbandon)
+                .disabled(isPhoneUnreachable)
+                .tag(Page.controls)
 
-                ScoreView(
-                    points: points,
-                    games: games,
-                    sets: sets,
-                    servingSide: servingSide,
-                    servingHalf: servingHalf,
-                    tapMode: tapMode,
-                    mark: mark,
-                    onRallyWon: onRallyWon,
-                    onUndo: onUndo,
-                    refusals: refusals)
-                    .disabled(isPhoneUnreachable)
-                    .opacity(isPhoneUnreachable ? Board.staleScore : 1)
-                    .overlay {
-                        if isPhoneUnreachable { PhoneUnreachable() }
-                    }
-                    .animation(.easeInOut(duration: Board.staleFade), value: isPhoneUnreachable)
-                    .tag(Page.score)
+            ScoreView(
+                points: points,
+                games: games,
+                sets: sets,
+                servingSide: servingSide,
+                servingHalf: servingHalf,
+                tapMode: tapMode,
+                mark: mark,
+                onRallyWon: onRallyWon,
+                onUndo: onUndo,
+                refusals: refusals)
+                .disabled(isPhoneUnreachable)
+                .opacity(isPhoneUnreachable ? Board.staleScore : 1)
+                .overlay {
+                    if isPhoneUnreachable { PhoneUnreachable() }
+                }
+                .animation(.easeInOut(duration: Board.staleFade), value: isPhoneUnreachable)
+                .tag(Page.score)
 
-                TapModePage(tapMode: $tapMode)
-                    .tag(Page.tapMode)
-            }
-            .tabViewStyle(.verticalPage)
+            TapModePage(tapMode: $tapMode)
+                .tag(Page.tapMode)
+        }
+        .tabViewStyle(.verticalPage)
+        .onAppear {
+            page = .score
         }
     }
 }

@@ -13,23 +13,22 @@ struct StartPages: View {
 
     let onStart: (Side) -> Void
 
-    var body: some View {
-        // Around the pages rather than inside one, so a list pushed by a rules
-        // row covers the paging instead of arriving under the page indicator.
-        NavigationStack {
-            TabView {
-                StartView(onStart: onStart)
+    private enum Page {
+        case start
+        case settings
+    }
 
-                StartSettings(
-                    ruleset: $ruleset, recordsToHealth: $recordsToHealth,
-                    startsPaired: $startsPaired, tapMode: $tapMode)
-            }
-            .tabViewStyle(.verticalPage)
-            // Deliberately not `.toolbar(.hidden,)`: the bar is drawn per page
-            // and the untitled court gets none anyway, while hiding it leaves
-            // the stack with no bar to push from — every push then logs
-            // "the navigation controller is likely in a bad state".
+    var body: some View {
+        TabView {
+            StartView(onStart: onStart)
+                .tag(Page.start)
+
+            StartSettings(
+                ruleset: $ruleset, recordsToHealth: $recordsToHealth,
+                startsPaired: $startsPaired, tapMode: $tapMode)
+                .tag(Page.settings)
         }
+        .tabViewStyle(.verticalPage)
     }
 }
 
@@ -43,28 +42,30 @@ private struct StartSettings: View {
     @Binding var tapMode: TapMode
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                RulesetSettings(ruleset: $ruleset).padding(.top, Board.titleGap)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    RulesetSettings(ruleset: $ruleset).padding(.top, Board.titleGap)
 
-                TapModeSettings(tapMode: $tapMode).padding(.top, Board.cardGap)
+                    TapModeSettings(tapMode: $tapMode).padding(.top, Board.cardGap)
 
-                SettingsCard {
-                    health
+                    SettingsCard {
+                        health
 
-                    pairing
+                        pairing
+                    }
+                    .padding(.top, Board.cardGap)
                 }
-                .padding(.top, Board.cardGap)
+                .padding(.horizontal, Board.inset)
+                .padding(.bottom, Board.inset)
             }
-            .padding(.horizontal, Board.inset)
-            .padding(.bottom, Board.inset)
+            .background {
+                Color.night
+                    .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
+                    .ignoresSafeArea()
+            }
+            .navigationTitle("Settings")
         }
-        .background {
-            Color.night
-                .overlay { Floodlight(corner: .topLeading, strength: Board.floodlight) }
-                .ignoresSafeArea()
-        }
-        .navigationTitle("Settings")
     }
 
     /// Worded as what the app will do, not as the name of a feature: "Health"
@@ -154,12 +155,10 @@ private struct SettingsFoot: View {
     @State private var recordsToHealth = true
 
     var body: some View {
-        NavigationStack {
-            StartSettings(
-                ruleset: $ruleset, recordsToHealth: $recordsToHealth,
-                startsPaired: $startsPaired, tapMode: $tapMode)
-        }
-        .defaultScrollAnchor(.bottom)
+        StartSettings(
+            ruleset: $ruleset, recordsToHealth: $recordsToHealth,
+            startsPaired: $startsPaired, tapMode: $tapMode)
+            .defaultScrollAnchor(.bottom)
     }
 }
 

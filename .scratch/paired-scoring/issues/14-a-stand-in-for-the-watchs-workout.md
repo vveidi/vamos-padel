@@ -12,22 +12,22 @@ from the phone's own start screen and drive the rest as usual.
 
 **Blocked by:** —
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] **Debug builds only.** The argument is read under `#if DEBUG`; a release
+- [x] **Debug builds only.** The argument is read under `#if DEBUG`; a release
       build has no way to skip Health
-- [ ] **No Health, no wait.** With the argument, `authorize()` answers granted
+- [x] **No Health, no wait.** With the argument, `authorize()` answers granted
       without asking and `start()` answers `.started` at once. Nothing touches
       `HKHealthStore`, and the Health sheet never appears
-- [ ] **Everything past the start is the real thing.** The scorer starts the
+- [x] **Everything past the start is the real thing.** The scorer starts the
       match paired, and the watch takes it up over the live link, as it does
       for a start from the wrist
-- [ ] **Without the argument nothing changes.** The real flow — the sheet, the
+- [x] **Without the argument nothing changes.** The real flow — the sheet, the
       watch's app launched, the mirrored session awaited — is untouched
-- [ ] **Agents can find it.** `docs/agents/targets.md`, or wherever a session
+- [x] **Agents can find it.** `docs/agents/targets.md`, or wherever a session
       looks up how to drive a pair, names the argument and the `simctl launch`
       line that passes it
-- [ ] Driven on a simulator pair: a paired match started from the phone's start
+- [x] Driven on a simulator pair: a paired match started from the phone's start
       screen with the argument, the watch on it, a rally scored from the wrist
 
 ## Notes
@@ -40,3 +40,17 @@ watch's app launch and the mirrored session behave is ticket 07's, on a real
 pair, and a simulator could not show it anyway. Pre-granting Health in the
 simulator's database was considered and left: it is fragile, and it would only
 clear the first of the two steps.
+
+## Comments
+
+**Closed.** A Debug build launched with `-PadelFakesTheWatchWorkout` skips
+Health and the wait: `authorize()` answers granted, `start()` answers
+`.started`, and Health reads as not refused. Driven on a pair: the phone's
+paired start, the watch on the match, a rally from the wrist at 15–0 on both.
+Without the argument the real Health sheet came up. The Release binary does not
+carry the argument. `docs/agents/targets.md` has a new "A pair" section.
+
+"Nothing touches `HKHealthStore`" holds for every call the start makes. `init`
+still makes the store and registers the mirroring handler, which never fires
+on a simulator. The phone holds no workout under the argument, so its board
+stays lit.

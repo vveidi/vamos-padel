@@ -122,6 +122,10 @@ struct ScoreboardView: View {
         saved.match.state.outcome.isOver
     }
 
+    private var wayOffLabel: LocalizedStringKey {
+        isOver ? "Close" : "End"
+    }
+
     private var endQuestion: LocalizedStringKey {
         isOver ? "Close the match?" : "End the match?"
     }
@@ -287,7 +291,7 @@ struct ScoreboardView: View {
                 .accessibilityLabel("Mirror the board")
 
             PillButton(icon("xmark"), variant: .quiet) { isConfirmingEnd = true }
-                .accessibilityLabel("End")
+                .accessibilityLabel(wayOffLabel)
         }
         .frame(maxWidth: arrangement == .sideBySide ? Board.controlsWidth : .infinity)
         .padding(.leading, safeArea.leading + Board.inset)

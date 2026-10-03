@@ -55,7 +55,7 @@ final class WatchWorkout: NSObject {
     func start() async -> Start {
         guard await authorize() else { return .healthRefused }
 
-        if holdsTheWorkout { return .started }
+        if Self.fakesTheWatch || holdsTheWorkout { return .started }
 
         // Listened for before the watch is asked: its answer can arrive
         // before `startWatchApp` returns.
@@ -82,6 +82,8 @@ final class WatchWorkout: NSObject {
 
     /// - Returns: `false` when Health is refused.
     func authorize() async -> Bool {
+        if Self.fakesTheWatch { return true }
+
         guard HKHealthStore.isHealthDataAvailable() else {
             isHealthRefused = true
             return false
@@ -101,9 +103,19 @@ final class WatchWorkout: NSObject {
 
     /// The workout type is the one share permission the mirrored session needs.
     private static func isRefused(by healthStore: HKHealthStore) -> Bool {
-        !HKHealthStore.isHealthDataAvailable()
+        if fakesTheWatch { return false }
+
+        return !HKHealthStore.isHealthDataAvailable()
             || healthStore.authorizationStatus(for: .workoutType()) == .sharingDenied
     }
+
+    #if DEBUG
+    /// Launched with `-PadelFakesTheWatchWorkout`, a paired start answers at once
+    /// without Health: its sheet is out of reach of a simulator's UI automation.
+    private static let fakesTheWatch = ProcessInfo.processInfo.arguments.contains("-PadelFakesTheWatchWorkout")
+    #else
+    private static let fakesTheWatch = false
+    #endif
 
     /// Whichever comes first: the workout, the watch declining, or the end of
     /// the wait.

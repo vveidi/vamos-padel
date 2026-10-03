@@ -74,6 +74,31 @@ Use that UUID for every `-destination`, `simctl` and UI call for the rest of the
 session. The name carries the ticket so `/next-ticket`'s sweep can tell whose
 device it is and delete it when the ticket lands.
 
+## A pair
+
+A match scored on both devices needs the watch paired with the phone, both
+made as above, before either boots:
+
+    xcrun simctl pair <watch uuid> <phone uuid>
+
+The phone's paired start stops at the system's Health sheet, which no UI
+automation can close, and then waits for a mirrored workout a simulator pair
+may never deliver. A Debug build launched with `-PadelFakesTheWatchWorkout`
+skips both: Health answers granted and the workout answers started. Launch
+the watch's app first, since nothing launches it for you:
+
+    xcodebuild -project <name>.xcodeproj -scheme "<scheme>" -showBuildSettings |
+      grep PRODUCT_BUNDLE_IDENTIFIER   # each app's bundle id
+    xcrun simctl launch <watch uuid> <watch app's bundle id>
+    xcrun simctl launch <phone uuid> <phone app's bundle id> -PadelFakesTheWatchWorkout
+
+What follows the start is the real link. The phone holds no workout, though,
+so its board stays lit as in a match scored alone — the sheet, the watch's
+launch and the mirrored session are proved on a real pair only.
+
+On the start screen the "Use Watch" switch sits under the start button, and
+a plain `tap` on it lands on the button. Toggle it through `batch`.
+
 ## A scheme's test action
 
 A scheme with no test target of its own can be built but not tested:

@@ -260,6 +260,60 @@ struct MatchScorerTests {
         #expect(try store.match(id: started.id)?.match == started.match)
     }
 
+    // MARK: The remote hearing the end
+
+    @Test("A paired match ended on either device is held until the remote says it heard the end")
+    func anEndIsHeldUntilTheRemoteHearsIt() throws {
+        let byPhone = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
+        scorer.end()
+        #expect(heldMatch(of: link)?.match.state.outcome == .abandoned)
+
+        link.deliver(.heardEnd(of: byPhone.id))
+        #expect(link.lastSent == .noMatch(echo: nil))
+
+        link.deliver(.start(ruleset: toTwo, firstServer: .us))
+        let byWatch = try #require(heldMatch(of: link))
+        link.deliver(.end(base: 0))
+        #expect(heldMatch(of: link)?.match.state.outcome == .abandoned)
+
+        link.deliver(.heardEnd(of: byWatch.id))
+        #expect(link.lastSent == .noMatch(echo: nil))
+    }
+
+    @Test("An ended match lost on the way is sent again when the link comes back, and heard then")
+    func aLostEndIsResent() throws {
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
+        link.becomeReachable(false)
+        scorer.end()
+        #expect(link.sent == [.match(started, echo: nil)])
+
+        link.becomeReachable(true)
+        #expect(heldMatch(of: link)?.match.state.outcome == .abandoned)
+
+        link.deliver(.heardEnd(of: started.id))
+        #expect(link.lastSent == .noMatch(echo: nil))
+    }
+
+    @Test("The remote hearing the end is not echoed, and lets go of no match still running or won")
+    func hearingTheEndLetsGoOfNothingElse() throws {
+        let running = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
+        let sentBefore = link.sent
+
+        link.deliver(.heardEnd(of: running.id))
+        scorer.end()
+        link.deliver(.heardEnd(of: UUID()))
+        #expect(link.sent.dropFirst(sentBefore.count).count == 1)
+        #expect(heldMatch(of: link)?.match.state.outcome == .abandoned)
+
+        scorer.release(running.id)
+        let won = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
+        scorer.record(rallyWonBy: .us)
+        scorer.record(rallyWonBy: .us)
+        link.deliver(.heardEnd(of: won.id))
+        #expect(heldMatch(of: link)?.match.state.outcome.isOver == true)
+        #expect(heldMatch(of: link)?.id == won.id)
+    }
+
     @Test("A broadcast that keeps nothing replays nothing to a listener that arrives late")
     func aBroadcastThatKeepsNothingReplaysNothing() async {
         let broadcast = Broadcast<Int>(keepsLatest: false)

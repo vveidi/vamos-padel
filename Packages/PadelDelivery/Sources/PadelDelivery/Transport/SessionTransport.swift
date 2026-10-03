@@ -176,6 +176,7 @@ extension MatchIntent {
         case .undo(let base): "undo after \(base) rallies"
         case .end(let base): "end after \(base) rallies"
         case .scoringAlone: "scoring alone"
+        case .heardEnd(let matchID): "heard the end of \(matchID)"
         }
     }
 }

@@ -89,7 +89,8 @@ public final class MatchScorer: Sendable {
         change(.undo)
     }
 
-    /// Does nothing to a match already over.
+    /// Does nothing to a match already over. A paired match stays held until
+    /// the remote says it heard the end, or until it is released.
     public func end() {
         change(.end)
     }
@@ -98,13 +99,7 @@ public final class MatchScorer: Sendable {
     /// Does nothing once the scorer holds another match: one the remote
     /// started after `matchID` was read.
     public func release(_ matchID: UUID) {
-        held.withLock { held in
-            guard held?.id == matchID else { return }
-
-            held = nil
-
-            publish(held, echo: nil)
-        }
+        held.withLock { held in release(&held, matchID) }
     }
 
     /// Refused, with nothing changed, when there is no paired match running or
@@ -114,6 +109,12 @@ public final class MatchScorer: Sendable {
         guard intent != .scoringAlone else { return declines.send(()) }
 
         held.withLock { held in
+            if case .heardEnd(let matchID) = intent {
+                guard held?.match.state.outcome == .abandoned else { return }
+
+                return release(&held, matchID)
+            }
+
             let accepted =
                 switch intent {
                 case .rally(let side, let base) where held.answers(on: base): change(&held, .rally(side))
@@ -121,7 +122,7 @@ public final class MatchScorer: Sendable {
                 case .end(let base) where held.answers(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
                     start(&held, ruleset: ruleset, firstServer: firstServer, scoring: .paired)
-                case .rally, .undo, .end, .scoringAlone: false
+                case .rally, .undo, .end, .scoringAlone, .heardEnd: false
                 }
 
             publish(held, echo: Echo(intent: intent, accepted: accepted))
@@ -178,6 +179,14 @@ public final class MatchScorer: Sendable {
         persist(started)
 
         return true
+    }
+
+    private func release(_ held: inout SavedMatch?, _ matchID: UUID) {
+        guard held?.id == matchID else { return }
+
+        held = nil
+
+        publish(held, echo: nil)
     }
 
     /// - Returns: `false` when the match was left as it was.

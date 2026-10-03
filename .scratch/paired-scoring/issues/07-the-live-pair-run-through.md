@@ -41,6 +41,10 @@ or sink the release.
       on, and does not with it off; the match runs either way
 - [ ] **Refusing Health authorization** on the phone leaves the phone's switch
       off and says why
+- [ ] **The end is heard.** End a paired match and cut the link the moment
+      the watch shows "Match unfinished": the board waits, offers "Leave
+      anyway" after about ten seconds, and the watch keeps its outcome. Close
+      a won paired match: the board leaves at once (ticket 13)
 - [ ] **Two pairs, one bench.** Read the board from where the players actually
       stand, mirror it, read it again. Digits legible at three metres
 - [ ] Every number and every surprise goes into the closing note

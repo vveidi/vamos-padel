@@ -27,6 +27,8 @@ struct ScoreboardView: View {
 
     @State private var isConfirmingEnd = false
 
+    @State private var offersLeaving: Bool
+
     /// `nil` until a rally lands while the board is up: one that landed before
     /// it appeared marks nothing.
     @State private var mark: RallyMark?
@@ -41,10 +43,12 @@ struct ScoreboardView: View {
     init(
         match: SavedMatch, scorer: MatchScorer,
         holdsTheWatchsWorkout: Bool = false, mirrored: Bool = false,
-        markHeldAtPeak: Side? = nil, confirmingEnd: Bool = false, onLeave: @escaping () -> Void
+        markHeldAtPeak: Side? = nil, confirmingEnd: Bool = false, offeringToLeave: Bool = false,
+        onLeave: @escaping () -> Void
     ) {
         _saved = State(initialValue: match)
         _isConfirmingEnd = State(initialValue: confirmingEnd)
+        _offersLeaving = State(initialValue: offeringToLeave)
         self.scorer = scorer
         self.holdsTheWatchsWorkout = holdsTheWatchsWorkout
         _isMirrored = State(initialValue: mirrored)
@@ -62,8 +66,19 @@ struct ScoreboardView: View {
                 safeArea: geometry.safeAreaInsets
             )
             .ignoresSafeArea()
+            .accessibilityHidden(isWaitingForTheWatch)
         }
         .background(Color.night)
+        .overlay {
+            if isWaitingForTheWatch { waitingForTheWatch }
+        }
+        .task(id: isWaitingForTheWatch) {
+            guard isWaitingForTheWatch else { return }
+
+            try? await Task.sleep(for: patience)
+
+            if !Task.isCancelled { offersLeaving = true }
+        }
         // An alert and not the watch's confirmation dialog, which in landscape
         // drops its cancel button and leaves "End" standing on its own.
         .alert(endQuestion, isPresented: $isConfirmingEnd) {
@@ -117,6 +132,12 @@ struct ScoreboardView: View {
 
     private var isOver: Bool {
         saved.match.state.outcome.isOver
+    }
+
+    /// The scorer lets go of an ended paired match once the watch says it has
+    /// it, and the board leaves then.
+    private var isWaitingForTheWatch: Bool {
+        saved.isPaired && saved.match.state.outcome == .abandoned
     }
 
     private var wayOffLabel: LocalizedStringKey {
@@ -273,6 +294,32 @@ struct ScoreboardView: View {
         } else {
             Text(saved.startedAt, style: .timer)
         }
+    }
+
+    // MARK: Waiting for the watch
+
+    private var waitingForTheWatch: some View {
+        VStack(spacing: Board.waitingGap) {
+            ProgressView()
+                .tint(.ball)
+
+            Text("Waiting for the watch")
+                .textStyle(.body)
+                .foregroundStyle(.ink.weight(.strong))
+                .multilineTextAlignment(.center)
+
+            if offersLeaving {
+                PillButton(Text("Leave anyway"), variant: .quiet, action: onLeave)
+            }
+        }
+        .padding(Board.waitingPadding)
+        .frame(maxWidth: Board.controlsWidth)
+        .background(Color.night, in: RoundedRectangle(cornerRadius: .card))
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .padding(Board.inset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.night.opacity(Board.waitingScrim))
     }
 
     // MARK: The controls along the bottom
@@ -611,7 +658,18 @@ private enum Board {
     static let controlInset: CGFloat = 12
 
     static let floodlight: Double = 0.13
+
+    static let waitingGap: CGFloat = 16
+
+    static let waitingPadding: CGFloat = 24
+
+    /// Enough to quiet the board and its controls, not enough to hide the
+    /// score the match ended on.
+    static let waitingScrim: Double = 0.8
 }
+
+/// How long the board waits on the watch before it offers to leave without it.
+private let patience = Duration.seconds(10)
 
 #if DEBUG
 
@@ -681,6 +739,24 @@ private enum Board {
 
 #Preview("In Russian, at the largest type", traits: .landscapeLeft) {
     atLargestType(inRussian(board(.previewCountingPoints)))
+}
+
+// MARK: A paired match ended, waiting for the watch
+
+#Preview("Ended, waiting for the watch", traits: .landscapeLeft) {
+    waitingForTheWatch(offeringToLeave: false)
+}
+
+#Preview("Ended, the watch silent: leave anyway", traits: .landscapeLeft) {
+    waitingForTheWatch(offeringToLeave: true)
+}
+
+#Preview("In Russian, at the largest type: the watch silent", traits: .landscapeLeft) {
+    atLargestType(inRussian(waitingForTheWatch(offeringToLeave: true)))
+}
+
+#Preview("Stacked, in Russian: the watch silent", traits: .portrait) {
+    inRussian(waitingForTheWatch(offeringToLeave: true))
 }
 
 // MARK: A match won
@@ -866,6 +942,14 @@ private func watchLost(_ match: SavedMatch) -> some View {
 private func paired(_ match: SavedMatch) -> some View {
     ScoreboardView(match: match.asPaired, scorer: reachableWatchScorer, onLeave: {})
         .preferredColorScheme(.dark)
+}
+
+private func waitingForTheWatch(offeringToLeave: Bool) -> some View {
+    ScoreboardView(
+        match: SavedMatch.previewClassicAbandoned.asPaired, scorer: reachableWatchScorer,
+        offeringToLeave: offeringToLeave, onLeave: {}
+    )
+    .preferredColorScheme(.dark)
 }
 
 /// The two tiers differ in time only, so at the peak what tells them apart is

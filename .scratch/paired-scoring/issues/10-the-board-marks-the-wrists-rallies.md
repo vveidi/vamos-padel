@@ -6,17 +6,17 @@ once the phone can be handed a rally it did not record.
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] **Every rally is marked, whatever awarded it.** A rally tapped into the
+- [x] **Every rally is marked, whatever awarded it.** A rally tapped into the
       wrist marks the board. The phone has no origin filter, and the one 05
       adds to the watch has no counterpart on the phone — ADR-0011 says why the
       two devices differ
-- [ ] A rally the phone awards and a rally that arrives over the live link go
+- [x] A rally the phone awards and a rally that arrives over the live link go
       through one path and look identical. Today that path is
       `ScoreboardView`'s `onChange` on the journal; whatever 05 changes about
       how the board gets its match must keep it the only one
-- [ ] The board is driven on a simulator pair with the watch awarding the
+- [x] The board is driven on a simulator pair with the watch awarding the
       rallies: a rally to each side, a game taken, an undo from the wrist that
       marks nothing
 
@@ -35,3 +35,12 @@ own tap or from the wrist's intent, reaches the board through
 only by the `onChange` on the journal, which ignores a journal that shrank. No
 code is expected: the first two criteria are read off the code and checked;
 the third is the simulator drive, and a mark that fails it is a bug fixed here.
+
+**Closed.** No code changed: the drive found nothing to fix. The first two
+criteria are read off the code. The phone's own tap and the wrist's intent
+both end in `MatchScorer.publish`, `ScoreboardView.follow()` takes either, and
+the `onChange` on the journal has no origin to filter on. The third was driven
+on a paired iPhone 17 Pro and Series 11 simulator, the watch awarding every
+rally while the phone's screen was recorded. A rally to us, one to the
+opponents and a game each lit their half. A long-press undo on the wrist took
+the board back and lit nothing.

@@ -55,7 +55,12 @@ final class WatchWorkout: NSObject {
     func start() async -> Start {
         guard await authorize() else { return .healthRefused }
 
-        if Self.fakesTheWatch || holdsTheWorkout { return .started }
+        if Self.fakesTheWatch {
+            logger.info("the watch's workout was faked")
+            return .started
+        }
+
+        if holdsTheWorkout { return .started }
 
         // Listened for before the watch is asked: its answer can arrive
         // before `startWatchApp` returns.
@@ -149,11 +154,15 @@ final class WatchWorkout: NSObject {
         self.session = session
         holdsTheWorkout = true
 
+        logger.info("the watch's workout was mirrored here")
+
         onArrival?()
     }
 
     private func letGo(of session: HKWorkoutSession? = nil) {
         guard session == nil || session === self.session else { return }
+
+        if holdsTheWorkout { logger.info("the mirrored workout ended") }
 
         self.session = nil
         holdsTheWorkout = false

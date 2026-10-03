@@ -6,18 +6,18 @@ already there — short, lower case, saying what happened.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] **Both devices:** the app launched, the store opened and how many matches
+- [x] **Both devices:** the app launched, the store opened and how many matches
       it holds; the app went to the background and came back
-- [ ] **The match:** started — its ruleset, how it is scored (watch alone,
+- [x] **The match:** started — its ruleset, how it is scored (watch alone,
       phone alone, paired) and who serves; over or abandoned — the final score
       and how long it lasted; an unfinished match taken back on launch
-- [ ] **Delivery:** the session activated; the other device reachable or not;
+- [x] **Delivery:** the session activated; the other device reachable or not;
       a parcel sent and a parcel received, with its kind (`match`, `receipt`,
       `intent`, `update`) and the match's id; a delivery marked
-- [ ] **The workout:** started, mirrored to the phone, ended, written to Health
-- [ ] **Every rally:** `debug`, who won it and the score after; an undo too
+- [x] **The workout:** started, mirrored to the phone, ended, written to Health
+- [x] **Every rally:** `debug`, who won it and the score after; an undo too
 - [ ] Driven on a simulator pair: a paired match played and ended, then read
       in both consoles (02, 03) — or, if they are not built yet, in
       Console.app — with every line above present
@@ -28,3 +28,16 @@ A rally a minute is 100–200 lines a match; the console filters by level, and
 the 14-day retention holds weeks of them.
 
 ## Comments
+
+**2026-10-03, closing note.** Every line above is written; the match's
+wording lives once, in `MatchLog`. Read in Console on a simulator pair (02
+and 03 are not built): launch, store count, background and back, restore on
+both devices, start on all three scorings, rallies, undo, over, abandoned,
+session, reachability, parcels sent and received, the watch's workout started,
+ended and written to Health.
+
+Not seen: a queued `match` or `receipt` arriving, "delivery was marked", and
+the mirrored workout on either side. The pair never delivered
+`transferUserInfo`, and `targets.md` already says it cannot mirror a workout.
+The last criterion stays open for a read on a real pair, hence
+`ready-for-human`.

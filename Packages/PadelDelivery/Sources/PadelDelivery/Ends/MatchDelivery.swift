@@ -18,6 +18,8 @@ public final class MatchDelivery: Sendable {
         sender.onDelivery { [queue] match in
             do {
                 try queue.markDelivered(match)
+
+                logger.info("delivery was marked: \(match.id)")
             } catch {
                 // The match stays in the queue and leaves again, which beats
                 // counting as delivered a write that did not happen.

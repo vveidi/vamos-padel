@@ -64,6 +64,8 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
         }
 
         session.enqueue(MatchPayload.encode(arrival))
+
+        logger.info("sent \(arrival.described)")
     }
 
     // MARK: The live link
@@ -92,17 +94,24 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
         guard let session, isReachable else { throw LiveLinkError.unreachable }
 
         session.sendNow(MatchPayload.encode(arrival))
+
+        logger.info("sent \(arrival.described)")
     }
 
     // MARK: What the session reports
 
     func sessionActivated() {
+        logger.info("the session activated")
+
         handlers.get(\.ready)?()
         reachabilityChanged()
     }
 
     func reachabilityChanged() {
-        handlers.get(\.reachability)?(isReachable)
+        let reachable = isReachable
+        logger.info(reachable ? "the other device is reachable" : "the other device is not reachable")
+
+        handlers.get(\.reachability)?(reachable)
     }
 
     func received(queued payload: [String: Any]) {
@@ -125,10 +134,39 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
 
     private func decode(_ payload: [String: Any]) -> Arrival? {
         do {
-            return try MatchPayload.decode(payload)
+            let arrival = try MatchPayload.decode(payload)
+
+            logger.info("received \(arrival.described)")
+
+            return arrival
         } catch {
             logger.error("the parcel that arrived was not decoded: \(error.localizedDescription)")
             return nil
+        }
+    }
+}
+
+extension Arrival {
+    /// An update is named `update` here, whichever of its two kinds it travels as.
+    fileprivate var described: String {
+        switch self {
+        case .match(let saved): "a match parcel: \(saved.id)"
+        case .receipt(let saved): "a receipt parcel: \(saved.id)"
+        case .intent(let intent): "an intent parcel: \(intent.described)"
+        case .update(.match(let saved, _)): "an update parcel: \(saved.id)"
+        case .update(.noMatch): "an update parcel: no match"
+        }
+    }
+}
+
+extension MatchIntent {
+    fileprivate var described: String {
+        switch self {
+        case .start(_, let firstServer): "start, \(firstServer.rawValue) to serve"
+        case .rally(let winner, let base): "rally won by \(winner.rawValue) after \(base) rallies"
+        case .undo(let base): "undo after \(base) rallies"
+        case .end(let base): "end after \(base) rallies"
+        case .scoringAlone: "scoring alone"
         }
     }
 }

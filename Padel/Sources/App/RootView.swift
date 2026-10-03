@@ -44,6 +44,9 @@ struct RootView: View {
     private func follow() async {
         for await update in scorer.updates() {
             switch update {
+            // Ended on either device: the phone holds no match once it is ended.
+            case .match(let match, _, _) where match.match.state.outcome == .abandoned:
+                leave(match)
             case .match(let match, let isPaired, _) where match.id != held?.match.id:
                 held = Held(match: match, isPaired: isPaired)
             case .match:

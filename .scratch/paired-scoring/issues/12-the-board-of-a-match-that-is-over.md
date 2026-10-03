@@ -11,25 +11,25 @@ board shows over is a won one.
 
 **Blocked by:** 09
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] **No chevron.** The board's way back ("Back to your matches") is removed,
+- [x] **No chevron.** The board's way back ("Back to your matches") is removed,
       solo and paired alike
-- [ ] **End always takes the board away.** On a match in play it asks as it
+- [x] **End always takes the board away.** On a match in play it asks as it
       does today, ends the match and leaves for the history — a paired match
       too, which today stays on the board after End
-- [ ] **End on a won match asks too, truthfully.** Its alert says nothing
+- [x] **End on a won match asks too, truthfully.** Its alert says nothing
       about the match being saved as unfinished; it asks whether to leave a
       match that is saved as it was won, and leaves on yes
-- [ ] **A match ended on the watch takes the board away.** End on the wrist
+- [x] **A match ended on the watch takes the board away.** End on the wrist
       takes the phone's board to the history as End on the phone does. The
       watch's own outcome screen is unchanged
-- [ ] **Undo is always there.** On a won match it takes back the winning rally
+- [x] **Undo is always there.** On a won match it takes back the winning rally
       and the match plays on, solo and paired; on the wrist a reopened paired
       match goes back to its score screen
-- [ ] Previews cover the board of a won match, solo and paired, and the End
+- [x] Previews cover the board of a won match, solo and paired, and the End
       alert on it
-- [ ] Driven on a simulator pair: a paired match won, undone from the phone and
+- [x] Driven on a simulator pair: a paired match won, undone from the phone and
       won again; ended from the phone; ended from the wrist. A solo match won,
       then left through End
 
@@ -59,3 +59,12 @@ The phone keeps its screen lit until that session arrives.
 **Triage.** The owner's calls: the chevron goes; End is the way off and always
 asks; Undo stays on every board; a match ended on the wrist takes the phone's
 board with it.
+
+**Closed.** The chevron is gone, and End is the board's one way off. On a
+match in play it asks as before and ends it. On a won match it asks "Close the
+match?" and says the result is saved. `RootView` leaves for the history when
+an update carries an abandoned match, so End on the wrist takes the phone
+there too. Undo needed no change: it already reopened a won match, and the
+watch went back to its score screen. Driven on a paired simulator in Russian,
+and in English at the largest type, through every state the last criterion
+lists.

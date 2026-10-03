@@ -46,7 +46,7 @@ struct MatchPayloadTests {
     @Test("How a match was scored travels with it", arguments: MatchScoring.allCases)
     func theScoringTravels(scoring: MatchScoring) throws {
         let saved = SavedMatch.played([.us, .them], scoring: scoring)
-        let update = MatchUpdate.match(saved, isPaired: scoring == .paired, echo: nil)
+        let update = MatchUpdate.match(saved, echo: nil)
 
         #expect(try MatchPayload.decode(MatchPayload.encode(.match(saved))) == .match(saved))
         #expect(try MatchPayload.decode(MatchPayload.encode(.update(update))) == .update(update))
@@ -85,16 +85,16 @@ struct MatchPayloadTests {
     @Test(
         "An update decodes back unchanged, with its echo or without one",
         arguments: [
-            MatchUpdate.match(SavedMatch.played([.us], ruleset: .defaultClassic), isPaired: false, echo: nil),
+            MatchUpdate.match(SavedMatch.played([.us], ruleset: .defaultClassic), echo: nil),
             .match(
                 SavedMatch.played([.us, .them], ruleset: .classic(setsToWin: 1, goldenPoint: true)),
-                isPaired: true, echo: Echo(intent: .rally(wonBy: .them, base: 1), accepted: true)),
+                echo: Echo(intent: .rally(wonBy: .them, base: 1), accepted: true)),
             .match(
                 SavedMatch.played([.them], ruleset: .pointsTo(target: 21, serveChangesEvery: 2)),
-                isPaired: true, echo: Echo(intent: .undo(base: 2), accepted: false)),
+                echo: Echo(intent: .undo(base: 2), accepted: false)),
             .match(
                 SavedMatch.played([], ruleset: .defaultPointsTo, firstServer: .them),
-                isPaired: true, echo: Echo(
+                echo: Echo(
                     intent: .start(ruleset: .defaultPointsTo, firstServer: .them), accepted: true)),
             .noMatch(echo: nil),
             .noMatch(echo: Echo(intent: .end(base: 9), accepted: false)),
@@ -108,7 +108,7 @@ struct MatchPayloadTests {
         let saved = SavedMatch.played([.us, .us], ruleset: toTwo)
 
         #expect(
-            try MatchPayload.decode(MatchPayload.encode(.update(.match(saved, isPaired: true, echo: nil))))
+            try MatchPayload.decode(MatchPayload.encode(.update(.match(saved, echo: nil))))
                 != .match(saved))
     }
 
@@ -117,7 +117,7 @@ struct MatchPayloadTests {
     @Test("An unreadable live link parcel is refused rather than defaulted")
     func anUnreadableLiveLinkParcelIsRefused() {
         let saved = SavedMatch.played([.us], ruleset: toTwo)
-        let update = MatchPayload.encode(.update(.match(saved, isPaired: true, echo: nil)))
+        let update = MatchPayload.encode(.update(.match(saved, echo: nil)))
         let rally = MatchPayload.encode(.intent(.rally(wonBy: .us, base: 1)))
 
         func without(_ key: String, in payload: [String: Any]) -> [String: Any] {
@@ -131,7 +131,7 @@ struct MatchPayloadTests {
         let payloads: [(what: String, payload: [String: Any])] = [
             ("an update without its kind", without("kind", in: update)),
             ("an update without its journal", without("rallies", in: update)),
-            ("an update that does not say whether it is paired", without("paired", in: update)),
+            ("an update that does not say how the match is scored", without("scoring", in: update)),
             ("an intent without its kind", without("kind", in: rally)),
             ("an intent of no known kind", with("intent", "serve", in: rally)),
             ("an intent that names none", without("intent", in: rally)),

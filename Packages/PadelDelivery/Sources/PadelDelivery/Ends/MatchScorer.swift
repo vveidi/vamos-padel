@@ -152,7 +152,7 @@ public final class MatchScorer: Sendable {
     }
 
     private static func update(_ held: SavedMatch?, echo: Echo?) -> MatchUpdate {
-        held.map { .match($0, isPaired: $0.scoring == .paired, echo: echo) } ?? .noMatch(echo: echo)
+        held.map { .match($0, echo: echo) } ?? .noMatch(echo: echo)
     }
 
     // MARK: Under the lock
@@ -218,6 +218,6 @@ extension Optional where Wrapped == SavedMatch {
     }
 
     fileprivate func answers(on base: Int) -> Bool {
-        isRunning && self?.scoring == .paired && self?.match.journal.count == base
+        isRunning && self?.isPaired == true && self?.match.journal.count == base
     }
 }

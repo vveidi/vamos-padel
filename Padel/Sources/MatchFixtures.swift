@@ -13,11 +13,11 @@ extension SavedMatch {
     /// them included.
     static func preview(
         _ winners: [Side], ruleset: Ruleset, abandoned: Bool = false,
-        firstServer: Side = .us, scoring: MatchScoring = .aloneOnPhone,
+        firstServer: Side = .us,
         startedAt start: Date = Date(timeIntervalSinceNow: -3 * 24 * 60 * 60)
     ) -> SavedMatch {
         var saved = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: scoring,
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: .aloneOnPhone,
             startedAt: start)
 
         for (played, winner) in winners.enumerated() {
@@ -28,6 +28,11 @@ extension SavedMatch {
         if abandoned { saved.abandon() }
 
         return saved
+    }
+
+    var asPaired: SavedMatch {
+        SavedMatch(
+            id: id, match: match, scoring: .paired, startedAt: startedAt, lastRallyAt: lastRallyAt)
     }
 
     static func preview(classicWonBy winner: Side) -> SavedMatch {

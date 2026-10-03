@@ -100,7 +100,7 @@ struct MatchScorerTests {
 
         scorer.apply(.undo(base: 1))
 
-        #expect(link.lastSent == .match(truth, isPaired: true, echo: Echo(intent: .undo(base: 1), accepted: false)))
+        #expect(link.lastSent == .match(truth, echo: Echo(intent: .undo(base: 1), accepted: false)))
         #expect(try store.match(id: truth.id)?.match == truth.match)
     }
 
@@ -134,7 +134,7 @@ struct MatchScorerTests {
         for intent in [MatchIntent.rally(wonBy: .them, base: 0), .undo(base: 0), .end(base: 0)] {
             scorer.apply(intent)
 
-            #expect(link.lastSent == .match(alone, isPaired: false, echo: Echo(intent: intent, accepted: false)))
+            #expect(link.lastSent == .match(alone, echo: Echo(intent: intent, accepted: false)))
         }
 
         scorer.record(rallyWonBy: .us)
@@ -145,8 +145,7 @@ struct MatchScorerTests {
     func aStartFromTheRemoteIsPaired() {
         scorer.apply(.start(ruleset: toTwo, firstServer: .them))
 
-        guard case .match(_, let isPaired, _) = link.lastSent else { Issue.record("no match held"); return }
-        #expect(isPaired)
+        #expect(heldMatch(of: link)?.scoring == .paired)
     }
 
     @Test("The echo names the intent it answers")
@@ -173,7 +172,7 @@ struct MatchScorerTests {
 
         scorer.apply(.start(ruleset: .defaultClassic, firstServer: .them))
 
-        #expect(link.lastSent == .match(running, isPaired: true, echo: Echo(intent: .start(ruleset: .defaultClassic, firstServer: .them), accepted: false)))
+        #expect(link.lastSent == .match(running, echo: Echo(intent: .start(ruleset: .defaultClassic, firstServer: .them), accepted: false)))
     }
 
     @Test("A match over, or let go, makes room for the next")
@@ -210,7 +209,7 @@ struct MatchScorerTests {
         #expect(link.sent.isEmpty)
 
         link.becomeReachable(true)
-        #expect(link.sent == [.match(started, isPaired: true, echo: nil)])
+        #expect(link.sent == [.match(started, echo: nil)])
     }
 
     @Test("A link that cannot be reached does not stop the match")
@@ -223,7 +222,7 @@ struct MatchScorerTests {
 
         let held = await updates.first(2).last
         #expect(try store.match(id: started.id)?.match.journal.count == 1)
-        guard case .match(let saved, _, _) = held else { Issue.record("no match held"); return }
+        guard case .match(let saved, _) = held else { Issue.record("no match held"); return }
         #expect(saved.match.journal.count == 1)
     }
 
@@ -282,7 +281,7 @@ struct MatchScorerTests {
         scorer.apply(.rally(wonBy: .us, base: 0))
 
         let values = await updates.first(2)
-        #expect(values.first == .match(started, isPaired: true, echo: nil))
+        #expect(values.first == .match(started, echo: nil))
         #expect(values.last == link.lastSent)
     }
 
@@ -296,7 +295,7 @@ struct MatchScorerTests {
         let link = FakeScorerLink()
         let relaunched = MatchScorer(store: store, link: link)
 
-        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: true, echo: nil)])
+        #expect(await relaunched.updates().first(1) == [.match(left, echo: nil)])
 
         relaunched.apply(.rally(wonBy: .them, base: 3))
 
@@ -312,7 +311,7 @@ struct MatchScorerTests {
         let link = FakeScorerLink()
         let relaunched = MatchScorer(store: store, link: link)
 
-        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: false, echo: nil)])
+        #expect(await relaunched.updates().first(1) == [.match(left, echo: nil)])
 
         relaunched.apply(.rally(wonBy: .them, base: 2))
 
@@ -341,7 +340,7 @@ struct MatchScorerTests {
 
         let relaunched = MatchScorer(store: store, link: FakeScorerLink())
 
-        #expect(await relaunched.updates().first(1) == [.match(left, isPaired: true, echo: nil)])
+        #expect(await relaunched.updates().first(1) == [.match(left, echo: nil)])
     }
 
     @Test("A phone match that is over leaves an older unfinished one where it is")
@@ -367,7 +366,7 @@ struct MatchScorerTests {
         let relaunched = MatchScorer(store: store, link: link)
         withExtendedLifetime(relaunched) { link.becomeReachable(true) }
 
-        #expect(link.sent == [.match(left, isPaired: true, echo: nil)])
+        #expect(link.sent == [.match(left, echo: nil)])
     }
 
     @Test("A match is started as the phone's, paired or alone", arguments: [true, false])
@@ -380,14 +379,14 @@ struct MatchScorerTests {
     // MARK: Reading what went out
 
     private func heldMatch(of link: FakeScorerLink) -> SavedMatch? {
-        guard case .match(let saved, _, _) = link.lastSent else { return nil }
+        guard case .match(let saved, _) = link.lastSent else { return nil }
 
         return saved
     }
 
     private func echo(of update: MatchUpdate?) -> Echo? {
         switch update {
-        case .match(_, _, let echo), .noMatch(let echo): echo
+        case .match(_, let echo), .noMatch(let echo): echo
         case nil: nil
         }
     }

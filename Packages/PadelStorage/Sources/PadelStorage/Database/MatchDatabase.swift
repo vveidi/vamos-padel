@@ -1,4 +1,5 @@
 import GRDB
+import PadelStorage
 
 /// There is one schema version: a column is added by editing `v1` rather than
 /// by appending a second migration, until the first release, after which the
@@ -29,7 +30,7 @@ enum MatchDatabase {
                 t.column("abandoned", .boolean).notNull()
 
                 t.column("scoring", .text).notNull()
-                    .check(sql: "scoring IN ('aloneOnWatch', 'aloneOnPhone', 'paired')")
+                    .check { MatchScoring.allCases.map(\.rawValue).contains($0) }
 
                 // The default is there because writing the match knows nothing
                 // about delivery, and should not: it happens after every rally,

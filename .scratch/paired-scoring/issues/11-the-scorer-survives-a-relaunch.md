@@ -66,6 +66,7 @@ Driven on a simulator pair: a solo match at 30:15 and a paired one at 30:0 each
 came back after the phone app was terminated, and the watch stayed on the
 paired one and scored the next rally into it. The paired match was started from
 the watch: the phone's own paired start stops at the Health sheet, which the
-automation cannot reach. Left open: `MatchUpdate` still carries `isPaired`
-beside `SavedMatch.scoring` — the owner's call whether to fold it in. A database
-from before this change has no `scoring` column: delete the app (ADR-0014).
+automation cannot reach. On review, `MatchUpdate` and the wire lost their own
+`isPaired`: both ends read `SavedMatch.isPaired`, and the schema's check is
+built from `MatchScoring.allCases`. A database from before this change has no
+`scoring` column: delete the app (ADR-0014).

@@ -171,7 +171,7 @@ struct RootView: View {
     private func followPhone() async {
         for await update in remote.updates() {
             switch update {
-            case .match(let held, isPaired: true, _) where !held.match.state.outcome.isOver:
+            case .match(let held, _) where held.isPaired && !held.match.state.outcome.isOver:
                 phonesPairedMatch = held
             case .match, .noMatch:
                 phonesPairedMatch = nil
@@ -184,7 +184,7 @@ struct RootView: View {
             // Refused, the start leaves a match the phone scores alone: a
             // paired one was joined just above.
             switch update {
-            case .match(_, _, let echo?), .noMatch(let echo?):
+            case .match(_, let echo?), .noMatch(let echo?):
                 if case .start = echo.intent, !echo.accepted, isWaitingForPhone {
                     stopWaiting(.scoringItsOwnMatch)
                 }

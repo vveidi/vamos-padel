@@ -15,9 +15,8 @@ enum MatchPayload {
             payload = fields(of: saved)
         case .intent(let intent):
             payload = fields(of: intent)
-        case .update(.match(let saved, let isPaired, let echo)):
+        case .update(.match(let saved, let echo)):
             payload = fields(of: saved)
-            payload[Key.paired] = isPaired
             if let echo { payload[Key.echo] = fields(of: echo) }
         case .update(.noMatch(let echo)):
             payload = [:]
@@ -34,10 +33,7 @@ enum MatchPayload {
         case Kind.receipt: .receipt(try savedMatch(from: payload))
         case Kind.intent: .intent(try intent(from: payload))
         case Kind.liveMatch:
-            .update(
-                .match(
-                    try savedMatch(from: payload), isPaired: try isPaired(payload),
-                    echo: try echo(in: payload)))
+            .update(.match(try savedMatch(from: payload), echo: try echo(in: payload)))
         case Kind.noMatch: .update(.noMatch(echo: try echo(in: payload)))
         case let kind:
             throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
@@ -77,8 +73,9 @@ enum MatchPayload {
             throw MatchPayloadError.unreadable(reason: "a parcel without a rally journal")
         }
 
-        // Not defaulted: a match the watch scored, read as the phone's, would
-        // come back onto the phone's court after a relaunch.
+        // Not defaulted: a match read as paired is one the remote takes over,
+        // and one the watch scored, read as the phone's, would come back onto
+        // the phone's court after a relaunch.
         guard let scoring = payload[Key.scoring] as? String,
             let scoring = MatchScoring(rawValue: scoring)
         else {
@@ -199,15 +196,6 @@ enum MatchPayload {
         return Echo(intent: try intent(from: echo), accepted: accepted)
     }
 
-    // Not defaulted: a match read as paired is a match the remote takes over.
-    private static func isPaired(_ payload: [String: Any]) throws -> Bool {
-        guard let isPaired = payload[Key.paired] as? Bool else {
-            throw MatchPayloadError.unreadable(reason: "a live match that does not say whether it is paired")
-        }
-
-        return isPaired
-    }
-
     private enum Key {
         static let kind = "kind"
         static let id = "id"
@@ -228,7 +216,6 @@ enum MatchPayload {
         static let base = "base"
         static let echo = "echo"
         static let accepted = "accepted"
-        static let paired = "paired"
     }
 
     fileprivate enum Kind {

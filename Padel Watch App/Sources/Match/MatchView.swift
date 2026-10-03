@@ -224,7 +224,7 @@ struct MatchView: View {
 
         for await update in remote.updates() {
             switch update {
-            case .match(let match, _, let echo) where match.id == saved.id:
+            case .match(let match, let echo) where match.id == saved.id:
                 let before = saved.match.journal
 
                 saved = match
@@ -292,7 +292,7 @@ private final class PreviewPhone: RemoteLink, @unchecked Sendable {
     func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) {
         self.receive = receive
 
-        receive(.match(held, isPaired: true, echo: nil))
+        receive(.match(held, echo: nil))
     }
 
     func send(_ intent: MatchIntent) throws {
@@ -300,7 +300,7 @@ private final class PreviewPhone: RemoteLink, @unchecked Sendable {
 
         let accepted = !refusesEverything && apply(intent)
 
-        receive?(.match(held, isPaired: true, echo: Echo(intent: intent, accepted: accepted)))
+        receive?(.match(held, echo: Echo(intent: intent, accepted: accepted)))
     }
 
     private func apply(_ intent: MatchIntent) -> Bool {

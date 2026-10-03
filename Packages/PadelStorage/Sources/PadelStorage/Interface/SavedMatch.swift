@@ -19,6 +19,8 @@ public struct SavedMatch: Equatable, Sendable, Identifiable {
 
     public var duration: TimeInterval { lastRallyAt.timeIntervalSince(startedAt) }
 
+    public var isPaired: Bool { scoring == .paired }
+
     public init(
         id: UUID = UUID(), match: Match, scoring: MatchScoring, startedAt: Date,
         lastRallyAt: Date? = nil

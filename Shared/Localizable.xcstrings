@@ -329,6 +329,16 @@
         }
       }
     },
+    "Done" : {
+      "localizations" : {
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готово"
+          }
+        }
+      }
+    },
     "End" : {
       "localizations" : {
         "ru" : {

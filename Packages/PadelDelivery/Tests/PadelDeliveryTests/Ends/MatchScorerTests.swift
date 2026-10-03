@@ -23,7 +23,7 @@ struct MatchScorerTests {
     func intentsAndOwnMethodsAgree() throws {
         let byHandLink = FakeScorerLink()
         let byHand = try MatchScorer(store: DatabaseMatchStore.inMemory(), link: byHandLink)
-        byHand.start(ruleset: toTwo, firstServer: .us, isPaired: true)
+        byHand.start(ruleset: toTwo, firstServer: .us, scoring: .paired)
         byHand.record(rallyWonBy: .us)
         byHand.record(rallyWonBy: .them)
 
@@ -37,7 +37,7 @@ struct MatchScorerTests {
 
     @Test("Every change is written to the store")
     func everyChangeIsWritten() throws {
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .them, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .them, scoring: .paired))
         #expect(try store.match(id: started.id)?.match == started.match)
 
         scorer.record(rallyWonBy: .us)
@@ -55,7 +55,7 @@ struct MatchScorerTests {
 
     @Test("Every change is broadcast, with no echo when the phone made it")
     func everyChangeIsBroadcast() throws {
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         scorer.record(rallyWonBy: .them)
 
         var expected = started
@@ -71,7 +71,7 @@ struct MatchScorerTests {
         let link = FakeScorerLink()
         let scorer = MatchScorer(store: FailingMatchStore(), link: link)
 
-        scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true)
+        scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired)
         scorer.apply(.rally(wonBy: .us, base: 0))
 
         #expect(echo(of: link.lastSent)?.accepted == true)
@@ -82,7 +82,7 @@ struct MatchScorerTests {
 
     @Test("An intent delivered twice records once")
     func aDuplicateIntentRecordsOnce() {
-        scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true)
+        scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired)
 
         scorer.apply(.rally(wonBy: .us, base: 0))
         scorer.apply(.rally(wonBy: .us, base: 0))
@@ -93,7 +93,7 @@ struct MatchScorerTests {
 
     @Test("A stale intent is refused and answered with the match as it stands")
     func aStaleIntentIsAnsweredWithTheTruth() throws {
-        scorer.start(ruleset: .defaultClassic, firstServer: .us, isPaired: true)
+        scorer.start(ruleset: .defaultClassic, firstServer: .us, scoring: .paired)
         scorer.record(rallyWonBy: .them)
         scorer.record(rallyWonBy: .them)
         let truth = try #require(heldMatch(of: link))
@@ -106,7 +106,7 @@ struct MatchScorerTests {
 
     @Test("An intent into a finished match is refused")
     func anIntentIntoAFinishedMatchIsRefused() {
-        scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true)
+        scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired)
         scorer.record(rallyWonBy: .us)
         scorer.record(rallyWonBy: .us)
 
@@ -129,7 +129,7 @@ struct MatchScorerTests {
 
     @Test("A match scored alone goes out as such, and is not the remote's to change")
     func aMatchScoredAloneRefusesTheRemote() throws {
-        let alone = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: false))
+        let alone = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .aloneOnPhone))
 
         for intent in [MatchIntent.rally(wonBy: .them, base: 0), .undo(base: 0), .end(base: 0)] {
             scorer.apply(intent)
@@ -166,9 +166,9 @@ struct MatchScorerTests {
 
     @Test("A start is refused while a match runs, whoever asks")
     func oneMatchAtATime() throws {
-        let running = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let running = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
 
-        #expect(scorer.start(ruleset: .defaultClassic, firstServer: .them, isPaired: true) == nil)
+        #expect(scorer.start(ruleset: .defaultClassic, firstServer: .them, scoring: .paired) == nil)
 
         scorer.apply(.start(ruleset: .defaultClassic, firstServer: .them))
 
@@ -177,9 +177,9 @@ struct MatchScorerTests {
 
     @Test("A match over, or let go, makes room for the next")
     func aStartFollowsTheEndOrTheRelease() throws {
-        scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true)
+        scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired)
         scorer.end()
-        let next = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let next = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
 
         scorer.release(next.id)
         #expect(link.lastSent == .noMatch(echo: nil))
@@ -190,7 +190,7 @@ struct MatchScorerTests {
 
     @Test("Letting go of a match the scorer no longer holds keeps the one it does")
     func aStaleReleaseKeepsTheNewMatch() throws {
-        let over = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let over = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         scorer.end()
 
         scorer.apply(.start(ruleset: toTwo, firstServer: .them))
@@ -199,13 +199,13 @@ struct MatchScorerTests {
         scorer.release(over.id)
 
         #expect(link.lastSent == started)
-        #expect(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: false) == nil)
+        #expect(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .aloneOnPhone) == nil)
     }
 
     @Test("A link that comes back is sent the match as it stands, with no echo")
     func aLinkThatComesBackIsAnswered() throws {
         link.becomeReachable(false)
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         #expect(link.sent.isEmpty)
 
         link.becomeReachable(true)
@@ -215,7 +215,7 @@ struct MatchScorerTests {
     @Test("A link that cannot be reached does not stop the match")
     func anUnreachableLinkIsNotAFailedRally() async throws {
         link.becomeReachable(false)
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         let updates = scorer.updates()
 
         scorer.record(rallyWonBy: .us)
@@ -249,7 +249,7 @@ struct MatchScorerTests {
 
     @Test("A remote scoring alone is heard, and its answer changes nothing and is not echoed")
     func aDeclineIsHeardAndNotEchoed() async throws {
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         let sentBefore = link.sent
         let declines = scorer.remoteDeclines()
 
@@ -275,7 +275,7 @@ struct MatchScorerTests {
 
     @Test("The stream starts at the update as it stands and follows every change")
     func theStreamFollowsTheMatch() async throws {
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: true))
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: .paired))
         let updates = scorer.updates()
 
         scorer.apply(.rally(wonBy: .us, base: 0))
@@ -369,11 +369,13 @@ struct MatchScorerTests {
         #expect(link.sent == [.match(left, echo: nil)])
     }
 
-    @Test("A match is started as the phone's, paired or alone", arguments: [true, false])
-    func aStartedMatchSaysHowItIsScored(isPaired: Bool) throws {
-        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, isPaired: isPaired))
+    @Test(
+        "A match is started as the phone's, paired or alone",
+        arguments: [MatchScoring.paired, .aloneOnPhone])
+    func aStartedMatchSaysHowItIsScored(scoring: MatchScoring) throws {
+        let started = try #require(scorer.start(ruleset: toTwo, firstServer: .us, scoring: scoring))
 
-        #expect(try store.match(id: started.id)?.scoring == (isPaired ? .paired : .aloneOnPhone))
+        #expect(try store.match(id: started.id)?.scoring == scoring)
     }
 
     // MARK: Reading what went out

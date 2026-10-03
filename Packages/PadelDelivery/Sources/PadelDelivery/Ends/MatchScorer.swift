@@ -60,11 +60,14 @@ public final class MatchScorer: Sendable {
         declines.stream()
     }
 
+    /// - Precondition: `scoring` is not ``MatchScoring/aloneOnWatch``.
     /// - Returns: `nil` when refused, because a match is already running.
     @discardableResult
-    public func start(ruleset: Ruleset, firstServer: Side, isPaired: Bool) -> SavedMatch? {
-        held.withLock { held in
-            guard start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: isPaired) else {
+    public func start(ruleset: Ruleset, firstServer: Side, scoring: MatchScoring) -> SavedMatch? {
+        precondition(scoring != .aloneOnWatch, "the phone does not score the watch's match")
+
+        return held.withLock { held in
+            guard start(&held, ruleset: ruleset, firstServer: firstServer, scoring: scoring) else {
                 return nil
             }
 
@@ -113,7 +116,7 @@ public final class MatchScorer: Sendable {
                 case .undo(let base) where held.answers(on: base): change(&held, .undo)
                 case .end(let base) where held.answers(on: base): change(&held, .end)
                 case .start(let ruleset, let firstServer):
-                    start(&held, ruleset: ruleset, firstServer: firstServer, isPaired: true)
+                    start(&held, ruleset: ruleset, firstServer: firstServer, scoring: .paired)
                 case .rally, .undo, .end, .scoringAlone: false
                 }
 
@@ -158,13 +161,13 @@ public final class MatchScorer: Sendable {
     // MARK: Under the lock
 
     private func start(
-        _ held: inout SavedMatch?, ruleset: Ruleset, firstServer: Side, isPaired: Bool
+        _ held: inout SavedMatch?, ruleset: Ruleset, firstServer: Side, scoring: MatchScoring
     ) -> Bool {
         guard !held.isRunning else { return false }
 
         let started = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer),
-            scoring: isPaired ? .paired : .aloneOnPhone, startedAt: .now)
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: scoring,
+            startedAt: .now)
 
         held = started
         persist(started)

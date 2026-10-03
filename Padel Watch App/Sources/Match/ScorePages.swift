@@ -29,8 +29,9 @@ struct ScorePages: View {
     /// Already confirmed by the control page when this is called.
     let onAbandon: () -> Void
 
-    /// Empty until appear, then the score: a vertical `TabView` built on a
-    /// later page leaves the crown on the first one.
+    /// Empty until the first page appears, then the score: a vertical
+    /// `TabView` built on a later page, or moved there before its first page
+    /// is laid out, leaves the crown on the first one.
     @State private var page: Page?
 
     private enum Page {
@@ -44,6 +45,7 @@ struct ScorePages: View {
             MatchControls(onAbandon: onAbandon)
                 .disabled(isPhoneUnreachable)
                 .tag(Page.controls)
+                .onAppear { if page == nil { page = .score } }
 
             ScoreView(
                 points: points,
@@ -71,9 +73,6 @@ struct ScorePages: View {
                 .tag(Page.tapMode)
         }
         .tabViewStyle(.verticalPage)
-        .onAppear {
-            page = .score
-        }
     }
 }
 

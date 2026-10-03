@@ -16,9 +16,9 @@ struct MatchRemoteTests {
 
     @Test("The stream yields exactly what arrived, and nothing of its own")
     func theStreamIsWhatArrived() async throws {
-        let first = MatchUpdate.match(.played([.us]), isPaired: true, echo: nil)
+        let first = MatchUpdate.match(.played([.us]), echo: nil)
         let rally = MatchIntent.rally(wonBy: .them, base: 1)
-        let second = MatchUpdate.match(.played([.us, .them]), isPaired: true, echo: Echo(intent: rally, accepted: true))
+        let second = MatchUpdate.match(.played([.us, .them]), echo: Echo(intent: rally, accepted: true))
         let updates = remote.updates()
 
         link.deliver(first)
@@ -34,7 +34,7 @@ struct MatchRemoteTests {
     func aLateListenerStartsAtTheLastUpdate() async {
         let last = MatchUpdate.noMatch(echo: nil)
 
-        link.deliver(.match(.played([.us]), isPaired: true, echo: nil))
+        link.deliver(.match(.played([.us]), echo: nil))
         link.deliver(last)
 
         #expect(await remote.updates().first(1) == [last])

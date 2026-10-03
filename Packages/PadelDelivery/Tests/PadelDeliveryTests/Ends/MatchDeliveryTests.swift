@@ -170,7 +170,7 @@ struct MatchDeliveryTests {
         let store = try DatabaseMatchStore.inMemory()
         let transport = FakeTransport()
 
-        var empty = SavedMatch(match: Match(ruleset: toTwo), startedAt: aMoment)
+        var empty = SavedMatch(match: Match(ruleset: toTwo), scoring: .aloneOnWatch, startedAt: aMoment)
         empty.abandon()
 
         try store.save(empty)

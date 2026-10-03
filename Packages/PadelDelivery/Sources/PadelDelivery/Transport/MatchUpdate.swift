@@ -6,14 +6,14 @@ import PadelStorage
 public enum MatchUpdate: Equatable, Sendable {
     /// A match that is not paired is the phone's alone: the remote may draw it
     /// and is refused anything it asks of it.
-    case match(SavedMatch, isPaired: Bool, echo: Echo?)
+    case match(SavedMatch, echo: Echo?)
     case noMatch(echo: Echo?)
 }
 
 extension MatchUpdate {
     /// `false` for a match that is over as well as for none.
     public var isRunning: Bool {
-        guard case .match(let saved, _, _) = self else { return false }
+        guard case .match(let saved, _) = self else { return false }
 
         return !saved.match.state.outcome.isOver
     }

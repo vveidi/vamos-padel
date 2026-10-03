@@ -35,8 +35,8 @@ struct MigrationTests {
                 sql: """
                     INSERT INTO match
                         (id, ruleset, setsToWin, goldenPoint, target, serveChangesEvery,
-                         firstServer, startedAt, lastRallyAt, abandoned)
-                    VALUES (?, 'pointsTo', NULL, NULL, 16, 4, 'them', ?, ?, 0)
+                         firstServer, startedAt, lastRallyAt, abandoned, scoring)
+                    VALUES (?, 'pointsTo', NULL, NULL, 16, 4, 'them', ?, ?, 0, 'aloneOnWatch')
                     """,
                 arguments: [id.uuidString, aMoment, aMoment.addingTimeInterval(60)])
 
@@ -86,10 +86,31 @@ struct MigrationTests {
                     sql: """
                         INSERT INTO match
                             (id, ruleset, setsToWin, goldenPoint, target, serveChangesEvery,
-                             firstServer, startedAt, lastRallyAt, abandoned)
-                        VALUES (?, 'classic', 1, 1, 16, 4, 'us', ?, ?, 0)
+                             firstServer, startedAt, lastRallyAt, abandoned, scoring)
+                        VALUES (?, 'classic', 1, 1, 16, 4, 'us', ?, ?, 0, 'aloneOnWatch')
                         """,
                     arguments: [UUID().uuidString, aMoment, aMoment])
+            }
+        }
+    }
+
+    @Test("The schema turns away a match that does not say how it was scored")
+    func theSchemaRejectsAMissingScoring() throws {
+        let queue = try DatabaseQueue()
+        try MatchDatabase.migrator.migrate(queue)
+
+        for scoring in [nil, "byTheReferee"] {
+            #expect(throws: DatabaseError.self, "\(scoring ?? "no scoring")") {
+                try queue.write { db in
+                    try db.execute(
+                        sql: """
+                            INSERT INTO match
+                                (id, ruleset, setsToWin, goldenPoint, target, serveChangesEvery,
+                                 firstServer, startedAt, lastRallyAt, abandoned, scoring)
+                            VALUES (?, 'classic', 1, 1, NULL, NULL, 'us', ?, ?, 0, ?)
+                            """,
+                        arguments: [UUID().uuidString, aMoment, aMoment, scoring])
+                }
             }
         }
     }

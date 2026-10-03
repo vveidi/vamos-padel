@@ -73,7 +73,7 @@ struct NewMatchView: View {
             refusal?.reason ?? "",
             isPresented: Binding(get: { refusal != nil }, set: { if !$0 { refusal = nil } })
         ) {
-            Button("Start on iPhone alone") { begin(paired: false) }
+            Button("Start on iPhone alone") { begin(.aloneOnPhone) }
 
             Button("Cancel", role: .cancel) {}
         }
@@ -243,7 +243,7 @@ struct NewMatchView: View {
     }
 
     private func startMatch() {
-        guard startsPairedMatch else { return begin(paired: false) }
+        guard startsPairedMatch else { return begin(.aloneOnPhone) }
 
         isRaisingTheWatch = true
 
@@ -252,7 +252,7 @@ struct NewMatchView: View {
             isRaisingTheWatch = false
 
             switch start {
-            case .started: begin(paired: true)
+            case .started: begin(.paired)
             case .healthRefused: logger.notice("no paired match: Health is refused on the phone")
             case .watchDidNotAnswer: refusal = .unreachable
             case .watchScoresAlone: refusal = .scoringItsOwnMatch
@@ -274,8 +274,8 @@ struct NewMatchView: View {
         }
     }
 
-    private func begin(paired: Bool) {
-        if scorer.start(ruleset: numbers.ruleset, firstServer: firstServer, isPaired: paired) == nil {
+    private func begin(_ scoring: MatchScoring) {
+        if scorer.start(ruleset: numbers.ruleset, firstServer: firstServer, scoring: scoring) == nil {
             logger.error("the new match was refused: another one is running")
         }
     }
@@ -530,7 +530,7 @@ private struct PreviewMatchStore: MatchStore {
 
     func save(_ match: SavedMatch) throws {}
 
-    func matchInProgress() throws -> SavedMatch? { nil }
+    func matchInProgress(scored ways: Set<MatchScoring>) throws -> SavedMatch? { nil }
 
     func match(id: UUID) throws -> SavedMatch? { nil }
 

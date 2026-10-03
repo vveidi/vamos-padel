@@ -224,7 +224,7 @@ struct MatchView: View {
 
         for await update in remote.updates() {
             switch update {
-            case .match(let match, _, let echo) where match.id == saved.id:
+            case .match(let match, let echo) where match.id == saved.id:
                 let before = saved.match.journal
 
                 saved = match
@@ -292,7 +292,7 @@ private final class PreviewPhone: RemoteLink, @unchecked Sendable {
     func onUpdate(_ receive: @escaping @Sendable (MatchUpdate) -> Void) {
         self.receive = receive
 
-        receive(.match(held, isPaired: true, echo: nil))
+        receive(.match(held, echo: nil))
     }
 
     func send(_ intent: MatchIntent) throws {
@@ -300,7 +300,7 @@ private final class PreviewPhone: RemoteLink, @unchecked Sendable {
 
         let accepted = !refusesEverything && apply(intent)
 
-        receive?(.match(held, isPaired: true, echo: Echo(intent: intent, accepted: accepted)))
+        receive?(.match(held, echo: Echo(intent: intent, accepted: accepted)))
     }
 
     private func apply(_ intent: MatchIntent) -> Bool {
@@ -320,7 +320,7 @@ private final class PreviewPhone: RemoteLink, @unchecked Sendable {
 }
 
 private func playing() -> SavedMatch {
-    var match = SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now)
+    var match = SavedMatch(match: Match(ruleset: .defaultClassic), scoring: .paired, startedAt: .now)
 
     for side in [Side.us, .us, .them, .us, .them] { match.record(rallyWonBy: side, at: .now) }
 
@@ -328,7 +328,9 @@ private func playing() -> SavedMatch {
 }
 
 private func ended() -> SavedMatch {
-    var match = SavedMatch(match: Match(ruleset: .pointsTo(target: 3, serveChangesEvery: 2)), startedAt: .now)
+    var match = SavedMatch(
+        match: Match(ruleset: .pointsTo(target: 3, serveChangesEvery: 2)), scoring: .paired,
+        startedAt: .now)
 
     for _ in 0..<3 { match.record(rallyWonBy: .us, at: .now) }
 
@@ -350,7 +352,7 @@ private func paired(
 
 #Preview("Scored alone") {
     MatchView(
-        match: SavedMatch(match: Match(ruleset: .defaultClassic), startedAt: .now),
+        match: SavedMatch(match: Match(ruleset: .defaultClassic), scoring: .aloneOnWatch, startedAt: .now),
         scoring: .alone(
             store: NoMatchStore(),
             delivery: MatchDelivery(queue: NoMatchStore(), sender: NoMatchTransport())),

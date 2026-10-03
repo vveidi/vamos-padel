@@ -15,7 +15,7 @@ struct RootView: View {
 
     /// The match the scorer holds, as first seen: the board follows it from
     /// there on its own.
-    @State private var held: Held?
+    @State private var held: SavedMatch?
 
     init(store: any MatchStore, scorer: MatchScorer, workout: WatchWorkout) {
         self.store = store
@@ -27,25 +27,24 @@ struct RootView: View {
         ZStack {
             if let held {
                 ScoreboardView(
-                    match: held.match, scorer: scorer, isPaired: held.isPaired,
-                    holdsTheWatchsWorkout: workout.holdsTheWorkout
-                ) { leave(held.match) }
-                    .id(held.match.id)
+                    match: held, scorer: scorer, holdsTheWatchsWorkout: workout.holdsTheWorkout
+                ) { leave(held) }
+                    .id(held.id)
                     .transition(.opacity)
             } else {
                 tabs
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: crossFade), value: held?.match.id)
+        .animation(.easeInOut(duration: crossFade), value: held?.id)
         .task { await follow() }
     }
 
     private func follow() async {
         for await update in scorer.updates() {
             switch update {
-            case .match(let match, let isPaired, _) where match.id != held?.match.id:
-                held = Held(match: match, isPaired: isPaired)
+            case .match(let match, _) where match.id != held?.id:
+                held = match
             case .match:
                 break
             case .noMatch:
@@ -73,11 +72,6 @@ struct RootView: View {
     private func leave(_ match: SavedMatch) {
         tab = .history
         scorer.release(match.id)
-    }
-
-    private struct Held {
-        let match: SavedMatch
-        let isPaired: Bool
     }
 
     private enum Screen {

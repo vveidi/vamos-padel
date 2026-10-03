@@ -17,7 +17,8 @@ extension SavedMatch {
         startedAt start: Date = Date(timeIntervalSinceNow: -3 * 24 * 60 * 60)
     ) -> SavedMatch {
         var saved = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: start)
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: .aloneOnPhone,
+            startedAt: start)
 
         for (played, winner) in winners.enumerated() {
             saved.record(
@@ -27,6 +28,11 @@ extension SavedMatch {
         if abandoned { saved.abandon() }
 
         return saved
+    }
+
+    var asPaired: SavedMatch {
+        SavedMatch(
+            id: id, match: match, scoring: .paired, startedAt: startedAt, lastRallyAt: lastRallyAt)
     }
 
     static func preview(classicWonBy winner: Side) -> SavedMatch {

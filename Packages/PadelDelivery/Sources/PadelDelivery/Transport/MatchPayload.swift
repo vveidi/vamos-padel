@@ -15,9 +15,8 @@ enum MatchPayload {
             payload = fields(of: saved)
         case .intent(let intent):
             payload = fields(of: intent)
-        case .update(.match(let saved, let isPaired, let echo)):
+        case .update(.match(let saved, let echo)):
             payload = fields(of: saved)
-            payload[Key.paired] = isPaired
             if let echo { payload[Key.echo] = fields(of: echo) }
         case .update(.noMatch(let echo)):
             payload = [:]
@@ -34,10 +33,7 @@ enum MatchPayload {
         case Kind.receipt: .receipt(try savedMatch(from: payload))
         case Kind.intent: .intent(try intent(from: payload))
         case Kind.liveMatch:
-            .update(
-                .match(
-                    try savedMatch(from: payload), isPaired: try isPaired(payload),
-                    echo: try echo(in: payload)))
+            .update(.match(try savedMatch(from: payload), echo: try echo(in: payload)))
         case Kind.noMatch: .update(.noMatch(echo: try echo(in: payload)))
         case let kind:
             throw MatchPayloadError.unreadable(reason: "a parcel of kind \"\(kind ?? "—")\"")
@@ -53,6 +49,7 @@ enum MatchPayload {
             Key.startedAt: saved.startedAt,
             Key.lastRallyAt: saved.lastRallyAt,
             Key.abandoned: saved.match.isAbandoned,
+            Key.scoring: saved.scoring.rawValue,
             Key.rallies: saved.match.journal.rallies.map(\.winner.rawValue),
         ]) { _, field in field }
     }
@@ -76,13 +73,23 @@ enum MatchPayload {
             throw MatchPayloadError.unreadable(reason: "a parcel without a rally journal")
         }
 
+        // Not defaulted: a match read as paired is one the remote takes over,
+        // and one the watch scored, read as the phone's, would come back onto
+        // the phone's court after a relaunch.
+        guard let scoring = payload[Key.scoring] as? String,
+            let scoring = MatchScoring(rawValue: scoring)
+        else {
+            throw MatchPayloadError.unreadable(reason: "a parcel that does not say how the match was scored")
+        }
+
         let match = Match(
             ruleset: try ruleset(from: payload),
             firstServer: try side(named: payload[Key.firstServer] as? String),
             journal: RallyJournal(try winners.map { Rally(wonBy: try side(named: $0)) }),
             isAbandoned: isAbandoned)
 
-        return SavedMatch(id: id, match: match, startedAt: startedAt, lastRallyAt: lastRallyAt)
+        return SavedMatch(
+            id: id, match: match, scoring: scoring, startedAt: startedAt, lastRallyAt: lastRallyAt)
     }
 
     private static func fields(of ruleset: Ruleset) -> [String: Any] {
@@ -189,15 +196,6 @@ enum MatchPayload {
         return Echo(intent: try intent(from: echo), accepted: accepted)
     }
 
-    // Not defaulted: a match read as paired is a match the remote takes over.
-    private static func isPaired(_ payload: [String: Any]) throws -> Bool {
-        guard let isPaired = payload[Key.paired] as? Bool else {
-            throw MatchPayloadError.unreadable(reason: "a live match that does not say whether it is paired")
-        }
-
-        return isPaired
-    }
-
     private enum Key {
         static let kind = "kind"
         static let id = "id"
@@ -210,6 +208,7 @@ enum MatchPayload {
         static let startedAt = "startedAt"
         static let lastRallyAt = "lastRallyAt"
         static let abandoned = "abandoned"
+        static let scoring = "scoring"
         static let rallies = "rallies"
 
         static let intent = "intent"
@@ -217,7 +216,6 @@ enum MatchPayload {
         static let base = "base"
         static let echo = "echo"
         static let accepted = "accepted"
-        static let paired = "paired"
     }
 
     fileprivate enum Kind {

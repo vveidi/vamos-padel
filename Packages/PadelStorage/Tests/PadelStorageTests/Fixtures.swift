@@ -16,10 +16,12 @@ extension SavedMatch {
         _ winners: [Side],
         ruleset: Ruleset = .defaultPointsTo,
         firstServer: Side = .us,
+        scoring: MatchScoring = .aloneOnWatch,
         from start: Date = aMoment
     ) -> SavedMatch {
         var saved = SavedMatch(
-            match: Match(ruleset: ruleset, firstServer: firstServer), startedAt: start)
+            match: Match(ruleset: ruleset, firstServer: firstServer), scoring: scoring,
+            startedAt: start)
 
         for (played, winner) in winners.enumerated() {
             saved.record(rallyWonBy: winner, at: start.addingTimeInterval(TimeInterval(played)))

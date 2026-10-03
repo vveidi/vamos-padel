@@ -65,7 +65,7 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
 
         session.enqueue(MatchPayload.encode(arrival))
 
-        logger.info("sent \(arrival.described)")
+        log("sent", arrival)
     }
 
     // MARK: The live link
@@ -95,7 +95,7 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
 
         session.sendNow(MatchPayload.encode(arrival))
 
-        logger.info("sent \(arrival.described)")
+        log("sent", arrival)
     }
 
     // MARK: What the session reports
@@ -136,12 +136,21 @@ final class SessionTransport: MatchSender, MatchReceiver, ScorerLink, RemoteLink
         do {
             let arrival = try MatchPayload.decode(payload)
 
-            logger.info("received \(arrival.described)")
+            log("received", arrival)
 
             return arrival
         } catch {
             logger.error("the parcel that arrived was not decoded: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    /// A live parcel goes with every rally of a paired match, so it logs at the
+    /// rally's level.
+    private func log(_ verb: String, _ arrival: Arrival) {
+        switch arrival {
+        case .match, .receipt: logger.info("\(verb) \(arrival.described)")
+        case .intent, .update: logger.debug("\(verb) \(arrival.described)")
         }
     }
 }
